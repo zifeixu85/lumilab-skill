@@ -1,0 +1,306 @@
+---
+name: lumilab-studio
+description: |
+  HTML rendering engine + interactive decision pages for venture Studio. Renders MD/YAML data layer into spatial HTML (Thariq "values reading" pattern). Generates index.html with SVG progress diagram, decisions/* interactive pages (clarify, design-direction, retro, manage), and preview/* asset previews. Supports dual mode (file:// static read + localhost:7777 interactive). Auto re-renders on data change.
+  关键词：studio / 作战室 / 项目网页 / html dashboard / svg progress / 交互页 / 渲染引擎 / dual mode / file 协议 / localhost
+version: 1.0.0-rc1
+metadata:
+  hermes:
+    tags: [studio, html, editorial, progress, venture-journal]
+  lumilab:
+    tier: utility
+    requires_browser: false
+    chat_only_ok: true
+  category: foundation
+  agent: infrastructure
+  upstream:
+    - "Thariq Shihipar: HTML effectiveness patterns"
+    - "Web Crypto / Web APIs"
+  outputs:
+    - "data/ventures/<name>/studio/index.html (作战室主页 + SVG progress)"
+    - "data/ventures/<name>/studio/decisions/02-clarify-hypotheses.html"
+    - "data/ventures/<name>/studio/decisions/04-design-direction.html (★ 旋钮 + Live Preview)"
+    - "data/ventures/<name>/studio/decisions/08-weekly-retro.html"
+    - "data/ventures/<name>/studio/preview/{landing,content-xhs,content-wechat,...}.html"
+  reads:
+    - "data/ventures/<name>/* (所有数据)"
+    - "design_direction.json (视觉 token)"
+license: Apache-2.0
+platforms: [macos, linux]
+prerequisites:
+  env_vars: []
+  commands: [bun]
+compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
+---
+
+# Studio — HTML 渲染引擎 + 交互页
+
+## 用途
+
+把 venture 的 MD/YAML 数据**渲染**成「值得读」的 HTML（Thariq 启发）。
+
+3 类输出：
+1. **index.html** — 作战室主页，永久可访问，含 SVG progress diagram
+2. **decisions/*** — 关键决策交互页（4 个 P0，5 个 P1）
+3. **preview/*** — 资产预览（landing + 5 平台内容）
+
+## 双模式
+
+| 模式 | 何时 | 实现 |
+|---|---|---|
+| **本地交互** | Setup Wizard / design-direction / clarify / retro / manage | `localhost:7777` bun HTTP server |
+| **本地只读** | 看 index / preview | `file://` 直接打开 |
+| **公网部署** | `/lumilab deploy` 后 | Cloudflare Pages + 客户端加密 + 密码门 |
+
+## 何时触发
+
+- Agent 写入 `data/ventures/<name>/` 任何文件 → auto-rerender 对应 HTML
+- 用户 `/lumilab studio [venture]` → 浏览器打开 index
+- 用户 `/lumilab design-direction` → 启动 localhost + 打开 design-direction.html
+- 用户 `/lumilab config` / `/lumilab manage` → 启动 localhost + 打开 setup/manage
+
+## 渲染引擎
+
+### 技术栈
+
+- **bun** 运行时（无框架，零依赖最小化）
+- **string template** + **YAML/JSON 解析**（js-yaml）
+- **Marked**（MD → HTML）
+- **highlight.js** 可选（代码高亮）
+
+### 入口
+
+```ts
+// scripts/render.ts
+import { renderIndex, renderDecisions, renderPreview } from './renderers';
+
+export async function renderStudio(venturePath: string) {
+  await renderIndex(venturePath);
+  await renderDecisions(venturePath);
+  await renderPreview(venturePath);
+}
+
+// Watch mode（P1）
+// 文件变化自动 rerender
+```
+
+### 模板组织
+
+```
+skills/lumilab-studio/
+├── SKILL.md
+├── templates/
+│   ├── base.html.tpl              # 公共 layout（head / nav / footer）
+│   ├── index.html.tpl             # 作战室主页
+│   ├── components/
+│   │   ├── progress-diagram.svg.tpl   # ★ 9 阶段 SVG（Thariq 加强 1）
+│   │   ├── hypothesis-card.html.tpl
+│   │   ├── hypothesis-diff.html.tpl   # ★ supersede diff（Thariq 加强 2）
+│   │   ├── metric-card.html.tpl
+│   │   ├── decision-timeline.html.tpl
+│   │   ├── task-list.html.tpl
+│   │   └── asset-cards.html.tpl
+│   ├── decisions/
+│   │   ├── 02-clarify-hypotheses.html.tpl
+│   │   ├── 04-design-direction.html.tpl   # ★ 旋钮 + Live Preview
+│   │   ├── 08-weekly-retro.html.tpl
+│   │   └── (P1 add 5 more)
+│   ├── preview/
+│   │   ├── landing.html.tpl
+│   │   ├── content-xhs.html.tpl
+│   │   ├── content-wechat.html.tpl
+│   │   └── content-{douyin,moments,x}.html.tpl
+│   ├── storytelling-explainer.html.tpl   # ★ deploy 版第一屏（Thariq 加强）
+│   └── styles/
+│       ├── tokens.css             # 来自 design_direction.json
+│       ├── studio.css             # Studio 自身样式
+│       └── components.css
+├── scripts/
+│   ├── render.ts
+│   ├── render-index.ts
+│   ├── render-decisions.ts
+│   ├── render-preview.ts
+│   ├── render-storytelling.ts
+│   ├── serve.ts                   # localhost HTTP server
+│   ├── watch.ts                   # 文件变化重渲染（P1）
+│   └── shutdown.ts
+└── references/
+    └── template-syntax.md
+```
+
+## index.html 结构
+
+详见 PRODUCT_DESIGN §5.5.1。关键区块：
+
+```
+1. Header（venture name + day count + 设置）
+2. Progress Timeline (SVG ★)
+   - 9 阶段节点（Idea / Coach / Research / Product / Build / Launch / Retro）
+   - 当前位置高亮
+   - 已完成节点可点击下钻
+3. Today's Brief（当日任务卡）
+4. Hypotheses（3-5 个 active 假设 ledger，含 diff view 触发）
+5. Live Metrics（4 个核心指标可视化）
+6. Recent Decisions Timeline（最近 5 条决策）
+7. Assets Cards（landing / content / sop / metrics 卡片）
+```
+
+### SVG Progress Diagram（Thariq 加强 1）
+
+```svg
+<svg viewBox="0 0 800 120" class="progress-diagram">
+  <!-- 9 节点 + 连线 + 当前位置 -->
+  <g class="stages">
+    <circle class="stage done" cx="50" cy="60" r="20" data-stage="idea"/>
+    <circle class="stage done" cx="140" cy="60" r="20" data-stage="coach"/>
+    <circle class="stage done" cx="230" cy="60" r="20" data-stage="research"/>
+    <circle class="stage done" cx="320" cy="60" r="20" data-stage="product"/>
+    <circle class="stage current" cx="410" cy="60" r="22" data-stage="build"/>
+    <circle class="stage pending" cx="500" cy="60" r="20" data-stage="launch"/>
+    <circle class="stage pending" cx="590" cy="60" r="20" data-stage="retro"/>
+    <!-- ... -->
+  </g>
+  <g class="labels">
+    <text x="50" y="100">Idea</text>
+    ...
+  </g>
+</svg>
+```
+
+CSS：
+- `done` → 主色填充
+- `current` → 脉冲动画 + 大一圈
+- `pending` → 灰色 outline
+- 点击 → 下钻到该阶段产物
+
+### Hypothesis Diff View（Thariq 加强 2）
+
+详见 hypothesis-ledger SKILL.md §「★ Diff View」。
+
+## decisions/04-design-direction.html（★ 关键交互页）
+
+```
+- 4 套样本卡片（Editorial / Minimalist / Brutalist / Soft），可点选
+- 3 个旋钮（VARIANCE / MOTION / DENSITY 1-10），实时调
+- 5 套品牌色，可选
+- Live Preview 区块（实时渲染 Hero block 反映当前选择）
+- 提交按钮 → POST localhost:7777/api/design-direction → 写 design_direction.json
+```
+
+Live Preview 实现：
+- 内嵌 `<iframe srcdoc="...">` 或 dynamic `<style>` 注入
+- 改旋钮 → JS 修改 CSS custom properties → Hero 区块实时变化
+
+## decisions/08-weekly-retro.html（★ 决策卡）
+
+详见 PRODUCT_DESIGN §5.5.3。3 选项卡（继续 / 调整 / 暂停归档）+ 自由输入。
+
+## preview/* 资产预览
+
+每个资产 HTML 顶部带：
+- 「Preview · Last updated {ts}」banner
+- 自检 gate 状态显示
+- 「复制 / 下载 / 部署」按钮
+- 移动端尺寸切换器（375 / 768 / 1024 / 1440）
+
+## storytelling-explainer.html.tpl（★ deploy 第一屏）
+
+详见 PRODUCT_DESIGN §10。Deploy 版的第一屏不是 dashboard，而是 storytelling：
+
+```
+- Hero：venture 一句话定位 + 一张主图
+- 痛点：用户当前的问题（来自 painpoints.md）
+- 解决方案：venture 的回应
+- 验证状态：当前实验的关键指标 + 假设状态
+- 关键产物：1-2 个最强 asset 链接
+- 「查看完整作战室」按钮 → 跳 dashboard
+```
+
+## HTTP Server（scripts/serve.ts）
+
+```ts
+import { serve } from 'bun';
+
+export function startServer(workspacePath: string, port = 7777) {
+  return serve({
+    port,
+    async fetch(req) {
+      const url = new URL(req.url);
+      
+      // POST API endpoints
+      if (req.method === 'POST') {
+        if (url.pathname === '/api/design-direction') {
+          const data = await req.json();
+          await writeDesignDirection(workspacePath, data);
+          return Response.json({ ok: true });
+        }
+        if (url.pathname === '/api/hypotheses') {
+          // ... 
+        }
+        // ...
+      }
+      
+      // GET static files
+      return serveStatic(workspacePath, url.pathname);
+    }
+  });
+}
+```
+
+端口冲突 → 7778 / 7779 / 7780 顺延。
+
+## Anti-Slop（Studio 自己也必须遵守）
+
+Studio 是 VST 给用户的第一印象。**自己长得不能像 AI 做的**。
+
+- 字体：Cabinet Grotesk / Geist Mono（不 Inter）
+- 颜色：OKLCH 中性 + 单一 accent（用户 design_direction 决定）
+- 布局：split-screen 或 zig-zag（不居中 + 3 列卡片）
+- 动画：staggered reveal + spring physics
+- 数字：用 Geist Mono 显示，monospace 排版
+
+## 跨 runtime user-input 协议
+
+```yaml
+user_input:
+  - mode: browser
+    method: "localhost:7777/* HTML POST"
+  - 自动 spawn bun process（用户不感知）
+```
+
+## 必做约束
+
+```
+✓ 数据底层 MD/YAML 不变，HTML 是呈现层
+✓ 任何 data 变化自动 rerender HTML
+✓ 双模式清晰（file:// vs localhost vs deploy）
+✓ 端口冲突自动顺延
+✓ Studio 自己过 Anti-Slop 6 条 gate
+✓ SVG progress 节点可点击下钻
+✓ Hypothesis diff view 旧/新并排 + 高亮变化
+```
+
+## 引用
+
+- 上游：见 metadata.upstream
+- 配套：所有 Skill（消费它们的输出）
+- 配套：lumilab-deploy（消费 Studio 产物）
+
+## Dependencies
+
+| 依赖 | 类型 | 是否付费 | 说明 |
+|---|---|---|---|
+| bun | CLI runtime | 免费 | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Outputs
+
+`data/ventures/<slug>/studio/index.html`（含 SVG 进度 + 假设卡 + 决策时间线）
+
+## Example
+
+`lumilab render <venture>` → 打开 file:///.../studio/index.html
+
+## Tests
+
+`tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。

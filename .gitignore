@@ -1,0 +1,29 @@
+# Workspace state (user-specific)
+data/
+.lumilab-state/
+
+# Dependencies
+node_modules/
+bun.lock
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Local secrets (never commit)
+~/.lumilab/
+.env
+.env.local
+secrets.json
+
+# Build artifacts
+_RESULT.md
+_MANAGE_RESULT.md
+
+# Local test results
+/tmp/lumilab-*

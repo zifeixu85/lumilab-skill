@@ -1,0 +1,79 @@
+{
+  "$schema": "https://agentskills.io/schema/manifest.v1.json",
+  "name": "lumilab",
+  "version": "1.0.0-rc1",
+  "displayName": "Lumi Lab",
+  "description": "中文优先的 Skills bundle — 21 个 skill + 3 个浏览器 UI + 加密 Cloudflare 部署。把模糊创业 idea 跑成可验证的市场实验。",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/zifeixu85/lumilab",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zifeixu85/lumilab.git"
+  },
+  "authors": [
+    { "name": "ameng", "email": "ameng@ameng.blog" }
+  ],
+  "keywords": [
+    "skills-bundle", "agentskills", "founder", "indie-hacker", "opc",
+    "venture-validation", "lean-startup", "feishu", "openclaw", "hermes",
+    "chinese", "small-business"
+  ],
+  "skills": [
+    { "id": "lumilab-founder-coach",     "path": "./skills/lumilab-founder-coach",     "tier": "core",    "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-hypothesis-ledger", "path": "./skills/lumilab-hypothesis-ledger", "tier": "core",    "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-landing-mvp",       "path": "./skills/lumilab-landing-mvp",       "tier": "core",    "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-content-repurpose", "path": "./skills/lumilab-content-repurpose", "tier": "core",    "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-weekly-sop-runner", "path": "./skills/lumilab-weekly-sop-runner", "tier": "core",    "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-coach-yc",          "path": "./skills/lumilab-coach-yc",          "tier": "overlay", "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-research-icp",       "path": "./skills/lumilab-research-icp",       "tier": "overlay", "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-research-competitor","path": "./skills/lumilab-research-competitor","tier": "overlay", "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-research-interview","path": "./skills/lumilab-research-interview","tier": "overlay", "requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-product-positioning","path": "./skills/lumilab-product-positioning","tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-product-pmf",        "path": "./skills/lumilab-product-pmf",        "tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-product-mvp",        "path": "./skills/lumilab-product-mvp",        "tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-copy",               "path": "./skills/lumilab-copy",               "tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-launch-strategy",    "path": "./skills/lumilab-launch-strategy",    "tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-metrics",            "path": "./skills/lumilab-metrics",            "tier": "overlay","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-playbook-cn",        "path": "./skills/lumilab-playbook-cn",        "tier": "knowledge","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-research-platforms", "path": "./skills/lumilab-research-platforms", "tier": "utility","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-studio",             "path": "./skills/lumilab-studio",             "tier": "utility","requires_browser": false, "chat_only_ok": true },
+    { "id": "lumilab-config",             "path": "./skills/lumilab-config",             "tier": "utility","requires_browser": true,  "chat_only_ok": true,  "chat_fallback": "text-wizard" },
+    { "id": "lumilab-design-direction",   "path": "./skills/lumilab-design-direction",   "tier": "utility","requires_browser": true,  "chat_only_ok": true,  "chat_fallback": "interactive-card" },
+    { "id": "lumilab-deploy",             "path": "./skills/lumilab-deploy",             "tier": "utility","requires_browser": false, "chat_only_ok": true }
+  ],
+  "compatibility": {
+    "claude-code": ">=1.0.0",
+    "openclaw":    ">=2026.4.25",
+    "hermes":      ">=0.13.0",
+    "cursor":      ">=0.45.0",
+    "codex":       ">=0.10.0",
+    "gemini-cli":  ">=0.5.0"
+  },
+  "prerequisites": {
+    "runtime": [
+      { "name": "bun", "version": ">=1.0", "required": true },
+      { "name": "node", "version": ">=20", "required": false, "note": "fallback only" },
+      { "name": "wrangler", "required": false, "note": "for `lumilab deploy`" }
+    ],
+    "env_vars": [],
+    "tool_tokens": [
+      { "name": "CLOUDFLARE_API_TOKEN", "required": false, "scope": "deploy" },
+      { "name": "EXA_API_KEY",           "required": false, "scope": "research-platforms" },
+      { "name": "TIKHUB_API_KEY",        "required": false, "scope": "research-platforms" }
+    ]
+  },
+  "install": {
+    "claude-code": "bash <(curl -fsSL https://raw.githubusercontent.com/zifeixu85/lumilab/main/install.sh)",
+    "openclaw":    "openclaw skills install lumilab",
+    "hermes":      "/skills install https://github.com/zifeixu85/lumilab"
+  },
+  "entrypoints": {
+    "cli": "./scripts/lumilab",
+    "install": "./install.sh"
+  },
+  "release": {
+    "channel": "rc",
+    "version": "1.0.0-rc1",
+    "date": "2026-05-14"
+  }
+}

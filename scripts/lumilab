@@ -1,0 +1,274 @@
+#!/usr/bin/env bun
+/**
+ * lumilab — Lumi Lab CLI entry.
+ *
+ * Routes /lumilab <command> to the right skill script.
+ *
+ * Usage:
+ *   ./lumilab new "<idea>"          - 启动新 venture
+ *   ./lumilab coach [venture]        - 进入 Founder Coach 对话
+ *   ./lumilab research [venture]     - 跑双通道调研
+ *   ./lumilab build-assets [venture] - 生成 landing + content + design
+ *   ./lumilab launch [venture]       - 生成 7 天 SOP
+ *   ./lumilab review [venture]       - 周复盘
+ *   ./lumilab studio [venture]       - 浏览器打开 Studio
+ *   ./lumilab deploy <venture>       - 部署到 Cloudflare
+ *   ./lumilab manage                 - 打开 Share Manager
+ *   ./lumilab config                 - 打开 Setup Wizard
+ *   ./lumilab render <venture>       - 重新渲染 Studio HTML
+ */
+
+import { spawn, spawnSync } from 'child_process';
+import { existsSync, readdirSync, statSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { join, resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { homedir } from 'os';
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const WORKSPACE = resolve(SCRIPT_DIR, '..');
+const SKILLS = join(WORKSPACE, 'skills');
+const VENTURES = join(WORKSPACE, 'data', 'ventures');
+const LUMILAB_HOME = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
+
+function getCurrentVenture(): string | undefined {
+  if (!existsSync(VENTURES)) return undefined;
+  const ventures = readdirSync(VENTURES).filter(name => statSync(join(VENTURES, name)).isDirectory());
+  return ventures[ventures.length - 1]; // simplistic: last created
+}
+
+// ensureLumilabHome moved below (with mode 0o700)
+
+async function cmdNew(idea: string) {
+  if (!idea) {
+    console.error('用法：lumilab new "<idea>"');
+    process.exit(1);
+  }
+  const slug = idea.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50).replace(/^-+|-+$/g, '');
+  const ventureDir = join(VENTURES, slug);
+  if (existsSync(ventureDir)) {
+    console.error(`venture 已存在：${slug}`);
+    process.exit(1);
+  }
+
+  mkdirSync(join(ventureDir, 'content'), { recursive: true });
+  mkdirSync(join(ventureDir, 'research'), { recursive: true });
+  mkdirSync(join(ventureDir, 'deploy'), { recursive: true });
+
+  const now = new Date().toISOString();
+
+  writeFileSync(join(ventureDir, 'project_brief.md'), `# ${slug}
+
+> **${idea}**
+
+## 基本信息
+
+- **创建时间**: ${now}
+- **当前阶段**: idea
+- **当前 Day**: Day 0 / 7
+
+## 一句话定位
+
+（待 Founder Coach 协助生成）
+
+## 目标用户
+
+（待 Founder Coach 协助生成）
+`);
+
+  writeFileSync(join(ventureDir, 'hypotheses.yaml'), `# hypotheses.yaml — Atomic Fact Ledger
+# 由 Founder Coach 填入 3-5 个初始假设
+`);
+
+  writeFileSync(join(ventureDir, 'decisions.yaml'), `# decisions.yaml — 决策时间线
+- id: d-001
+  decision: "Venture created"
+  rationale: "User provided initial idea"
+  by: user
+  type: mechanical
+  at: "${now}"
+  related: []
+  superseded_by: null
+`);
+
+  // Render initial empty studio
+  await cmdRender(slug);
+
+  console.log(`✓ venture 已创建：${slug}`);
+  console.log(`  路径：${ventureDir}`);
+  console.log(`  Studio：file://${ventureDir}/studio/index.html`);
+  console.log(`\n  下一步：在你的 AI 宿主里对话调用 lumilab-founder-coach`);
+}
+
+async function cmdRender(venture?: string) {
+  const v = venture || getCurrentVenture();
+  if (!v) { console.error('没有找到 venture。先创建：lumilab new "<idea>"'); process.exit(1); }
+  const ventureDir = join(VENTURES, v);
+
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'render.ts'), ventureDir], {
+    stdio: 'inherit',
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdStudio(venture?: string) {
+  const v = venture || getCurrentVenture();
+  if (!v) { console.error('No venture found.'); process.exit(1); }
+  const indexPath = join(VENTURES, v, 'studio', 'index.html');
+  if (!existsSync(indexPath)) {
+    console.log('Studio not rendered yet, rendering...');
+    await cmdRender(v);
+  }
+  console.log(`Opening: file://${indexPath}`);
+  spawnSync('open', [indexPath]);
+}
+
+async function cmdDeploy(venture: string, ...args: string[]) {
+  if (!venture) { console.error('Usage: lumilab deploy <venture>'); process.exit(1); }
+  ensureLumilabHome();
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-deploy', 'scripts', 'deploy.ts'), venture, ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdConfig() {
+  ensureLumilabHome();
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-config', 'scripts', 'wizard.ts')], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdManage() {
+  ensureLumilabHome();
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-config', 'scripts', 'manage.ts')], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdRetro(venture?: string) {
+  const v = venture || getCurrentVenture();
+  if (!v) { console.error('没有找到 venture。先创建：lumilab new "<idea>"'); process.exit(1); }
+  const ventureDir = join(VENTURES, v);
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-weekly-sop-runner', 'scripts', 'weekly-retro.ts'), ventureDir], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdSecrets(action?: string, ...args: string[]) {
+  ensureLumilabHome();
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-config', 'scripts', 'keychain.ts'), action ?? 'which', ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdResearchXhs(args: string[]) {
+  const keyword = args[0];
+  if (!keyword) { console.error('用法：lumilab research-xhs "<keyword>" [--venture <slug>] [--limit N] [--mock]'); process.exit(2); }
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-research-platforms', 'scripts', 'xhs_tikhub.ts'), ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdResearchWeb(args: string[]) {
+  const query = args[0];
+  if (!query) { console.error('用法：lumilab research-web "<query>" [--venture <slug>] [--num N] [--mock]'); process.exit(2); }
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-research-platforms', 'scripts', 'web_exa.ts'), ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdDesignDirection(venture?: string) {
+  const v = venture || getCurrentVenture();
+  if (!v) { console.error('没有找到 venture。先创建：lumilab new "<idea>"'); process.exit(1); }
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-design-direction', 'scripts', 'serve.ts'), v], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdList() {
+  if (!existsSync(VENTURES)) { console.log('No ventures yet.'); return; }
+  const ventures = readdirSync(VENTURES).filter(n => statSync(join(VENTURES, n)).isDirectory());
+  console.log(`Ventures (${ventures.length}):`);
+  for (const v of ventures) {
+    const briefPath = join(VENTURES, v, 'project_brief.md');
+    let summary = '';
+    if (existsSync(briefPath)) {
+      const m = readFileSync(briefPath, 'utf-8').match(/> \*\*(.+?)\*\*/);
+      if (m) summary = ' — ' + m[1].slice(0, 60);
+    }
+    console.log(`  · ${v}${summary}`);
+  }
+}
+
+function help() {
+  console.log(`
+Lumi Lab — Lumi Lab CLI
+
+Usage:
+  lumilab new "<idea>"               启动新 venture
+  lumilab list                       列出所有 venture
+  lumilab studio [venture]           浏览器打开 Studio
+  lumilab render [venture]           重新渲染 Studio HTML
+
+  lumilab design-direction [venture] 浏览器选设计方向（4 样本 + 3 旋钮 + Live Preview）
+  lumilab deploy <venture>           部署到 Cloudflare Pages（加密 + 密码门）
+  lumilab manage                     浏览器打开 Share Manager（看/复制/改密码/删除）
+  lumilab config                     浏览器打开 Setup Wizard（5 步配置）
+
+  lumilab retro [venture]            周复盘四桶交互页（强 / 中 / 弱 / 已迭代）
+  lumilab research-xhs "<kw>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
+  lumilab research-web  "<q>"  [...] Exa Web 搜（需 EXA_API_KEY，无 key 自动 mock）
+  lumilab secrets <action> [...]     keychain CLI: which|get|set|del|list|migrate-plaintext
+
+  lumilab help                       显示此帮助
+
+通过 Claude Code / OpenClaw 对话调用：
+  coach / clarify / research / build-assets / launch / review
+`);
+}
+
+function ensureLumilabHome() {
+  if (!existsSync(LUMILAB_HOME)) mkdirSync(LUMILAB_HOME, { recursive: true, mode: 0o700 });
+}
+
+const [, , cmd, ...args] = process.argv;
+
+switch (cmd) {
+  case 'new': await cmdNew(args.join(' ')); break;
+  case 'list': await cmdList(); break;
+  case 'render': await cmdRender(args[0]); break;
+  case 'studio': await cmdStudio(args[0]); break;
+  case 'design-direction': await cmdDesignDirection(args[0]); break;
+  case 'deploy': await cmdDeploy(args[0], ...args.slice(1)); break;
+  case 'manage': await cmdManage(); break;
+  case 'config': await cmdConfig(); break;
+  case 'retro': await cmdRetro(args[0]); break;
+  case 'research-xhs': await cmdResearchXhs(args); break;
+  case 'research-web': await cmdResearchWeb(args); break;
+  case 'secrets': await cmdSecrets(args[0], ...args.slice(1)); break;
+  case 'help':
+  case '--help':
+  case '-h':
+  case undefined:
+    help();
+    break;
+  default:
+    console.error(`Unknown command: ${cmd}`);
+    help();
+    process.exit(1);
+}

@@ -1,0 +1,193 @@
+# Changelog
+
+所有显著变化都记录在这里。版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
+
+格式：`Added` / `Changed` / `Fixed` / `Removed` / `Deprecated` / `Security`
+
+---
+
+## [0.1.0-p0] · 2026-05-13 · Phase 0 首发
+
+> **Lumi Lab 是 Skills bundle，跑在你已有的 AI 宿主里**（Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI）。宿主提供 LLM。Lumi Lab 提供 21 个 skill、3 个浏览器 UI（Setup Wizard / Share Manager / Design Direction）、加密的 Cloudflare 部署，以及 `~/.lumilab/` 本地状态目录。**不需要 LLM API key**。
+>
+> **中文界面优先**（i18n 多语言切换将在后续版本提供）。
+
+### 🎉 Highlights
+
+- **1 个 OpenClaw Lead Agent + 21 个 Skills**，把模糊想法变成可验证的市场实验
+- **Studio Mode** — 每个 venture 一个 HTML 项目作战室。Fraunces 可变衬线 + JetBrains Mono + OKLCH 暖纸色 + 牛血色重音 + SVG noise grain + 编辑磁带式 Nº 编号章节。SVG 9 阶段 progress diagram（罗马数字 + 呼吸动画）、Hypothesis 假设 ledger（含 supersede strike-through）、决策时间线（◆ / ◇ 类型符号）
+- **3 个浏览器交互 UI**
+  - **Setup Wizard**（`lumilab config`）— 5 步引导，实时 verify Anthropic / DashScope / Cloudflare / Exa token（返回具体 E_401 / E_403 / E_429 错误码）
+  - **Share Manager**（`lumilab manage`）— 列表所有部署 venture，查看 / 复制 URL / 显示密码 / 内置 QR / rotate password / 删除
+  - **Design Direction**（`lumilab design-direction`）— 4 套美学样本 + 3 旋钮（VARIANCE / MOTION / DENSITY）+ 5 OKLCH 色点 + iframe 实时 Live Preview
+- **Cloudflare Pages 一键部署 + 客户端加密 + localStorage 缓存** — AES-GCM + PBKDF2 1M 迭代，浏览器 Web Crypto API 解密。首次解密后用 localStorage 缓存（"Remember on this device" 复选框），刷新 / 新标签不再重复输密码，rotate password 自动失效缓存
+- **自指 demo** — `lumilab-meta` venture 跑通完整闭环
+
+### Added
+
+**核心架构**
+- 工作区骨架（SOUL / IDENTITY / AGENTS / TOOLS / HEARTBEAT / MEMORY / openclaw.json）
+- PARA 三层记忆（projects / areas / resources / archives）
+- 5 平台必做约束（小红书 / 公众号 / 抖音 / 朋友圈 / X）
+- 9 个产品理念（含 4.8「先让用户看到，再让 Agent 投入」+ 4.9「值得读，而不是仅可读」）
+
+**5 个自建核心 Skill**
+- `lumilab-hypothesis-ledger` — Atomic YAML facts + supersede + diff view
+- `lumilab-founder-coach` — 3 层教练（方法论 / 认知陷阱 / 心理向）
+- `lumilab-landing-mvp` — Landing 6 阶段流水线 + Anti-Slop + 6 条质量自检
+- `lumilab-content-repurpose` — 一稿改写 5 平台
+- `lumilab-weekly-sop-runner` — 7 天 blueprint + paperclip routines
+
+**3 个 P0 新增能力**
+- `lumilab-config` — Setup Wizard + Share Manager（P0 stub，P1 HTML UI）
+- `lumilab-deploy` — Cloudflare Pages + 客户端加密 + 密码门（实测可用）
+- `lumilab-research-platforms` — XHS Playwright + Web Exa 双通道
+
+**2 个工程 Skill**
+- `lumilab-studio` — HTML 渲染引擎，MD/YAML → HTML（含 SVG progress diagram）
+- `lumilab-slides` — 自指 demo 第二层，键盘导航 slides 生成器
+
+**11 个复用 overlay**
+- `lumilab-coach-yc` / `lumilab-research-{interview,icp,competitor}` / `lumilab-product-{positioning,pmf,mvp}` / `lumilab-copy` / `lumilab-launch-strategy` / `lumilab-metrics` / `lumilab-design-direction`
+
+**1 个知识 Skill**
+- `lumilab-playbook-cn` — 13 中文方法论 + 国内平台规则索引
+
+**Anti-Slop 三源合并规则**
+- 文案禁用词（17+条）
+- 视觉禁用模式（8条）
+- 代码禁用模式（10+条）
+- 6 条质量自检 gate
+
+**CLI**
+- `lumilab new / list / render / studio / slides / deploy / config / manage / help`
+
+### 中文化（Round D）
+
+- **3 个浏览器 UI** 全量中文化（Setup Wizard / Share Manager / Design Direction）
+- **Studio HTML**（venture journal）全量中文化：进度 / 假设 / 决策轨迹 / 简报、强信号 / 中信号 / 弱信号 / 已迭代、masthead 改为 `一份 venture 实验日志 · 第 N 期`
+- **加密页面**（password gate）：「这是一个加密的 Studio」/「解锁」/「在此设备上记住密码」
+- **CLI 输出**（`lumilab` 命令）的提示和错误信息中文化
+- **install.sh** 安装器中文化
+- 错误码格式保留（`E_401 · 描述`），错误描述部分翻译为中文
+- 中英 / 中数空格按 W3C 中文排版规范处理，全角中文标点
+- **专有名词不翻译**：Cloudflare / Exa / TikHub / Stripe / Resend / X / Anthropic / OpenAI / Gemini / Claude Code / OpenClaw
+
+### Known Limitations（Phase 1 补齐）
+
+- ⏳ Setup Wizard：真 keychain 加密（P0 用 plaintext + chmod 600 + 限本地 127.0.0.1）；OAuth flow；可选 provider（TikHub/Stripe/Resend/微信/X）的真 verify
+- ⏳ Share Manager：访问统计（Cloudflare Analytics API）；多密码（不同访问者不同密码）；批量操作
+- ⏳ Design Direction：5 个剩余交互页（clarify / pick-positioning / review-landing / review-content / confirm-launch / weekly-retro）
+- ⏳ XHS Playwright 实际抓取（Setup Wizard 已能配 token，但 lumilab-research-platforms 的 adapter 还没接入）
+- ⏳ Web Exa API 实际集成
+- ⏳ Stripe / Resend / PostHog 接入
+- ⏳ 多账号工作区
+- ⏳ 跨 venture portfolio 总览 + 模式抽取
+- ⏳ MCP Memory 关系图
+- ⏳ paperclip routines 真 schedule + cron
+- ⏳ playbook-en（13 英文方法论）
+- ⏳ 加密 UX：document.write() → iframe srcdoc 隔离（防 XSS）；离线攻击锁定机制
+- ⏳ **i18n 框架（en / zh-CN / zh-TW 切换）**：当前所有 UI 文案硬编码中文，多语言切换将提取到 locale 文件
+
+### 兼容性
+
+- **运行时**：bun ≥ 1.0（必需）/ node ≥ 20（fallback）
+- **部署**：wrangler CLI（Cloudflare Pages）
+- **Skill 加载**：Claude Code / OpenClaw 兼容
+
+### 致谢
+
+- **方法论参考**：YC office hours / Mom Test / Lean Startup / Sean Ellis / April Dunford / Bob Moesta / Marc Lou / Lenny / Thariq Shihipar
+- **Skill 上游**：Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · JimLiu/baoyu-skills · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research · 等
+
+---
+
+## [1.0.0-rc1] · 2026-05-14 · v1.0 候选发布
+
+> **第一个完整对外可用版本**。
+> 三种宿主三条安装路径：Claude Code / Cursor / Codex 本地 + OpenClaw ClawHub + Hermes `/skills install URL`。
+> 21 个 skill 全部带 agentskills.io v1 标准 frontmatter（含 `requires_browser` / `chat_only_ok` 自描述）。
+> 中文界面优先，i18n 留 v1.1。
+
+### Highlights
+
+- **manifest.json**（agentskills.io v1）一份顶层 manifest 描述 21 skill / 平台兼容性 / 工具依赖 / 三种安装入口
+- **三种宿主三条路径全部 ready**：`./install.sh`（本地）/ `openclaw skills install lumilab`（ClawHub）/ `/skills install https://github.com/zifeixu85/lumilab`（Hermes 飞书内一句话）
+- **10 个 overlay skill 全部 ≥ 300 行真内容**：coach-yc、copy、launch-strategy、metrics、product-{mvp,pmf,positioning}、research-{icp,competitor,interview}——含方法论核心 / 工作流程 / 真实示例 / 输出 schema / 反 Slop 自检 / Chat-only fallback 六段
+- **5 平台规则 2025–2026 增量更新**：小红书 / 公众号 / 抖音 / 朋友圈 / X 各加 2 条最新规则（限流 / 算法 / 违禁词），含发布时间 / 来源 / 影响 / 应对建议
+- **weekly-retro 交互页**（M5）：四桶填写表（强信号 / 中信号 / 弱信号 / 已迭代）+ chat 文本 fallback
+- **真 keychain 后端**（M6）：macOS Keychain / Linux secret-tool 双后端，`~/.lumilab/secrets.json` plaintext 自动迁移
+- **XHS + Exa 真集成代码骨架**（M3 / M4）：`TIKHUB_API_KEY` 配置后自动切真抓；`EXA_API_KEY` 同理；无 key 时 mock 数据 graceful fallback
+- **Chat-only UX fallback**（M14）：Setup Wizard / Share Manager / Design Direction 三个浏览器 UI 各自记录飞书 / Telegram chat 模式降级路径（interactive card / 文本编号）
+- **完整中文用户教程**（M7）`docs/TUTORIAL.zh.md` 三种宿主路径 + 飞书入门 demo + FAQ
+
+### Added
+
+**M10 · Frontmatter agentskills.io v1.0 升级（21 文件全量）**
+- `version: 1.0.0-rc1` / `license: Apache-2.0` / `platforms: [macos, linux]` / `prerequisites.commands: [bun]` / `compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, ..."`
+- `metadata.lumilab.tier`（core / overlay / utility / knowledge）
+- `metadata.lumilab.requires_browser`（false / true）
+- `metadata.lumilab.chat_only_ok`（true / false）
+- `metadata.hermes.tags`（按 skill 主题）
+
+**M11 / M12 · 顶级安装配置**
+- `manifest.json`：21 skill 完整索引 + 三宿主兼容性矩阵 + tool token 声明（**显式声明不需要 LLM API key**）
+- README install 段重写：Claude Code / OpenClaw / Hermes 三种路径独立小节，含飞书 bot 绑定命令
+
+**M3 / M4 · 真抓取代码（带 mock fallback）**
+- `skills/lumilab-research-platforms/scripts/xhs_tikhub.ts`：TikHub API（`search_notes`），输出 `research/xhs_raw.json`；错误码 `E_4XX · 描述`
+- `skills/lumilab-research-platforms/scripts/web_exa.ts`：Exa `/search` API，含 `contents.text` + `highlights`，输出 `research/web_exa.json`
+
+**M5 · weekly-retro 交互页**
+- `skills/lumilab-weekly-sop-runner/scripts/weekly-retro.ts`：bun HTTP 7779，四桶 textarea + 元信息（day / next direction / key decision），保存 YAML 到 `research/retro-<ISO>.yaml`，chat-only 模式打印结构化模板
+
+**M6 · 真 keychain bridge**
+- `skills/lumilab-config/scripts/keychain.ts`：macOS `security` + Linux `secret-tool` + plaintext fallback；`migrate-plaintext` 命令一键迁移 P0 plaintext
+
+**CLI 新增子命令**
+- `lumilab retro [venture]`
+- `lumilab research-xhs "<keyword>" [--venture] [--limit] [--mock]`
+- `lumilab research-web "<query>" [--venture] [--num] [--mock]`
+- `lumilab secrets which|get|set|del|list|migrate-plaintext`
+
+**M7 · 完整中文用户教程**
+- `docs/TUTORIAL.zh.md` 3300+ 字，含三种宿主路径 / 10 分钟 venture / 飞书入门 5 步 / 6 条 FAQ
+
+**M8 · 5 平台规则 2025–2026 更新**
+- `skills/lumilab-playbook-cn/references/platform-rules/` 5 文件全量更新
+
+### Changed
+- `VERSION` 0.1.0-p0 → 1.0.0-rc1
+- `README.md` install 段从单一 `git clone` 重写为三宿主路径
+- 10 个 overlay skill 从 49 行 stub → 平均 320 行真内容
+- 顶层 `prerequisites` 现明确声明 `env_vars: []`（不要 LLM key）
+
+### Known limitations · rc1 → final
+- M1：端到端 dogfood 安装验证（需用户在自己机器跑 install.sh + Claude Code / OpenClaw / Hermes 各自识别 skill）
+- M3 真抓取：需配置 TikHub token（mock 已通）
+- M4 真抓取：需配置 Exa API key（mock 已通）
+- M6 真 keychain：macOS / Linux 可用，Windows credential manager 留 v1.1
+- M13 飞书 e2e demo：需用户建飞书 bot 录屏
+- ClawHub 发布、Hermes TRUSTED_REPOS PR：需用户 / 维护者操作
+
+### 致谢
+方法论 / 上游 skill 致谢列表见 README.md / docs/TUTORIAL.zh.md。
+
+---
+
+## [Unreleased] · v1.1 计划
+
+详见 [`docs/PRODUCT_DESIGN.md`](docs/PRODUCT_DESIGN.md) §14。
+
+预计能力：
+- 4 个 Studio 交互页（含 design-direction 旋钮 + Live Preview）
+- 抖音 / 微博 / 知乎 / B 站搜索通道
+- Stripe Payment Intent / Resend / Loops 邮件
+- Cloudflare Analytics 部署访问统计
+- 多账号工作区
+- 跨 venture portfolio
+- MCP Memory 关系图集成
+
+---
+
+[0.1.0-p0]: https://github.com/cheche/lumilab/releases/tag/v0.1.0-p0
