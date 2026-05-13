@@ -311,3 +311,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+5 平台各自写 `content/<platform>/<slug>.md`，重跑时覆盖**单个文件**（不动其它平台），用户可以单独刷新一个平台版本。
+
+## Privacy
+
+本地文件生成；微信公众号 / X 等若用户配了 publish token 才会真上传，默认只写本地 `.md`。
+
+## Cache
+
+平台规则文件（`references/platform-rules/*.md`）按 mtime 缓存。同一篇原文重跑 5 平台改写，结果非确定性但风格一致。
+
+## Failure modes
+
+若违禁词扫描挂 → 高亮违禁词 + 给替代词建议，不直接发；若超字数（如 XHS > 38 字标题）→ 自动截取 + 标注 `[truncated]` 让用户复核。
+
+## Edge cases
+
+XHS 笔记必须 ≥ 1 张图（无图直接报错）；X 串推自动分块 ≤ 280 字符；公众号底部不自动加水印（合规要求）。
+

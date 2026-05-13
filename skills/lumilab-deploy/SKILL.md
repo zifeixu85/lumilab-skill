@@ -287,3 +287,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+同一 venture 重 deploy 覆盖 Cloudflare 远端文件；`deploy/manifest.json` 累积版本历史（含旧 URL + 旧密码）。
+
+## Privacy
+
+**端到端**：客户端 AES-GCM + PBKDF2 1M 迭代，密码不离开本机；Cloudflare 只存加密 blob；密码在 manifest 单独 chmod 600 存本地，不进远端。
+
+## Cache
+
+相同 venture 内容 hash 不变则跳过部署；密码不变则 reuse cache，加密 blob 不变。
+
+## Failure modes
+
+`E_401` Cloudflare token 失效 → 直接 abort；wrangler 缺失 → 提示 `npm i -g wrangler`；网络断 → 本地保留 `.deploy.pending` 待续传。
+
+## Edge cases
+
+venture slug 含中文 / 特殊字符自动 punycode；password rotate 同时失效 localStorage cache；删除部署同时清 shares.json 条目。
+

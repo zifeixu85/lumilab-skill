@@ -189,3 +189,24 @@ Skills 调用方式：
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+reference 库追加为主，旧框架保留并标 `last_reviewed: <date>`。
+
+## Privacy
+
+所有方法论文本来自公开资料 + 用户笔记，本地存储。
+
+## Cache
+
+13 方法论 + 5 平台规则按 mtime 缓存；agent 按需 grep 加载，不每次全读。
+
+## Failure modes
+
+若用户引用方法论 ID 不存在 → 列出最相近 3 个建议。
+
+## Edge cases
+
+中文 / 英文术语双索引；同一方法论中文 / 英文表述都能命中。
+

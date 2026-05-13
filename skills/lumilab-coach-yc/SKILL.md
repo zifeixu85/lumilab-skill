@@ -362,3 +362,24 @@ hypotheses:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`yc_drill.md` 每次重跑写新章节追加（`## Round <n>`），保留历史回答。
+
+## Privacy
+
+本地文件；YC 6 forcing questions 模板来自公开 office hours 录音整理，无版权风险。
+
+## Cache
+
+6 个 forcing questions 是常量；用户回答缓存到 markdown，下次重跑可读历史避免重复问。
+
+## Failure modes
+
+若用户回答全部 < 30 字 → 触发 follow-up "give me one concrete user"，防泛泛而谈。
+
+## Edge cases
+
+"Talk to users" 维度若回答 0 用户 → 直接判 default dead；"Be obsessed" 若 < 4 小时/周 → 警示。
+

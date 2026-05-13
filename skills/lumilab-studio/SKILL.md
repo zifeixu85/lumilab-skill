@@ -304,3 +304,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`studio/index.html` 每次重渲覆盖；hypothesis / decision 数据来自 YAML，YAML 不动 HTML 不动。
+
+## Privacy
+
+HTML 完全本地；只有用户主动 `lumilab deploy` 才上传 Cloudflare（且加密）。
+
+## Cache
+
+YAML mtime + content hash 决定是否重渲；模板（Fraunces / JetBrains Mono / SVG progress）静态化。
+
+## Failure modes
+
+YAML 解析错误 → 不破坏老 HTML，输出 `studio/index.error.html` 含诊断信息。
+
+## Edge cases
+
+hypothesis 数 > 50 时 SVG progress 自动分组；中文长标题自动换行；OKLCH 不被 sRGB 覆盖。
+

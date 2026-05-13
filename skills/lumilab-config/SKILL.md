@@ -265,3 +265,24 @@ bun run scripts/keychain.ts migrate-plaintext
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+Wizard 5 步独立可重跑；secrets `set` 覆盖同 key，`del` 删除单 key；migrate-plaintext 归档而不删主文件。
+
+## Privacy
+
+**核心承诺**：从不存 LLM API key；token 优先存 macOS Keychain / Linux secret-tool；plaintext fallback chmod 600；HTTP 服务器只绑 127.0.0.1。
+
+## Cache
+
+config / shares 按 mtime 缓存；verify 结果按 token 前 8 位 + 60 分钟 TTL 缓存（防同一会话多次 verify）。
+
+## Failure modes
+
+`E_401` token 无效 / `E_403` 缺权限 / `E_429` 限流——每种错都给具体修复链接（如 dash.cloudflare.com/profile/api-tokens）。Verify 全部命中真实 API，无 mock success。
+
+## Edge cases
+
+同一 service + account 已存在时 `set` 先 delete 再 add（防 macOS Keychain 重复条目）；plaintext 迁移失败回滚保留原文件。
+

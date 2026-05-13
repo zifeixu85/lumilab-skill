@@ -420,3 +420,24 @@ review_cadence: monthly
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`metrics.yaml` 是事件 schema，追加新事件不删除老的；schema migration 自动版本号 +1。
+
+## Privacy
+
+事件名 / 属性定义本地；真接 Amplitude / PostHog 时由用户配 token，本 skill 不直发。
+
+## Cache
+
+AARRR / Pirate Metrics 模板常量；用户事件命名规范缓存。
+
+## Failure modes
+
+vanity metric（PV / 总注册数无对照）→ 警示并建议替换为 actionable（W1 retention / activation rate）。
+
+## Edge cases
+
+cohort 切片至少 W1 / W4 / W8；vanity vs actionable 双列对照；leading vs lagging 必须标注。
+

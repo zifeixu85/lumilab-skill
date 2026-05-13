@@ -427,3 +427,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+每次调用追加新的 `coach_session_<ts>.md`，永不覆盖已有会话；`hypotheses.yaml` 通过 lumilab-hypothesis-ledger 的 supersede 机制保留历史。再跑一遍同一 idea 不会丢之前的思考，只会多出新视角。
+
+## Privacy
+
+所有对话、假设、决策只写本地 `data/ventures/<v>/`，**不上传任何外部服务**（除非用户显式调用 lumilab-deploy）。无遥测。删除一个 venture 只需 `rm -rf data/ventures/<v>/`。心理向 Layer 3 的内容尤其敏感——本 skill 从不持久化 Layer 3 的原始对话，只保留用户主动写入的复盘。
+
+## Cache
+
+本 skill 主要输出非确定性教练对话，**不适合缓存**。但读取的输入（project_brief.md / hypotheses.yaml / decisions.yaml）天然由文件 mtime 控制；agent 可基于 mtime + content hash 决定是否重新加载。一次教练会话约 8–15 轮，Layer 1 平均 4 轮可结束。
+
+## Failure modes
+
+若 `project_brief.md` 缺失 → 提示用户先 `lumilab new`；若 `hypotheses.yaml` 含格式错误的 supersede 链 → 不修复，直接报错让用户手动审核（防止误覆盖历史）；若 Layer 3 调用但用户没有失败假设 → 转 Layer 1 而不是凭空共情。
+
+## Edge cases
+
+决策疲劳判定基于 `decisions.yaml` 7 天内 ≥ 5 条；用户语义"放弃"/"不知道"/"算了"出现 ≥ 2 次自动切 Layer 3；HARD-GATE 提问每次 1 个，用户回答后才进入下一个。
+

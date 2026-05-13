@@ -342,3 +342,24 @@ ranked:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+riskiest assumption test 列表用增量写入，已验证的标 `[validated]`/`[invalidated]` 不删除。
+
+## Privacy
+
+fake door / smoke test 若上线，URL 由用户主动 lumilab-deploy 才发生。
+
+## Cache
+
+5 种 MVP 类型模板（concierge / wizard / fake-door / smoke / explainer）常量。
+
+## Failure modes
+
+若 "我们再加一个 feature" 类型回答 → 拒绝写 MVP plan，回到 riskiest assumption。
+
+## Edge cases
+
+concierge 至少 5 个真用户；fake door 转化率 < 2% 视为 invalidated；explainer 视频不计入"真用户行为"。
+

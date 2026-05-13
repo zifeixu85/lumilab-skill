@@ -338,3 +338,24 @@ assets:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`launch_plan.md` 重跑写 `launch_plan.v<n>.md`，主版本只指向最新；Day 阶段已完成的部分不重生成。
+
+## Privacy
+
+所有 launch checklist 本地存储；具体平台账号（微信 / X / PH）token 用 lumilab-config 写入 keychain，不进 launch_plan。
+
+## Cache
+
+中国式 launch 阶梯（飞书 / 微信小圈子 → 小红书 → 公众号 → 播客）模板常量。
+
+## Failure modes
+
+若 1000 true fans 还没满 100 但用户跳到 Product Hunt → 警示阶段错配。
+
+## Edge cases
+
+Marc Lou ship fast 原则与 1000 true fans 速度冲突时按 venture 类型分流：B2C 偏 ship fast，B2B 偏 1000 true fans。
+

@@ -398,3 +398,24 @@ copy_brief:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+每个 copy 元素（headline / subhead / cta）一份独立 `.md`，重跑覆盖该元素，其它不动。
+
+## Privacy
+
+Voice-of-customer 原文来自用户提供的访谈，本地保留；不向第三方 LLM 服务上传（host LLM 已是用户自己的）。
+
+## Cache
+
+VoC 短语库 `voc-bank.yaml` 累计，重跑时复用。
+
+## Failure modes
+
+禁词清单触发（赋能 / 打造 / 闭环 / 赛道 / 抓手 / 心智 / 颗粒度 等）→ 拒写 + 高亮；headline > 中文 18 字 / 英文 12 词 → 截断警告。
+
+## Edge cases
+
+4U 框架（urgent / unique / useful / ultra-specific）至少 3U 才算合格；CTA 动词必须是用户语义（"开始" / "试试" 而非 "立即体验"）。
+

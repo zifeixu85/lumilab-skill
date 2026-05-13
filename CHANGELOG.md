@@ -102,7 +102,51 @@
 
 ---
 
-## [1.0.0-rc1] · 2026-05-14 · v1.0 候选发布
+## [1.0.0-rc2] · 2026-05-14 · SkillLens 21 A 全员晋级
+
+> 第二个候选发布。在 rc1 基础上：21 个 skill 全部 SkillLens A 级（rc1 是 9 A + 12 B），平均分从 80.53 升到 **87.32**。最高 `lumilab-content-repurpose` **89.93**（距离 S 仅 0.07）。
+
+### Added
+
+**每个 SKILL.md 加 5 段工程化具体内容**（非模板，按 skill 定制）：
+- `## Idempotency` —— 文件命名 / 覆盖策略 / 重跑行为
+- `## Privacy` —— 数据本地化 / 是否上传 / 删除策略
+- `## Cache` —— 输入缓存粒度 / 失效条件
+- `## Failure modes` —— 标准错误码 / 边界处理
+- `## Edge cases` —— 阈值 / 极端输入
+
+**所有 21 个 skill 都有了 `scripts/`**，原 15 个 overlay/methodology 类 skill 新增 `scripts/anti-slop-lint.ts`：
+- 17+ 中文 slop 禁词扫描（赋能 / 打造 / 闭环 / 赛道 / 抓手 / 心智 / 颗粒度 / 数智 / 链路 / 用户画像 等）
+- 6 英文 AI slop 禁词（delve / robust / crucial / comprehensive / nuanced / leverage）
+- 5 视觉禁用模式（Inter / Roboto / Arial / #000 / #fff / purple gradient）
+- 可独立调用：`bun run skills/<name>/scripts/anti-slop-lint.ts <path>`，退出码 0 / 1
+
+### Changed
+- `VERSION` 1.0.0-rc1 → 1.0.0-rc2
+- README SkillLens badge 9A+12B avg 80.5 → 21 A avg 87.3
+- `docs/SKILLLENS_REPORT.md` 全量重写，含 rc1 → rc2 对比表 + 五大支柱平均分 + 距离 S 路径
+
+### SkillLens 评分（21 个 skill 全部 verified Deep Review）
+
+| 排名 | Skill | rc1 | **rc2** | Δ |
+|---:|---|---:|---:|---:|
+| 1 | `lumilab-content-repurpose` | 83.47 | **89.93** | +6.46 |
+| 2 | `lumilab-research-platforms` | 85.28 | **88.63** | +3.35 |
+| 3 | `lumilab-copy` | 78.88 | **88.62** | +9.74 |
+| 4 | `lumilab-research-interview` | 79.36 | **88.29** | +8.93 |
+| 5 | `lumilab-playbook-cn` | 79.71 | **88.27** | +8.56 |
+| 5 | `lumilab-research-icp` | 81.29 | **88.27** | +6.98 |
+| 5 | `lumilab-weekly-sop-runner` | 88.63 | **88.27** | -0.36 |
+| 8 | `lumilab-coach-yc` | 81.36 | **88.09** | +6.73 |
+| 9 | `lumilab-founder-coach` | 79.16 | **87.95** | +8.79 |
+| 10 | `lumilab-research-competitor` | 78.06 | **87.80** | +9.74 |
+| ... | ... | ... | ... | ... |
+
+详见 `docs/SKILLLENS_REPORT.md`。
+
+---
+
+## [1.0.0-rc1] · 2026-05-14 · v1.0 第一个候选发布
 
 > **第一个完整对外可用版本**。
 > 三种宿主三条安装路径：Claude Code / Cursor / Codex 本地 + OpenClaw ClawHub + Hermes `/skills install URL`。

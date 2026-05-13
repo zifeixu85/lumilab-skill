@@ -115,3 +115,24 @@ Bot: variance (0-100, 默认 40)?
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`design_direction.json` 每次提交覆盖；旧版本可手动归档到 `design_direction.v<n>.json`。
+
+## Privacy
+
+4 样本 HTML 完全本地；旋钮调整不发送任何分析数据。
+
+## Cache
+
+4 样本 + 3 旋钮 token 静态化；preview 渲染按 token hash 缓存。
+
+## Failure modes
+
+iframe live preview 失败时退化为静态 4 样本图片；浏览器不可用时切 interactive card / 文本编号 fallback。
+
+## Edge cases
+
+variance / motion / density 旋钮取值 0–100 各 step 10；同时关闭 motion + 高 density → 警示对比度不足。
+

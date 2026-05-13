@@ -321,3 +321,24 @@ pmf:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+PMF survey 每次跑写新一份 `pmf_survey-<ISO>.md`；`pmf_score.yaml` 是累计版本（用户提交一次加一行）。
+
+## Privacy
+
+survey 回答存本地；用户敏感信息（邮箱 / 电话）不写入主 YAML，单独存 `participants/` 子目录可单独删。
+
+## Cache
+
+40% 阈值常量；Superhuman engine 模板缓存。
+
+## Failure modes
+
+若样本 < 40 → 标记 "insufficient sample"，不给 PMF 判断；NPS 数据缺失时不补 0（区分缺失 vs 0）。
+
+## Edge cases
+
+"Very disappointed" 比例计算包含权重；用户群分 power user / regular / inactive 三档分别看比例。
+

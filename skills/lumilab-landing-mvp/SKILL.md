@@ -389,3 +389,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+同一 venture 多次跑会写到 `landing/v<n>/`（递增版本号），上一版保留，方便对比。Anti-Slop checklist 每次重跑都附在新版本里，文件不混。
+
+## Privacy
+
+HTML / 文案完全本地生成；不上传任何文案到外部 LLM 之外的服务（host LLM 已在用户自己 host 上）。Cloudflare 部署是用户主动调 lumilab-deploy 才发生。
+
+## Cache
+
+配色 / 字体 / 排版 token 来自 `design_direction.json`，hash 不变就复用上次渲染；文案文本变了才重写 HTML。
+
+## Failure modes
+
+若 `design_direction.json` 缺 → 调 lumilab-design-direction 引导；若 Anti-Slop 6 条门挂 ≥ 2 → 拒绝输出 HTML，先修文案；若字体未安装 → 退化到 system serif/mono 但保留 OKLCH。
+
+## Edge cases
+
+中文标题超过 38 字时切 H1 + 副标题；H1 等 viewport 宽度 < 360px 时自动降字号；CTA 数量 > 2 触发 Anti-Slop 警告。
+

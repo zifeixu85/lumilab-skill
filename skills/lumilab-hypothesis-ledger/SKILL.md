@@ -269,3 +269,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+YAML 追加为主：新建假设分配 `h-<n+1>`；supersede 时旧条目保留 `status: superseded` + `superseded_by: h-X`，**绝不删除**。同一 idea 重跑生成的 id 严格递增，可重放完整证据链。
+
+## Privacy
+
+纯本地 YAML 操作，零外部网络。无遥测。`evidence:` 字段允许引用 `research/*.json` 但不上传原始访谈录音。
+
+## Cache
+
+YAML 是确定性输入，按文件 mtime 缓存。Studio 渲染时读 ledger 后生成的 HTML 缓存到 `studio/index.html`，ledger 改了才重渲。
+
+## Failure modes
+
+若 supersede 指向不存在的 id → 直接报错（防孤儿）；若 confidence 非 0–100 → 拒写；若同时存在 active + superseded 同 id → 报 conflict。
+
+## Edge cases
+
+supersede 不能链式回环（A→B→A 检测拒绝）；evidence 数组要求 ≥ 1 条非空字符串；conf < 30 的假设在 Studio 渲染为虚化样式提示用户。
+

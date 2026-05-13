@@ -360,3 +360,24 @@ Saturation 报告也用对话纯文本输出，附原话引用列表，不画图
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+每个访谈对象一个 `interviews/<participant-id>.md`，永不覆盖；同一对象第二次访谈写到 `interviews/<id>-v2.md`。
+
+## Privacy
+
+访谈对象姓名 / 联系方式由用户决定是否写入；模板默认用 `participant-001` 匿名 ID；录音不上传。
+
+## Cache
+
+8 反模式清单 + Mom Test 三原则常量化到 `references/`。
+
+## Failure modes
+
+若访谈内容 < 200 字 → 警示信息不足；若 8 反模式触发 > 2 → 让用户重做该访谈。
+
+## Edge cases
+
+5 layers of why 至少 3 层；compliments / hypotheticals / generic future 等反模式自动标红高亮。
+

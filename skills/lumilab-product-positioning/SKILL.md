@@ -326,3 +326,24 @@ VST 在 chat 里走 6 题 HARD-GATE。每题用编号选项让用户回 "Q1: 2,3
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`positioning.md` 重跑写到 `positioning.v<n>.md`；April Dunford 5 步每次都写完整一遍，方便对比。
+
+## Privacy
+
+本地文件，无外部依赖。
+
+## Cache
+
+5 步模板常量；竞品列表读 `competitor.md`，同一 mtime 直接复用。
+
+## Failure modes
+
+若 unique attributes 列出 < 2 → 提示再深挖；market category 与 alternatives 矛盾 → 警告。
+
+## Edge cases
+
+反 "better X" 检测：positioning statement 含 "the only" / "the first" 才通过；"who cares a lot" 必须是具体 segment。
+

@@ -313,3 +313,24 @@ positioning:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`competitor.md` 表格追加新行，旧行保留并标 `last_checked: <date>`。
+
+## Privacy
+
+只读公开信息（产品页 / 定价页），不爬取内部数据；引用统一标 URL + 访问日期。
+
+## Cache
+
+竞品页面快照按 URL hash 缓存到 `research/competitor-snapshots/`，30 天复用一次。
+
+## Failure modes
+
+若用户列 < 3 个 alternatives → 提示考虑 "alternatives to nothing"；feature matrix 不超过 8 行（防过度比较）。
+
+## Edge cases
+
+Christensen disruption 分类需用户主动指认（不自动判断）；forced-choice 类竞品需注明触发场景。
+

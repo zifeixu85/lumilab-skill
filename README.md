@@ -4,11 +4,11 @@
 
 **Lumi Lab** is a 21-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Drop it into your AI host's skills directory and it turns a fuzzy idea into shippable, testable, decision-traceable artifacts — landing page, multi-platform content, hypothesis ledger, growth SOP, deployable Studio page.
 
-[![Version](https://img.shields.io/badge/version-1.0.0--rc1-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0--rc2-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-9_A_+_12_B_·_avg_80.5_·_verified-success)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-21_A_·_avg_87.3_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 

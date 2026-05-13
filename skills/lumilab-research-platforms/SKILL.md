@@ -308,3 +308,24 @@ user_input:
 ## Tests
 
 `tests/smoke.md` — 该 skill 的最小冒烟测试约定：让 host LLM 在对话中跑通 SKILL.md「真实示例」段即视为通过。E2E 真集成见 `docs/TUTORIAL.zh.md`。
+
+## Idempotency
+
+`research/xhs_raw.json` / `web_exa.json` 每次覆盖最新（按 keyword + ISO 时间戳备份到 `research/history/`）。
+
+## Privacy
+
+XHS / Exa 抓回数据本地存储；TikHub / Exa API key 走 keychain，不入仓库。爬取频率受 TikHub / Exa 配额限制，自动节流。
+
+## Cache
+
+同一 keyword 24h 内复用上次 raw json（除非 `--force`）。
+
+## Failure modes
+
+`E_401` 立即停止并提示 token 失效；`E_429` 等待 + 指数退避；无网络回退 mock 并标 `source: mock`。
+
+## Edge cases
+
+mock 数据明确标记 `notice` 字段，下游 skill 可识别；真假数据 schema 严格一致，下游 0 改动。
+
