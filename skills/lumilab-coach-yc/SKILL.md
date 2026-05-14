@@ -3,7 +3,7 @@ name: lumilab-coach-yc
 description: |
   YC office-hours 6 forcing questions + Paul Graham heuristics + Lean Startup loop. 把一个模糊 idea 逼成一句话 + 一群人 + 一个钩子 + 一个验证动作。Use when 用户说"我有个 idea"、"我想做个 SaaS"、"帮我看看这个产品方向"，或在 founder-coach Layer 1 路由到方法论教练时被调用。
   关键词：coach-yc / YC application / Paul Graham / 6 forcing questions / schlep blindness / default alive / make something people want / 一句话产品定位 / 创业 idea 澄清
-version: 1.3.0
+version: 1.4.0
 metadata:
   hermes:
     tags: [yc, office-hours, paul-graham, forcing-questions]

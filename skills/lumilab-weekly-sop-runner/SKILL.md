@@ -3,7 +3,7 @@ name: lumilab-weekly-sop-runner
 description: |
   7-day standard operating procedure (SOP) generator for venture validation experiments. Generates Day 0-7 blueprint with self-contained cold-start brief per day, content publishing calendar, data collection table, decision thresholds. Registers paperclip routines (P0 structure only, P1 enables actual cron). Use when user types /lumilab launch or /lumilab sop, after content is generated.
   关键词：7 天 SOP / 增长实验 / launch plan / 冷启动 / cron / blueprint / 发布日历 / 数据回收 / 决策阈值 / paperclip routines / OKR / Pirate metrics
-version: 1.3.0
+version: 1.4.0
 metadata:
   hermes:
     tags: [sop, growth, 7-day, retro]

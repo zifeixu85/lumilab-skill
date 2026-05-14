@@ -3,7 +3,7 @@ name: lumilab-copy
 description: |
   文案不是写出来的，是从用户原话里挖出来的。基于 Joanna Wiebe Copy Hackers VoC mining + Eugene Schwartz 5 awareness stages + 经典 headline 框架（4U / PAS / AIDA / BAB）+ 中文小红书/公众号 hook patterns。强制反 Slop 用词清单（禁"赋能/打造/赛道/闭环/心智/抓手"等）。Use when 用户要写 landing hero、邮件主题、小红书标题、公众号开头、cold outreach 第一句、广告短文案。
   关键词：copy / 文案 / VoC / voice of customer / 5 awareness stages / Joanna Wiebe / Eugene Schwartz / Schwartz / Wiebe / headline / hook / 标题 / 反 Slop
-version: 1.3.0
+version: 1.4.0
 metadata:
   hermes:
     tags: [copywriting, eugene-schwartz, voice-of-customer, 4u, pas, aida]

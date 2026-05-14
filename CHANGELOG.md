@@ -102,6 +102,31 @@
 
 ---
 
+## [1.4.0] · 2026-05-14 · 新增门面 skill `lumilab-home`
+
+> 实测反馈：装完没有明显入口、首次没触发引导、没有 home/dashboard。这版补上「门面」。
+
+### Added
+
+**新 skill `lumilab-home`（第 24 个，bundle 门面 / 入口）**
+- 触发词：「打开 lumilab」「lumilab home」「lumilab dashboard」「开始用 lumilab」「然后呢」
+- **首次使用**（`~/.lumilab/config.json` 无 `onboarded`）→ 自动引导：本地开 `lumilab config` 浏览器引导页，chat 环境走 `wizard.ts --chat-onboard`
+- **回访** → 渲染 **home dashboard** HTML：9 个工具 ✓/— 状态、所有 venture + 各自 5 阶段流水线进度条、基于状态的下一步建议
+- `scripts/home.ts`：`status`（确定性 JSON）+ `render`（生成 `data/_home/home.html`）；配 `validate-output.ts` + `anti-slop-lint.ts`
+- dashboard 美学与 Studio / 市场报告同族（Fraunces + JetBrains Mono + OKLCH 暖纸色 + SVG grain），响应式
+
+**CLI 门面入口**
+- `lumilab home` 命令；裸 `lumilab`（无参数）现在走门面而非 help —— 首次引导 / 否则 home dashboard
+- `install.sh` 把 CLI launcher 复制到稳定位置 `~/.lumilab/bin/lumilab`（不再依赖 repo 目录，解决「repo 在 /tmp 被清理 CLI 就没了」）
+- `install.sh` 结尾改成明确的入口提示：「在 AI 宿主里说『打开 lumilab』」
+
+### Changed
+- `VERSION` 1.3.2 → 1.4.0；manifest 24 skills + `default_entry: lumilab-home`
+- 根 `SKILL.md` skill_count 23 → 24，default_entry → lumilab-home
+- README 中英双版：skill 数 → 24、新增「门面 / 入口」层、install 段加「打开 lumilab」入口说明
+
+---
+
 ## [1.3.2] · 2026-05-14 · 清理旧项目名 + bundle 入口 SKILL.md
 
 ### Changed

@@ -12,7 +12,7 @@ description: |
   Use when user types /lumilab config, /lumilab manage, or on first /lumilab init.
 
   关键词：setup wizard / config / 配置 / tool token / cloudflare / exa / share management / 分享管理 / secrets / 密钥管理 / venture 密码
-version: 1.3.2
+version: 1.4.0
 status: P0-ready
 metadata:
   hermes:

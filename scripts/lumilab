@@ -173,6 +173,25 @@ async function cmdDeploy(venture: string, ...args: string[]) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+async function cmdHome() {
+  ensureLumilabHome();
+  // 未引导过 → 直接拉起首次引导页；引导过 → 渲染 dashboard
+  const onboarded = isOnboarded();
+  if (!onboarded) {
+    console.log('  👋 第一次用 Lumi Lab —— 先走一遍首次引导（选界面风格 / 可选工具 token）');
+    const wiz = spawnSync('bun', ['run', join(SKILLS, 'lumilab-config', 'scripts', 'wizard.ts')], {
+      stdio: 'inherit',
+      env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+    });
+    if (wiz.status !== 0) process.exit(wiz.status ?? 1);
+  }
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-home', 'scripts', 'home.ts'), 'render'], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
 async function cmdConfig() {
   ensureLumilabHome();
   const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-config', 'scripts', 'wizard.ts')], {
@@ -261,7 +280,9 @@ function help() {
 Lumi Lab — Lumi Lab CLI
 
 Usage:
-  lumilab idea "<一句话想法>"        ★ 默认入口：一句话 idea → 自动分析 → 方向 → landing
+  lumilab                            ★ 门面：首次→引导，回访→home dashboard
+  lumilab home                       同上 —— 看总览（已配工具 / venture 进度 / 下一步）
+  lumilab idea "<一句话想法>"        默认流程：一句话 idea → 自动分析 → 方向 → 验证页
   lumilab new "<idea>"               只建 venture 目录（手动流程）
   lumilab list                       列出所有 venture
   lumilab studio [venture]           浏览器打开 Studio
@@ -270,7 +291,7 @@ Usage:
   lumilab design-direction [venture] 浏览器选设计方向（4 样本 + 3 旋钮 + Live Preview）
   lumilab deploy <venture>           部署到 Cloudflare Pages（加密 + 密码门）
   lumilab manage                     浏览器打开 Share Manager（看/复制/改密码/删除）
-  lumilab config                     浏览器打开 Setup Wizard（5 步配置）
+  lumilab config                     浏览器打开 6 步首次引导页 / Setup Wizard
 
   lumilab retro [venture]            周复盘四桶交互页（强 / 中 / 弱 / 已迭代）
   lumilab research-xhs "<kw>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
@@ -291,6 +312,7 @@ function ensureLumilabHome() {
 const [, , cmd, ...args] = process.argv;
 
 switch (cmd) {
+  case 'home': await cmdHome(); break;
   case 'idea': await cmdIdea(args.join(' ')); break;
   case 'new': await cmdNew(args.join(' ')); break;
   case 'list': await cmdList(); break;
@@ -307,8 +329,11 @@ switch (cmd) {
   case 'help':
   case '--help':
   case '-h':
-  case undefined:
     help();
+    break;
+  case undefined:
+    // 裸 `lumilab` → 门面（首次引导 / home dashboard）
+    await cmdHome();
     break;
   default:
     console.error(`Unknown command: ${cmd}`);

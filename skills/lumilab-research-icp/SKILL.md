@@ -3,7 +3,7 @@ name: lumilab-research-icp
 description: |
   Ideal Customer Profile 精准建模。Bob Moesta JTBD switch interview + Sean Ellis 40% PMF survey + April Dunford segment-of-one。把"目标用户"逼成"一个具体的人 + 一个具体的挣扎瞬间 + 一个具体的替代品"。Use when 用户说"我的用户是 X"但 X 太宽（开发者/中小企业/年轻人/创业者），或在做 landing / copy / cold outreach 前需要锁定第一波打谁。
   关键词：ICP / ideal customer profile / 精准用户 / JTBD / Jobs to be Done / switch interview / struggling moment / Sean Ellis 40% / 必备问题 / 反"所有人"
-version: 1.3.0
+version: 1.4.0
 metadata:
   hermes:
     tags: [icp, jtbd, segment, customer-profile]

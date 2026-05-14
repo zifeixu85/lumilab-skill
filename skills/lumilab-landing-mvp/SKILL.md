@@ -3,7 +3,7 @@ name: lumilab-landing-mvp
 description: |
   Fake-door validation page generator for C-end venture ideas. The landing is NOT a marketing page — it is a validation instrument that measures real purchase intent: a real, visible buy-style CTA → fake-door modal → email capture, with lightweight conversion tracking (cta_click / email_submit). Generates semantic HTML5 + standalone styles.css + inline tracking JS + validation_setup.md. Enforces 6-phase non-skippable pipeline (Research → Content Extraction → Image Catalog → Build → Verify → Deploy-ready). Anti-Slop banned words + banned visual patterns + 8-rule quality gate (incl. fake-door gate + SEO/GEO gate). Output reflects design_direction.json. Use when user types /lumilab build-assets or /lumilab landing, after design-direction page submitted.
   关键词：fake-door / 验证页 / 假门 / 购买意愿 / landing page / 落地页 / 邮件收集 / 立即购买 / CTA / 转化追踪 / cta_click / 价值主张 / Anti-Slop / editorial / brutalist
-version: 1.3.0
+version: 1.4.0
 metadata:
   hermes:
     tags: [landing-page, anti-slop, copywriting]

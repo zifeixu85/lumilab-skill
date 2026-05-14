@@ -116,33 +116,43 @@ else
 fi
 echo "✓ skills 已复制到 $TARGET_DIR"
 
-# 提示 CLI 入口位置
+# 把 CLI launcher 复制到稳定位置，不依赖 repo 目录（repo 可能在 /tmp 被清理）
 LAUNCHER="$SCRIPT_DIR/scripts/lumilab"
-if [[ -x "$LAUNCHER" ]]; then
-  echo
-  echo "  CLI 位置：$LAUNCHER"
-  echo "  在任意目录使用，可创建符号链接到 PATH："
-  echo "      ln -sf \"$LAUNCHER\" /usr/local/bin/lumilab"
+STABLE_BIN="${HOME}/.lumilab/bin"
+STABLE_LAUNCHER="$STABLE_BIN/lumilab"
+if [[ -f "$LAUNCHER" ]]; then
+  mkdir -p "$STABLE_BIN"
+  cp "$LAUNCHER" "$STABLE_LAUNCHER"
+  chmod +x "$STABLE_LAUNCHER"
+  # CLI 用已安装的 skills 目录做 workspace，不再依赖 repo
+  echo "export LUMILAB_WORKSPACE=\"${TARGET_DIR%/skills}\"" > "$STABLE_BIN/.lumilab-env"
 fi
 
 # 状态目录
 mkdir -p "${HOME}/.lumilab"
 chmod 700 "${HOME}/.lumilab" 2>/dev/null || true
 echo "✓ 状态目录就绪：~/.lumilab/"
+[[ -f "$STABLE_LAUNCHER" ]] && echo "✓ CLI 已装到稳定位置：$STABLE_LAUNCHER"
 
 echo
 echo "──────────────────────────────────────────────"
-echo "  ✓ Lumi Lab 安装完成。"
+echo "  ✓ Lumi Lab 安装完成 · 23+ skill 已就位"
+echo "──────────────────────────────────────────────"
 echo
-echo "  下一步："
-echo "    1) 配置（可选）："
-echo "         $LAUNCHER config"
-echo "    2) 看自指 demo："
-echo "         $LAUNCHER list"
-echo "         $LAUNCHER studio lumilab-meta"
-echo "    3) 新建你自己的 venture（然后回到你的 AI 宿主里用）："
-echo "         $LAUNCHER new \"你的想法\""
+echo "  ▶ 入口（推荐）：在你的 AI 宿主里直接说一句"
+echo "      「打开 lumilab」              → 首次会引导你配置，之后看 home dashboard"
+echo "      「用 lumilab 验证这个想法：<你的一句话 idea>」  → 直接跑验证流水线"
 echo
-echo "  在 Claude Code / OpenClaw / Cursor 中，对话式调用 skill："
-echo "    「用 lumilab-founder-coach 第 1 层（方法论模式）帮我澄清这个 idea」"
+echo "  ▶ 或用 CLI："
+if [[ -f "$STABLE_LAUNCHER" ]]; then
+echo "      $STABLE_LAUNCHER            # 门面：首次引导 / home dashboard"
+echo "      $STABLE_LAUNCHER idea \"你的想法\""
+echo "    把它加进 PATH 更顺手："
+echo "      ln -sf \"$STABLE_LAUNCHER\" /usr/local/bin/lumilab"
+else
+echo "      $LAUNCHER"
+fi
+echo
+echo "  首次建议先跑一遍引导（选界面风格 / 可选工具 token，全部可跳过）："
+echo "    说「打开 lumilab」，或 CLI 跑 \`lumilab config\`"
 echo "──────────────────────────────────────────────"

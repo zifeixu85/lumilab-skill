@@ -6,9 +6,9 @@
 
 **Lumi Lab** 是一套 22 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-[![版本](https://img.shields.io/badge/version-1.3.2-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.4.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-23-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-24-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
@@ -171,15 +171,14 @@ openclaw channels login --channel feishu
 
 Hermes 会 quarantine → `skills_guard` 静态扫描 → 写入 `~/.hermes/skills/lumilab/`。之后 `@bot 帮我用 lumilab 走一遍这个 idea` 即可调用。
 
-### 首次引导（一次性，2 分钟）
+### 入口：「打开 lumilab」
 
-```bash
-lumilab config
-```
+装完不知道从哪开始？**在你的 AI 宿主里说一句「打开 lumilab」** —— 触发 `lumilab-home` 门面 skill：
 
-打开一个 **6 步首次引导页**：产品玩法引导 → 选界面风格 → 身份 → 偏好 → 工具 token → 完成。工具 token **全部可跳过**——基础 skill 不需要任何外部 token。
+- **首次** → 自动引导你走 **6 步首次引导页**（产品玩法 → 选界面风格 → 身份 → 偏好 → 工具 token → 完成）。工具 token **全部可跳过**。
+- **回访** → 渲染 **home dashboard**：已配工具 ✓/—、所有 venture 及各自流水线进度、建议的下一步。
 
-飞书等 chat 环境：让宿主 agent 跑 `wizard.ts --chat-onboard`，文本版走一遍同样的引导。
+CLI 等价：`lumilab`（裸命令）或 `lumilab home`。飞书等 chat 环境的引导走 `wizard.ts --chat-onboard` 文本版。
 
 ### 试试 demo
 
@@ -242,7 +241,8 @@ lumilab help                          显示帮助
 
 | 层 | 数量 | Skills |
 |---|---|---|
-| **Orchestrator（默认入口）** | 1 | **idea-to-landing**（一句话 idea → 分析 → 方向 → landing 全自动流水线） |
+| **门面 / 入口** | 1 | **lumilab-home**（首次引导 + home dashboard：工具状态 / venture 进度 / 下一步） |
+| **Orchestrator** | 1 | **idea-to-landing**（一句话 idea → 分析 → 方向 → 验证页 全自动流水线） |
 | **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp（含 SEO/GEO）、content-repurpose、weekly-sop-runner |
 | **基础设施** | 3 | config（Setup Wizard + Share Manager + chat-mode）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
 | **渲染** | 1 | studio（Studio HTML + 市场分析报告 HTML） |
