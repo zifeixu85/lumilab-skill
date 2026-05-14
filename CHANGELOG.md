@@ -102,6 +102,21 @@
 
 ---
 
+## [1.4.1] · 2026-05-14 · 修复 venture / home 数据落点 bug
+
+### Fixed
+- **系统性路径 bug**：所有脚本用 `LUMILAB_WORKSPACE ?? process.cwd()` 定位 `data/ventures/`。skill 被宿主对话式调用时没有 `LUMILAB_WORKSPACE`、cwd 又是 skill 目录 → 数据写进了 `~/.claude/skills/<skill>/data/` 里。
+- **修复**：venture / home 数据**永远**在 `~/.lumilab/data/`（`LUMILAB_HOME` 下，稳定共享目录），跟 cwd / 谁调用无关。改了 7 个脚本：`home.ts` / `orchestrate.ts` / `web_exa.ts` / `xhs_tikhub.ts`（research-platforms）/ `research.ts`（research-keywords）/ `manage.ts` / `deploy.ts`
+- **CLI**：`VENTURES` 改到 `~/.lumilab/data/ventures/`；`SKILLS` 目录自动探测（repo 内 → `repo/skills`；装到 `~/.lumilab/bin/` 跑 → `~/.claude/skills`）；不再向子进程传 `LUMILAB_WORKSPACE`
+- `install.sh` 去掉无用的 `.lumilab-env`（CLI 现在自动探测）
+- 验证：从任意 cwd 跑 `home.ts render` / `orchestrate.ts init`，数据都正确落在 `LUMILAB_HOME/data/`，不再泄漏到 cwd 或 skill 目录
+
+### Changed
+- `VERSION` 1.4.0 → 1.4.1；24 个 SKILL.md frontmatter 同步
+- `lumilab-home` / `lumilab-idea-to-landing` SKILL.md 里的路径说明统一为 `~/.lumilab/data/...`
+
+---
+
 ## [1.4.0] · 2026-05-14 · 新增门面 skill `lumilab-home`
 
 > 实测反馈：装完没有明显入口、首次没触发引导、没有 home/dashboard。这版补上「门面」。

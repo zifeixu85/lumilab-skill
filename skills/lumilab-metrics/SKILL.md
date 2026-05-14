@@ -3,7 +3,7 @@ name: lumilab-metrics
 description: |
   AARRR Pirate Metrics + Sean Ellis North Star + leading vs lagging + Amplitude/PostHog event schema. Cohort retention curve reading. Lumi-Lab overlay with Chinese-first event naming and Anti-Slop for vanity metrics. Use when the user asks which metrics to track, can't tell if a product is healthy from GA data, needs an event schema before MVP launch, or wants to read a cohort retention curve.
   关键词：metrics / AARRR / 海盗指标 / north star / leading / lagging / vanity / retention curve / event schema / PostHog / Amplitude
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [aarrr, north-star, retention, amplitude, posthog]

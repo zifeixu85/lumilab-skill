@@ -3,7 +3,7 @@ name: lumilab-research-keywords
 description: |
   Quantitative search-demand validation for venture ideas. Given the product keywords behind an idea, reverse-searches Google search demand: search volume, CPC, competition, keyword difficulty, 12-month trend, related + long-tail + "People Also Search For" expansion. Scores each keyword direction as Blue Ocean / Red Ocean / Differentiation Opportunity. Pluggable provider layer — default DataForSEO (pay-as-you-go), optional Keywords Everywhere. SERP competition depth filled via lumi-lab's existing Playwright / Exa. Feeds hypothesis-ledger as demand evidence and research-platforms cross-platform synthesis. Use when user types /lumilab keywords or asks for search volume / keyword difficulty / 红蓝海 / 关键词热度 / SEO 需求.
   关键词：关键词调研 / keyword research / 搜索量 / search volume / 关键词难度 / keyword difficulty / 长尾词 / long-tail / 趋势 / trend / 红海蓝海 / blue ocean / red ocean / 差异化机会 / SEO 需求验证 / DataForSEO / Keywords Everywhere
-version: 1.4.0
+version: 1.4.1
 status: P0-ready
 metadata:
   hermes:

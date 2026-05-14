@@ -16,7 +16,10 @@ import { homedir } from 'os';
 import QRCode from 'qrcode-svg';
 
 const LUMILAB_HOME = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
-const WORKSPACE = process.env.LUMILAB_WORKSPACE ?? resolve(__dirname, '../../..');
+// venture 数据永远在 ~/.lumilab/data/，跟 cwd / 谁调用无关。
+const DATA_ROOT = join(LUMILAB_HOME, 'data');
+// 兄弟 skill 脚本按 __dirname 相对定位（skills/ 下平铺，不依赖 repo 位置）。
+const SKILLS_ROOT = resolve(__dirname, '../..');
 const SHARES_PATH = join(LUMILAB_HOME, 'shares.json');
 const SECRETS_PATH = join(LUMILAB_HOME, 'secrets.json');
 
@@ -94,7 +97,7 @@ function setVenturePassword(venture: string, password: string): void {
 }
 
 function loadVentureDisplayName(venture: string): string {
-  const briefPath = join(WORKSPACE, 'data', 'ventures', venture, 'project_brief.md');
+  const briefPath = join(DATA_ROOT, "ventures", venture, "project_brief.md");
   if (existsSync(briefPath)) {
     const text = readFileSync(briefPath, 'utf-8');
     const headingMatch = text.match(/^\s*#\s+(.+)$/m);
@@ -114,11 +117,11 @@ interface DeployResult {
 }
 
 function runDeploy(venture: string, options: { public?: boolean } = {}): DeployResult {
-  const deployScript = join(WORKSPACE, 'skills', 'lumilab-deploy', 'scripts', 'deploy.ts');
+  const deployScript = join(SKILLS_ROOT, "lumilab-deploy", "scripts", "deploy.ts");
   const args = [deployScript, venture];
   if (options.public) args.push('--public');
   const r = spawnSync('bun', ['run', ...args], {
-    cwd: WORKSPACE,
+    cwd: LUMILAB_HOME,
     encoding: 'utf-8',
   });
   return {
@@ -136,7 +139,7 @@ function runWranglerDelete(projectName: string): DeployResult {
   const r = spawnSync(
     'npx',
     ['--yes', 'wrangler', 'pages', 'project', 'delete', projectName, '--yes'],
-    { cwd: WORKSPACE, encoding: 'utf-8', env },
+    { cwd: LUMILAB_HOME, encoding: 'utf-8', env },
   );
   return {
     ok: r.status === 0,

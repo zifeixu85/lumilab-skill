@@ -3,7 +3,7 @@ name: lumilab-product-mvp
 description: |
   MVP = riskiest-assumption test, not minimum viable feature. Marty Cagan + Eric Ries lineage. Concierge / Wizard-of-Oz / fake door / smoke test / explainer video patterns. Lumi-Lab Chinese overlay with platform-aware fake-door scripts. Use when the user says they are about to write code / build an MVP, lists 10+ features for v1, or asks how to design a concierge or fake-door test.
   关键词：MVP / riskiest assumption / 最小可行产品 / 最高风险假设 / concierge / Wizard of Oz / fake door / smoke test / explainer video / 假门测试 / 烟雾测试
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [mvp, marty-cagan, riskiest-assumption, concierge, wizard-of-oz]

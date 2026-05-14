@@ -3,7 +3,7 @@ name: lumilab-content-repurpose
 description: |
   Multi-platform content repurposing for venture validation. Takes one source content (idea, story, insight) and generates 5 platform-specific versions following each platform's hard constraints. Deep support for 小红书 / 微信公众号 / X. Template-based for 抖音 / 朋友圈 (Phase 0 lighter, Phase 1 enrich). Reads platform rules from memory/resources/platform-rules/. Use when user types /lumilab content or /lumilab build-assets.
   关键词：多平台内容 / 一稿七发 / 跨平台改写 / 内容矩阵 / 小红书 / 公众号 / 抖音 / 朋友圈 / X / 内容工厂 / 自媒体
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [content, xiaohongshu, wechat, douyin, x, repurpose]

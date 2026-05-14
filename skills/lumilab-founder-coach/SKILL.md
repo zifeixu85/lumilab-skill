@@ -3,7 +3,7 @@ name: lumilab-founder-coach
 description: |
   Three-layer founder coach for solopreneurs and OPC. Layer 1 = methodology coach (YC office-hours, Mom Test, Lean Canvas, Sean Ellis PMF, Jobs-to-be-Done). Layer 2 = cognitive trap warning (sunk cost, self-validation, faith-without-evidence, hammer-looking-for-nails, decision fatigue). Layer 3 = psychological support (loneliness, self-doubt, recovery from failed hypotheses, when to rest, pivot-vs-persevere). OPT-IN deep mode — NOT the default entry (lumilab-idea-to-landing is). Use ONLY when user explicitly wants one-on-one deep coaching: when they say "陪我深聊/帮我一步步想清楚/我卡住了", when hypothesis fails, when user shows signs of decision fatigue, when stuck between pivot and persevere, or when launching a new venture.
   关键词：创业教练 / founder coach / idea 澄清 / 假设拆解 / 决策疲劳 / 复盘心理 / pivot 还是 persevere / YC / Mom Test / Lean Startup / 创业心理 / 苏格拉底式提问 / 毛泽东思想式追问
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [founder-coach, validation, methodology, yc, mom-test]

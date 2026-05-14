@@ -8,9 +8,11 @@
  *   home.ts --help
  *
  * 约定：
- *   LUMILAB_HOME       配置目录，默认 ~/.lumilab —— 读 config.json
- *   LUMILAB_WORKSPACE  工作区，默认 cwd —— data/ventures/* 与 data/_home/
+ *   LUMILAB_HOME       状态目录，默认 ~/.lumilab —— config.json + data/（venture / home 数据）
  *   LUMILAB_CHANNEL    local（默认）开浏览器；其它（feishu/...）只打印路径
+ *
+ * venture / home 数据永远在 ~/.lumilab/data/，跟 cwd / 谁调用无关 ——
+ * 宿主对话式调用和 CLI 调用落点一致。
  *
  * 失败模式：config 缺失/损坏 → status 仍输出（onboarded=false）；
  * render 仍生成（空/未配置状态），永不崩。
@@ -24,11 +26,11 @@ import { spawn } from 'child_process';
 function lumilabHome(): string {
   return process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
 }
-function workspace(): string {
-  return process.env.LUMILAB_WORKSPACE ?? process.cwd();
+function dataRoot(): string {
+  return join(lumilabHome(), 'data');
 }
 function venturesRoot(): string {
-  return join(workspace(), 'data', 'ventures');
+  return join(dataRoot(), 'ventures');
 }
 function channel(): string {
   return process.env.LUMILAB_CHANNEL ?? 'local';
@@ -795,7 +797,7 @@ body::before {
 function cmdRender(): void {
   const status = buildStatus();
   const html = renderHtml(status);
-  const outDir = join(workspace(), 'data', '_home');
+  const outDir = join(dataRoot(), '_home');
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, 'home.html');
   writeFileSync(outPath, html, 'utf-8');
@@ -824,8 +826,7 @@ const HELP = `lumilab-home — Lumi Lab 门面 / 入口
   bun run scripts/home.ts --help
 
 环境变量:
-  LUMILAB_HOME       配置目录（默认 ~/.lumilab）
-  LUMILAB_WORKSPACE  工作区（默认 cwd）
+  LUMILAB_HOME       状态目录（默认 ~/.lumilab）—— config.json + data/
   LUMILAB_CHANNEL    local（默认）开浏览器；其它只打印路径`;
 
 const cmd = process.argv[2];

@@ -3,7 +3,7 @@ name: lumilab-home
 description: |
   Lumi Lab 的门面 / 入口 skill —— 用户第一次接触 Lumi Lab、或想看「现在什么情况」时调用。首次使用（~/.lumilab/config.json 无 onboarded）会引导用户走首次配置；已配置过则渲染一个 home dashboard：已配工具状态、所有 venture 及各自验证流水线进度、建议的下一步动作。是「不知道从哪开始」时的答案。
   关键词：lumilab home / 打开 lumilab / lumilab dashboard / 开始用 lumilab / 主页 / 总览 / 仪表盘 / 首次使用 / 从哪开始 / 我的 venture / 进度 / getting started / 入口
-version: 1.4.0
+version: 1.4.1
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:
@@ -21,10 +21,10 @@ metadata:
   agent: home
   authors: [lumilab]
   outputs:
-    - "data/_home/home.html (bundle 总览 dashboard，主动交付给用户)"
+    - "~/.lumilab/data/_home/home.html (bundle 总览 dashboard，主动交付给用户)"
   reads:
     - "~/.lumilab/config.json (是否 onboarded + 已配工具)"
-    - "data/ventures/*/  (每个 venture 的流水线进度)"
+    - "~/.lumilab/data/ventures/*/  (每个 venture 的流水线进度)"
 ---
 
 # Lumi Lab Home —— 门面 / 入口
@@ -85,13 +85,13 @@ bun run scripts/home.ts status
 
 ```bash
 bun run scripts/home.ts render
-# → 生成 data/_home/home.html
+# → 生成 ~/.lumilab/data/_home/home.html
 # → 本地自动开浏览器；chat 环境打印路径
 ```
 
 **主动交付**：
 - 本地：脚本自动开浏览器
-- chat：把 `data/_home/home.html` 作为文件附件发给用户 + 贴一段文字摘要（已配 N 个工具 / M 个 venture / 最该做的下一件事）
+- chat：把 `~/.lumilab/data/_home/home.html` 作为文件附件发给用户 + 贴一段文字摘要（已配 N 个工具 / M 个 venture / 最该做的下一件事）
 
 dashboard 上有：
 - **工具状态**：9 个工具逐个 ✓/—
@@ -137,7 +137,7 @@ dashboard 上有：
 
 ## Outputs
 
-- `data/_home/home.html` —— bundle 总览 dashboard（主动交付）
+- `~/.lumilab/data/_home/home.html` —— bundle 总览 dashboard（主动交付）
 
 ## Example
 
@@ -168,11 +168,11 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 ## Idempotency
 
-`home.ts render` 每次覆盖 `data/_home/home.html`（dashboard 是当前状态的快照，重渲即最新）。`status` 只读不写。引导只在 `onboarded=false` 时触发，已 onboarded 不会重复打扰。
+`home.ts render` 每次覆盖 `~/.lumilab/data/_home/home.html`（dashboard 是当前状态的快照，重渲即最新）。`status` 只读不写。引导只在 `onboarded=false` 时触发，已 onboarded 不会重复打扰。
 
 ## Privacy
 
-只读 `~/.lumilab/config.json`（不回显 token 值，只看 has_* 标志）和本地 `data/ventures/`。dashboard HTML 留在本地。无遥测。
+只读 `~/.lumilab/config.json`（不回显 token 值，只看 has_* 标志）和本地 `~/.lumilab/data/ventures/`。dashboard HTML 留在本地。无遥测。
 
 ## Cache
 
@@ -182,7 +182,7 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 - `~/.lumilab/config.json` 不存在 → 视为 `onboarded=false`，走引导
 - `config.json` 损坏 → 报错并建议重跑 `lumilab config`
-- `data/ventures/` 不存在 → dashboard 正常渲染，venture 列表为空 + 引导用户开第一个
+- `~/.lumilab/data/ventures/` 不存在 → dashboard 正常渲染，venture 列表为空 + 引导用户开第一个
 - wizard.ts 不可用（缺文件）→ 提示用户检查安装完整性
 
 ## Edge cases
@@ -195,7 +195,7 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 用户现在可能怎么办，以及为什么这个 skill 更好：
 
-- **装完自己翻 `~/.claude/skills/` 目录** —— 23 个 skill 不知道从哪个开始。
+- **装完自己翻 `~/.claude/skills/` 目录** —— 24 个 skill 不知道从哪个开始。
 - **直接问宿主 LLM「lumilab 怎么用」** —— LLM 会泛泛介绍，但不知道用户**当前**配到哪、有哪些 venture。
 - **记住一堆命令** —— 不可能。
 

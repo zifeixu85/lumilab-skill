@@ -3,7 +3,7 @@ name: lumilab-idea-to-landing
 description: |
   One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Use when the user gives a startup idea, says "帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast.
   关键词：idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 方向建议 / landing 生成 / SEO / GEO / orchestrator / 自动流水线 / idea to landing / 想法落地 / 轻量验证
-version: 1.4.0
+version: 1.4.1
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:
@@ -24,11 +24,11 @@ metadata:
     - "gstack/autoplan (one-command auto-decision pipeline, surface only taste gates)"
     - "gstack/office-hours (decision-brief AskUserQuestion format, smart stage routing)"
   outputs:
-    - "data/ventures/<slug>/project_brief.md (idea + 极简 intake)"
-    - "data/ventures/<slug>/market_analysis.json (自动分析结果，喂给报告渲染器)"
-    - "data/ventures/<slug>/reports/market-report.html (图文并茂分析报告，主动交付给用户)"
-    - "data/ventures/<slug>/landing/ (最终 landing page，带 SEO/GEO)"
-    - "data/ventures/<slug>/decisions.yaml (方向选择记录)"
+    - "~/.lumilab/data/ventures/<slug>/project_brief.md (idea + 极简 intake)"
+    - "~/.lumilab/data/ventures/<slug>/market_analysis.json (自动分析结果，喂给报告渲染器)"
+    - "~/.lumilab/data/ventures/<slug>/reports/market-report.html (图文并茂分析报告，主动交付给用户)"
+    - "~/.lumilab/data/ventures/<slug>/landing/ (最终 landing page，带 SEO/GEO)"
+    - "~/.lumilab/data/ventures/<slug>/decisions.yaml (方向选择记录)"
   reads:
     - "~/.lumilab/secrets.json 或 keychain (判断有没有 TikHub/Exa token → 真 API vs 宿主 LLM 知识)"
     - "MEMORY.md (用户偏好)"
@@ -101,7 +101,7 @@ metadata:
 
 ```bash
 bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
-# → 创建 data/ventures/<slug>/，写 project_brief.md
+# → 创建 ~/.lumilab/data/ventures/<slug>/，写 project_brief.md
 # → 输出 venture slug + 检测到的 token 状态（决定后面走真 API 还是宿主 LLM 知识）
 ```
 
@@ -165,11 +165,11 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 
 ### 1.3 写 market_analysis.json
 
-按 `scripts/orchestrate.ts` 的 schema 写 `data/ventures/<slug>/market_analysis.json`。schema 见本文件末尾「## market_analysis.json schema」。
+按 `scripts/orchestrate.ts` 的 schema 写 `~/.lumilab/data/ventures/<slug>/market_analysis.json`。schema 见本文件末尾「## market_analysis.json schema」。
 
 写完跑校验：
 ```bash
-bun run scripts/validate-output.ts data/ventures/<slug>
+bun run scripts/validate-output.ts ~/.lumilab/data/ventures/<slug>
 ```
 
 ---
@@ -179,8 +179,8 @@ bun run scripts/validate-output.ts data/ventures/<slug>
 把 `market_analysis.json` 渲染成图文并茂的 HTML，**主动推给用户**：
 
 ```bash
-bun run ../lumilab-studio/scripts/market-report.ts data/ventures/<slug>
-# → 生成 data/ventures/<slug>/reports/market-report.html
+bun run ../lumilab-studio/scripts/market-report.ts ~/.lumilab/data/ventures/<slug>
+# → 生成 ~/.lumilab/data/ventures/<slug>/reports/market-report.html
 ```
 
 然后**交付给用户**（这一步不能省）：
@@ -247,7 +247,7 @@ B) <方向2 title>
 ### 4.3 校验
 
 ```bash
-bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
+bun run ../lumilab-landing-mvp/scripts/validate-output.ts ~/.lumilab/data/ventures/<slug>
 ```
 
 没过 gate 就先补齐，不要交付一个残缺的验证页。
@@ -376,12 +376,12 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
 
 ## Outputs
 
-- `data/ventures/<slug>/project_brief.md` — idea + intake
-- `data/ventures/<slug>/market_analysis.json` — 自动分析结果
-- `data/ventures/<slug>/reports/market-report.html` — 图文并茂分析报告（主动交付）
-- `data/ventures/<slug>/design_direction.json` — 自动选的设计方向
-- `data/ventures/<slug>/landing/` — 最终 landing page（含 SEO/GEO）
-- `data/ventures/<slug>/decisions.yaml` — 方向选择记录
+- `~/.lumilab/data/ventures/<slug>/project_brief.md` — idea + intake
+- `~/.lumilab/data/ventures/<slug>/market_analysis.json` — 自动分析结果
+- `~/.lumilab/data/ventures/<slug>/reports/market-report.html` — 图文并茂分析报告（主动交付）
+- `~/.lumilab/data/ventures/<slug>/design_direction.json` — 自动选的设计方向
+- `~/.lumilab/data/ventures/<slug>/landing/` — 最终 landing page（含 SEO/GEO）
+- `~/.lumilab/data/ventures/<slug>/decisions.yaml` — 方向选择记录
 
 ## Example（完整流水线，注意 agent 全程在跑脚本/写文件，不是在 chat 里聊）
 
@@ -426,7 +426,7 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 ## Privacy
 
-idea、分析、landing 全部本地 `data/ventures/<slug>/`。无遥测。只有用户显式 `lumilab deploy` 才上传 Cloudflare（且加密）。TikHub/Exa token 走 keychain，不入仓库。
+idea、分析、landing 全部本地 `~/.lumilab/data/ventures/<slug>/`。无遥测。只有用户显式 `lumilab deploy` 才上传 Cloudflare（且加密）。TikHub/Exa token 走 keychain，不入仓库。
 
 ## Cache
 
@@ -460,7 +460,7 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 
 ## Moat（复利护城河）
 
-跑得越多越值钱：`data/ventures/` 下每个 venture 的 `market_analysis.json` + `decisions.yaml` 累积成你的「想法决策库」——下一个 idea 可以对照「我是不是又在追同一类人群」「上次这个方向的风险后来真的发生了吗」。单次分析工具给不了这种跨 venture 的复利。
+跑得越多越值钱：`~/.lumilab/data/ventures/` 下每个 venture 的 `market_analysis.json` + `decisions.yaml` 累积成你的「想法决策库」——下一个 idea 可以对照「我是不是又在追同一类人群」「上次这个方向的风险后来真的发生了吗」。单次分析工具给不了这种跨 venture 的复利。
 
 ## Changelog
 
@@ -472,6 +472,6 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 这个 skill 产出的任何**用户该看的东西**，都要主动交付给用户 —— 不能写完文件就完事。
 
 - **优先 HTML 图文并茂**：分析报告、landing、Studio、周复盘等用户要「看」的产物，渲染成 HTML，本地自动开浏览器，chat 环境（`LUMILAB_CHANNEL != local`）作为**文件附件**发给用户。
-- **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `data/ventures/` 目录。
+- **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `~/.lumilab/data/ventures/` 目录。
 - **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
 - **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。

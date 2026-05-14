@@ -56,8 +56,8 @@ function hasToken(name: string): boolean {
 }
 
 function venturesRoot(): string {
-  const workspace = process.env.LUMILAB_WORKSPACE ?? process.cwd();
-  return join(workspace, "data", "ventures");
+  // venture 数据永远在 ~/.lumilab/data/ventures/，跟 cwd / 谁调用无关。
+  return join(lumilabHome(), "data", "ventures");
 }
 
 function cmdInit(idea: string) {

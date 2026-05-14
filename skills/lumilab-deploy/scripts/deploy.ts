@@ -18,7 +18,8 @@ import { spawnSync, spawn } from 'child_process';
 import { homedir } from 'os';
 
 const LUMILAB_HOME = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
-const WORKSPACE = process.env.LUMILAB_WORKSPACE ?? resolve(__dirname, '../../..');
+// venture 数据永远在 ~/.lumilab/data/，跟 cwd / 谁调用无关。
+const DATA_ROOT = join(LUMILAB_HOME, 'data');
 
 interface DeployOptions {
   venture: string;
@@ -102,7 +103,7 @@ async function generateQrPng(url: string, outputPath: string) {
 
 async function deploy(opts: DeployOptions) {
   const config = loadConfig();
-  const ventureDir = join(WORKSPACE, 'data', 'ventures', opts.venture);
+  const ventureDir = join(DATA_ROOT, 'ventures', opts.venture);
   const studioDir = join(ventureDir, 'studio');
 
   if (!existsSync(studioDir)) {

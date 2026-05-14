@@ -21,6 +21,7 @@
  */
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { homedir } from 'os';
 import {
   getProvider,
   loadKeywordsConfig,
@@ -293,8 +294,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  const workspace = process.env.LUMILAB_WORKSPACE ?? process.cwd();
-  const outDir = join(workspace, 'data', 'ventures', args.venture, 'research');
+  // venture 数据永远在 ~/.lumilab/data/ventures/，跟 cwd / 谁调用无关。
+  const lumilabHome = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
+  const outDir = join(lumilabHome, 'data', 'ventures', args.venture, 'research');
   if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
   const landscapePath = join(outDir, 'keyword_landscape.md');

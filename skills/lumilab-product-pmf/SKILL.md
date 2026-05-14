@@ -3,7 +3,7 @@ name: lumilab-product-pmf
 description: |
   PMF measurement & engine. Sean Ellis 40% Survey + Rahul Vohra Superhuman PMF engine + Brian Balfour 4-fit. Lumi-Lab overlay with Chinese-first instrumentation and Anti-Slop. Use when the product has been live 6+ weeks with 40+ active users, the retention curve will not flatten, or the founder asks "do we have PMF".
   关键词：product-market-fit / PMF / 产品市场契合 / Sean Ellis 40% / Superhuman engine / 4-fit / retention curve / 留存曲线 / 留存分析
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [pmf, sean-ellis, superhuman, balfour-4-fit]

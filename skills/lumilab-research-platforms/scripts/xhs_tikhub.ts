@@ -141,8 +141,9 @@ async function main() {
   };
 
   if (args.venture) {
-    const workspace = process.env.LUMILAB_WORKSPACE ?? process.cwd();
-    const outDir = join(workspace, 'data', 'ventures', args.venture, 'research');
+    // venture 数据永远在 ~/.lumilab/data/ventures/，跟 cwd / 谁调用无关。
+    const lumilabHome = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
+    const outDir = join(lumilabHome, 'data', 'ventures', args.venture, 'research');
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
     const outPath = join(outDir, 'xhs_raw.json');
     writeFileSync(outPath, JSON.stringify(out, null, 2));

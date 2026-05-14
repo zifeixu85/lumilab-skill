@@ -3,7 +3,7 @@ name: lumilab-product-positioning
 description: |
   April Dunford 5-step positioning (competitive alternatives → unique attributes → value → customers who care → market category). Lumi-Lab overlay with Anti-Slop and platform constraints. Use when the user asks how to introduce their product, has a landing page with high bounce, is stuck on "what market am I in", or growth has stalled and positioning is suspected.
   关键词：product-positioning / 产品定位 / 市场定位 / April Dunford / Obviously Awesome / 竞争性替代品 / 市场类别 / 定位陈述 / Lumi Lab overlay
-version: 1.4.0
+version: 1.4.1
 metadata:
   hermes:
     tags: [positioning, april-dunford, obviously-awesome]

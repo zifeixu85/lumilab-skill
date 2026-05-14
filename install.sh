@@ -124,8 +124,8 @@ if [[ -f "$LAUNCHER" ]]; then
   mkdir -p "$STABLE_BIN"
   cp "$LAUNCHER" "$STABLE_LAUNCHER"
   chmod +x "$STABLE_LAUNCHER"
-  # CLI 用已安装的 skills 目录做 workspace，不再依赖 repo
-  echo "export LUMILAB_WORKSPACE=\"${TARGET_DIR%/skills}\"" > "$STABLE_BIN/.lumilab-env"
+  # CLI 会自动探测 skills 目录（已装的 ~/.claude/skills/）；
+  # venture / home 数据统一在 ~/.lumilab/data/。不依赖 repo 位置。
 fi
 
 # 状态目录
