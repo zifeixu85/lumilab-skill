@@ -6,7 +6,7 @@
 
 **Lumi Lab** 是一套 21 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录，它就能把一个模糊的想法，变成可发布、可验证、决策可追溯的产物——landing page、多平台内容、假设账本、增长 SOP、可部署的 Studio 页。
 
-[![版本](https://img.shields.io/badge/version-1.0.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.0.1-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
@@ -107,16 +107,18 @@ xiaohongshu.md：
 
 ## 安装
 
-### 前置依赖
+### 前置依赖（自动处理，一般不用管）
 
-- **bun ≥ 1.0**（运行时 + 脚本）
+- **bun ≥ 1.0**（运行时 + 脚本）—— **`install.sh` 检测到缺失会自动安装**；宿主 chat 路径下每个 SKILL.md 的 `## 环境自检` 段会让 agent 自己装
 - **wrangler**（Cloudflare CLI；只在你要用 `lumilab deploy` 时需要）
 - **qrencode**（可选，`lumilab manage` 生成二维码用）
 
+需要手动装的话：
+
 ```bash
-curl -fsSL https://bun.sh/install | bash
-npm install -g wrangler
-brew install qrencode    # macOS；或 `apt install qrencode`
+curl -fsSL https://bun.sh/install | bash    # install.sh 会自动做这步
+npm install -g wrangler                      # 仅 deploy 用
+brew install qrencode                        # 可选；或 apt install qrencode
 ```
 
 ### 安装 skills bundle

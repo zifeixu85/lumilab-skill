@@ -39,11 +39,35 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
   exit 1
 fi
 
-# 检查 bun（CLI + skill 脚本必需）
-if ! command -v bun >/dev/null 2>&1; then
-  echo "✗ 未找到 bun。请先安装：curl -fsSL https://bun.sh/install | bash" >&2
-  exit 1
-fi
+# 检查 bun（CLI + skill 脚本必需）；缺失时自动安装
+ensure_bun() {
+  if command -v bun >/dev/null 2>&1; then return 0; fi
+  # bun 可能已装但不在当前 PATH（~/.bun/bin）
+  if [[ -x "${HOME}/.bun/bin/bun" ]]; then
+    export PATH="${HOME}/.bun/bin:${PATH}"
+    command -v bun >/dev/null 2>&1 && return 0
+  fi
+  echo "⚙ 未找到 bun，正在自动安装（~/.bun/，无需 root，约 30 秒）…"
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "✗ 需要 curl 来安装 bun。请先装 curl，或手动安装 bun：https://bun.sh" >&2
+    exit 1
+  fi
+  if [[ $ASSUME_YES -ne 1 ]]; then
+    read -r -p "  执行 curl -fsSL https://bun.sh/install | bash ？[Y/n] " ans
+    case "$ans" in [nN]*) echo "已取消。手动安装后重跑本脚本。"; exit 1 ;; esac
+  fi
+  curl -fsSL https://bun.sh/install | bash || {
+    echo "✗ bun 自动安装失败。请手动安装：https://bun.sh" >&2
+    exit 1
+  }
+  export PATH="${HOME}/.bun/bin:${PATH}"
+  if ! command -v bun >/dev/null 2>&1; then
+    echo "✗ bun 安装后仍不可用。把 ~/.bun/bin 加入 PATH 后重试。" >&2
+    exit 1
+  fi
+  echo "✓ bun 已安装"
+}
+ensure_bun
 BUN_VER=$(bun --version)
 echo "✓ bun ${BUN_VER}"
 

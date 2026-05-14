@@ -3,7 +3,7 @@ name: lumilab-product-positioning
 description: |
   April Dunford 5-step positioning (competitive alternatives → unique attributes → value → customers who care → market category). Lumi-Lab overlay with Anti-Slop and platform constraints. Use when the user asks how to introduce their product, has a landing page with high bounce, is stuck on "what market am I in", or growth has stalled and positioning is suspected.
   关键词：product-positioning / 产品定位 / 市场定位 / April Dunford / Obviously Awesome / 竞争性替代品 / 市场类别 / 定位陈述 / VST overlay
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [positioning, april-dunford, obviously-awesome]
@@ -389,3 +389,15 @@ positioning.v<n>.md 版本对比能看到定位如何收窄。一旦定位确定
 ## Changelog
 
 - 1.0.0-rc1：April Dunford 5 步 HARD-GATE 流程 + 反 better-X 检测；新增 validate-output.ts 校验器、分支决策表、依赖成本列、package.json。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

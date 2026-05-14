@@ -3,7 +3,7 @@ name: lumilab-founder-coach
 description: |
   Three-layer founder coach for solopreneurs and OPC. Layer 1 = methodology coach (YC office-hours, Mom Test, Lean Canvas, Sean Ellis PMF, Jobs-to-be-Done). Layer 2 = cognitive trap warning (sunk cost, self-validation, faith-without-evidence, hammer-looking-for-nails, decision fatigue). Layer 3 = psychological support (loneliness, self-doubt, recovery from failed hypotheses, when to rest, pivot-vs-persevere). Use when user wants to clarify a startup idea, when hypothesis fails, when user shows signs of decision fatigue, when stuck between pivot and persevere, or when launching a new venture.
   关键词：创业教练 / founder coach / idea 澄清 / 假设拆解 / 决策疲劳 / 复盘心理 / pivot 还是 persevere / YC / Mom Test / Lean Startup / 创业心理 / 苏格拉底式提问 / 毛泽东思想式追问
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [founder-coach, validation, methodology, yc, mom-test]
@@ -505,3 +505,15 @@ Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 +
 - **0.3.0** — `validate-output.ts` 加 `coach_session` Layer 枚举 + 三段结构校验；`anti-slop-lint.ts` 接入。
 - **0.2.0** — 补 `## 分支决策` if-then 表、Layer 3 心理向、读 `decisions.yaml` 检测决策疲劳。
 - **0.1.0-p0** — 初版：三层教练（方法论 / 认知陷阱 / 心理）+ HARD-GATE 一次一问 + 会话归档。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

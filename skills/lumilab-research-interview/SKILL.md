@@ -3,7 +3,7 @@ name: lumilab-research-interview
 description: |
   用户访谈脚本与教练。基于 Rob Fitzpatrick The Mom Test 三原则 + Bob Moesta JTBD switch interview + 5 layers of why。生成访谈提纲、识别 8 种访谈反模式、按 saturation 规则（5-8 个达到饱和）判断是否够、把录音转录提炼成可用结构化数据。Use when 用户准备打第一批冷启动电话、准备做 ICP 验证访谈、已经做了几次访谈但拿到的回答全是空话。
   关键词：interview / Mom Test / 用户访谈 / JTBD switch / 5 whys / 访谈脚本 / 访谈反模式 / saturation / 妈妈测试
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [mom-test, interview, jtbd-switch, 5-whys]
@@ -421,3 +421,15 @@ Lumi Lab 的差异：Mom Test 三原则 + 8 反模式自动标红 + 5 layers of 
 
 - **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（interviews/<id>.md 六大章节 + interviewer_talk_ratio <0.3 + 痛点章节逐字原话，interview_synthesis.md 痛点频次表 + saturation）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；统一 outputs 文件名（Outputs 段补齐 frontmatter 的 interview_script.md / interviews/<id>.md / interview_synthesis.md 三件）。
 - **1.0.0-rc1** — 初版：Mom Test 三原则 + 8 反模式 + switch interview + saturation rule。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

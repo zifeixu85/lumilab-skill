@@ -3,7 +3,7 @@ name: lumilab-landing-mvp
 description: |
   Production-quality Landing Page generator for venture validation. Generates HTML5 + standalone styles.css with email capture, payment intent CTA (P1), and FAQ. Enforces 6-phase non-skippable pipeline (Research → Content Extraction → Image Catalog → Build → Verify → Deploy-ready). Anti-Slop 17 banned words + 8 banned visual patterns + 6-rule quality gate. Output reflects design_direction.json (preset/dials/palette/typography). Use when user types /lumilab build-assets or /lumilab landing, after design-direction page submitted.
   关键词：landing page / 落地页 / 销售页 / HTML 落地页 / 邮件收集 / CTA / hero / 价值主张 / 转化 / Anti-Slop / awwwards / editorial / brutalist / 暖色 luxury
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [landing-page, anti-slop, copywriting]
@@ -457,3 +457,15 @@ Lumi Lab 的差异：6 阶段流水线 + 强制 Anti-Slop 自检（禁 Inter / #
 ## Changelog
 
 - 1.0.0-rc1：6 阶段不可跳步流水线 + Anti-Slop 三层规则 + 6 条质量 gate；新增 validate-output.ts（确定性跑 6 条 gate）、分支决策表、依赖成本列、package.json；统一产物路径为 landing/v<n>/。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

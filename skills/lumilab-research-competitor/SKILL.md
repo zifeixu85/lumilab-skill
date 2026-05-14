@@ -3,7 +3,7 @@ name: lumilab-research-competitor
 description: |
   Competitor / alternative landscape 真的有用的那种。不做 feature matrix。基于 April Dunford 竞争定位框架 + Clayton Christensen disruption theory + "alternatives to nothing" 思维。把"竞品"扩展为：直接竞品 / 间接替代品 / status quo（什么都不做） / forced-choice 替代。Use when 用户准备做定位、写 landing、要回答"为什么选你不选 X"，或在 pivot 前想看清楚周围地形。
   关键词：competitor / 竞品分析 / 替代品 / alternatives / April Dunford / positioning / disruption / 反 feature matrix / status quo
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [competitor, positioning, april-dunford, christensen]
@@ -382,3 +382,15 @@ Lumi Lab 的差异：April Dunford 竞争框架 + Christensen disruption 分类 
 - **0.3.0** — `validate-output.ts` 加 `disruption_path` 枚举校验 + feature matrix 检测（Dunford-banned）；`anti-slop-lint.ts` 接入。
 - **0.2.0** — 补 `## 分支决策` if-then 表、`primary_enemy` 强制命名、八维评估表加 `native_pain` + `anti_positioning`。
 - **0.1.0-p0** — 初版：April Dunford 5-step 定位 + Christensen disruption 分类 + alternatives 四象限。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

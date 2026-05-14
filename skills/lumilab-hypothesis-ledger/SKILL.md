@@ -3,7 +3,7 @@ name: lumilab-hypothesis-ledger
 description: |
   Atomic hypothesis ledger for Lumi Lab. Track startup hypotheses as YAML facts with supersede history, confidence scoring, test methods, and verification counts. Generates HTML diff view when hypothesis evolves. Use when user wants to add/update/supersede/list hypotheses, when Research Agent finds evidence that contradicts a hypothesis, when Review Agent runs weekly retro, or when ven­ture decision needs traceable history.
   关键词：假设 / 假设管理 / hypothesis / ledger / 创业假设 / supersede / 复盘 / 验证 / Mom Test / lean startup / atomic fact
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [hypothesis, atomic-fact, supersede, lean-startup]
@@ -340,3 +340,15 @@ Lumi Lab 的差异：每个假设是带 `id` / `confidence` / `evidence` / super
 - **0.3.0** — `validate-output.ts` 加 supersede 链孤儿检测 + 回环检测；`anti-slop-lint.ts` 接入。
 - **0.2.0** — 补 `## 分支决策` if-then 表、`status: superseded` 软删除、Studio diff view。
 - **0.1.0-p0** — 初版：atomic YAML 假设（`id` / `confidence` / `evidence`）+ supersede 历史链。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

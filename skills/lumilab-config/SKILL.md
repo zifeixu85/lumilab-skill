@@ -12,7 +12,7 @@ description: |
   Use when user types /lumilab config, /lumilab manage, or on first /lumilab init.
 
   关键词：setup wizard / config / 配置 / tool token / cloudflare / exa / share management / 分享管理 / secrets / 密钥管理 / venture 密码
-version: 1.0.0
+version: 1.0.1
 status: P0-ready
 metadata:
   hermes:
@@ -344,3 +344,15 @@ Lumi Lab 的差异：5 步浏览器 wizard + 真实 API verify（返回 E_401/E_
 
 - **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（secrets.json 必须不含任何 LLM key 字段 + venture_passwords 6 位数字 + config.json 默认密码格式 + shares.json 每条带 url）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；确认 outputs 文件名三处一致（config.json / secrets.json / shares.json）。
 - **1.0.0-rc1** — 初版：5 步 Setup Wizard + Share Manager + 跨平台 secrets。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

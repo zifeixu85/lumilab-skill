@@ -3,7 +3,7 @@ name: lumilab-playbook-cn
 description: |
   Chinese-language methodology playbook for venture validation. Index of 13 frameworks (Mom Test / Lean Canvas / Sean Ellis 40% / Bob Moesta JTBD / April Dunford / YC office hours / etc.) plus China-specific platform rules. Pure knowledge skill, read by other Skills when they need methodology references. Use when user asks 「这个方法论是什么」「Mom Test 怎么用」「PMF 怎么测」etc.
   关键词：方法论 / playbook / 创业知识 / Mom Test / Lean Canvas / PMF / JTBD / 中文方法论 / 国内平台规则
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [playbook, chinese, platform-rules, 13-frameworks]
@@ -249,3 +249,15 @@ references 库持续更新，你的笔记可以并进来。跑得越久，这就
 
 - **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（校验 references/platform-rules/*.md 结构一致：必做约束 + 2025–2026 规则更新章节 + 每条更新 4 字段 + xhs 硬规则不变量）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；Outputs 段明确产出为 5 个 platform-rules/*.md（与正文索引一致）。
 - **1.0.0-rc1** — 初版：13 中文方法论 + 5 平台规则索引。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

@@ -3,7 +3,7 @@ name: lumilab-product-pmf
 description: |
   PMF measurement & engine. Sean Ellis 40% Survey + Rahul Vohra Superhuman PMF engine + Brian Balfour 4-fit. Lumi-Lab overlay with Chinese-first instrumentation and Anti-Slop. Use when the product has been live 6+ weeks with 40+ active users, the retention curve will not flatten, or the founder asks "do we have PMF".
   关键词：product-market-fit / PMF / 产品市场契合 / Sean Ellis 40% / Superhuman engine / 4-fit / retention curve / 留存曲线 / 留存分析
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [pmf, sean-ellis, superhuman, balfour-4-fit]
@@ -384,3 +384,15 @@ Lumi Lab 的差异：Sean Ellis 40% Survey + Superhuman PMF engine + Brian Balfo
 ## Changelog
 
 - 1.0.0-rc1：Sean Ellis 40% + Superhuman engine + Balfour 4-fit；新增 validate-output.ts 校验器、分支决策表、依赖成本列、package.json；统一产物文件名为 pmf_score.md / pmf_survey_<date>.csv。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

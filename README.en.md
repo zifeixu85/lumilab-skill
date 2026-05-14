@@ -6,7 +6,7 @@ English ｜ [简体中文](README.md)
 
 **Lumi Lab** is a 21-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Drop it into your AI host's skills directory and it turns a fuzzy idea into shippable, testable, decision-traceable artifacts — landing page, multi-platform content, hypothesis ledger, growth SOP, deployable Studio page.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.1-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
@@ -106,16 +106,18 @@ The Content skill reads these before generating anything. No LLM "推断" — wr
 
 ## Install
 
-### Prerequisites
+### Prerequisites (auto-handled — usually nothing to do)
 
-- **bun ≥ 1.0** (runtime + script runner)
+- **bun ≥ 1.0** (runtime + script runner) — **`install.sh` auto-installs it if missing**; in host-chat paths every SKILL.md's `## 环境自检` section lets the agent install it itself
 - **wrangler** (Cloudflare CLI; only if you'll use `lumilab deploy`)
 - **qrencode** (optional, for `lumilab manage` QR codes)
 
+To install manually:
+
 ```bash
-curl -fsSL https://bun.sh/install | bash
-npm install -g wrangler
-brew install qrencode    # macOS; or `apt install qrencode`
+curl -fsSL https://bun.sh/install | bash    # install.sh does this automatically
+npm install -g wrangler                      # only for deploy
+brew install qrencode                        # optional; or apt install qrencode
 ```
 
 ### Install the skills bundle

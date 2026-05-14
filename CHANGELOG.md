@@ -102,6 +102,24 @@
 
 ---
 
+## [1.0.1] · 2026-05-14 · bun 自动安装
+
+> 把 `bun` 从「需要用户手动准备的前提」变成「自动处理」。`/skills install` 后整条链路不再需要任何手动环境准备。
+
+### Added
+- **`## 环境自检` 段**加到全部 21 个 SKILL.md —— 宿主 agent（Claude Code / OpenClaw / Hermes）读到任意 skill 时都会看到 bun 检测 + 自动安装指令，首次调用脚本前自行执行
+- `manifest.json` 加 `bootstrap` 字段（机器可读的 check / install / path_hint）
+- `docs/TUTORIAL.zh.md` 加「前置依赖（自动处理）」段
+
+### Changed
+- **`install.sh` 缺 bun 时自动安装**（原来只报错退出）：检测 `~/.bun/bin` 已有则补 PATH；否则 `curl -fsSL https://bun.sh/install | bash`（`--yes` 模式静默装，交互模式问一次确认）
+- `VERSION` → 1.0.1
+
+### 效果
+飞书 Hermes 全自动链路：`/skills install <url>` → `@bot 配 Exa key` → agent 读 SKILL.md 见 `## 环境自检` → 缺 bun 自动装 → `wizard.ts --chat-set exa <key>`。用户无需任何手动环境准备。
+
+---
+
 ## [1.0.0] · 2026-05-14 · 正式版
 
 > **Lumi Lab v1.0.0 正式发布。** 21 个 skill，跑在 Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI 里。

@@ -3,7 +3,7 @@ name: lumilab-launch-strategy
 description: |
   Cold-start playbook for OPC/独立开发者. Kevin Kelly 1000 true fans + Marc Lou ship-fast bundling + Product Hunt launch + Lenny Rachitsky cold-start. Lumi-Lab Chinese ladder: 飞书/微信小圈子 → 小红书 → 公众号 → 播客 → PH/HN. Use when the user is ready to launch a venture, needs a 4-8 week cold-start plan, or wants a weekly launch calendar with quantified success criteria.
   关键词：launch / 冷启动 / Product Hunt / 1000 true fans / ship fast / Lenny Rachitsky / 小红书冷启动
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [launch, 1000-true-fans, product-hunt, cold-start, marc-lou]
@@ -408,3 +408,15 @@ launch_plan.v<n>.md 留档，跑过几次 launch 后能复盘"哪个阶段我总
 - **0.3.0** — `validate-output.ts` 加 `weeks` ≥ 4 条 + 每条 channel/target 校验、Readiness gate 段检测；`anti-slop-lint.ts` 接入。
 - **0.2.0** — 补 `## 分支决策` if-then 表、按 venture 类型（B2C / B2B）分流、中国式 launch 阶梯。
 - **0.1.0-p0** — 初版：1000 true fans + Marc Lou ship fast，4-8 周冷启动 playbook + 按周日历。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

@@ -3,7 +3,7 @@ name: lumilab-research-icp
 description: |
   Ideal Customer Profile 精准建模。Bob Moesta JTBD switch interview + Sean Ellis 40% PMF survey + April Dunford segment-of-one。把"目标用户"逼成"一个具体的人 + 一个具体的挣扎瞬间 + 一个具体的替代品"。Use when 用户说"我的用户是 X"但 X 太宽（开发者/中小企业/年轻人/创业者），或在做 landing / copy / cold outreach 前需要锁定第一波打谁。
   关键词：ICP / ideal customer profile / 精准用户 / JTBD / Jobs to be Done / switch interview / struggling moment / Sean Ellis 40% / 必备问题 / 反"所有人"
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [icp, jtbd, segment, customer-profile]
@@ -369,3 +369,15 @@ Lumi Lab 的差异：拒绝"all developers / everyone"，强制 narrow 到 segme
 
 - **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（icp.yaml 五维齐全 + segment_of_one_test 枚举 + JTBD 四要素 + forces 各项 1-10 + segment_size_estimate + 禁词扫描）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；统一 outputs 文件名（Outputs 段补齐 frontmatter 的 icp.yaml / icp.md / jtbd_struggling_moments.md 三件）。
 - **1.0.0-rc1** — 初版：五维 ICP 模型 + JTBD switch + Sean Ellis 40% + segment-of-one。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。

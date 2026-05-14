@@ -3,7 +3,7 @@ name: lumilab-content-repurpose
 description: |
   Multi-platform content repurposing for venture validation. Takes one source content (idea, story, insight) and generates 5 platform-specific versions following each platform's hard constraints. Deep support for 小红书 / 微信公众号 / X. Template-based for 抖音 / 朋友圈 (Phase 0 lighter, Phase 1 enrich). Reads platform rules from memory/resources/platform-rules/. Use when user types /lumilab content or /lumilab build-assets.
   关键词：多平台内容 / 一稿七发 / 跨平台改写 / 内容矩阵 / 小红书 / 公众号 / 抖音 / 朋友圈 / X / 内容工厂 / 自媒体
-version: 1.0.0
+version: 1.0.1
 metadata:
   hermes:
     tags: [content, xiaohongshu, wechat, douyin, x, repurpose]
@@ -359,3 +359,15 @@ Lumi Lab 的差异：每个平台读 `references/platform-rules/*.md`（2025–2
 ## Moat（复利护城河）
 
 platform-rules 持续更新，你跑得越久，积累的合规改写样本越多。`content/<platform>/` 历史稿件成为你的风格语料库，下次改写风格更稳。
+
+## 环境自检（首次运行前）
+
+本 skill 的 `scripts/` 用 **bun ≥ 1.0** 运行。宿主里第一次调用 Lumi Lab 任意 skill 前，先做一次环境自检——缺 bun 就自动装（装在 `~/.bun/`，无需 root，约 30 秒）：
+
+```bash
+command -v bun >/dev/null 2>&1 || { [ -x "$HOME/.bun/bin/bun" ] && export PATH="$HOME/.bun/bin:$PATH"; }
+command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
+```
+
+宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。
