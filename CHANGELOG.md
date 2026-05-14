@@ -102,6 +102,19 @@
 
 ---
 
+## [1.4.2] · 2026-05-15 · 修复部署两个 bug
+
+> 用户本地实测发现。
+
+### Fixed
+- **Cloudflare token 读取 key 名不一致**：wizard 历史上把 token 存成 `cloudflare_token`，而 deploy.ts 读的是 `cloudflare_api_token` → 读不到、报「token 未配置」。修复：deploy.ts 现在把所有变体都读一遍（env → keychain → secrets.json），并跳过占位值 `"fake"`；wizard.ts 统一写规范 key `cloudflare_api_token`
+- **deploy 默认部署错了页面**：`lumilab deploy` 之前只认 `studio/`，把作战室日志部署上去了，而不是 landing 验证页。修复：默认部署 `landing/v<N>/`（或 `landing/`）；找不到 landing 明确报错、绝不静默 fallback；新增 `--target studio` 显式部署作战室
+
+### Changed
+- `VERSION` 1.4.1 → 1.4.2
+
+---
+
 ## [1.4.1] · 2026-05-14 · 修复 venture / home 数据落点 bug
 
 ### Fixed

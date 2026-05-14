@@ -2140,13 +2140,22 @@ async function apiSaveKeys(req: Request): Promise<Response> {
   const xSecret      = keys["x_secret"];
 
   // Verifiable providers — re-verify server-side (defence in depth).
+  // secrets.json 里的规范 key 名（和 CHAT_PROVIDERS / 各 skill 读取逻辑对齐）：
+  const SECRET_KEY: Record<string, string> = {
+    cloudflare: "cloudflare_api_token",
+    exa: "exa_api_key",
+    tikhub: "tikhub_api_key",
+    keywordseverywhere: "keywordseverywhere_api_key",
+    stripe: "stripe_secret_key",
+    resend: "resend_api_key",
+  };
   const verifiable = ["cloudflare", "exa", "tikhub", "keywordseverywhere", "stripe", "resend"];
   for (const provider of verifiable) {
     const token = keys[provider];
     if (!token) continue;
     const r = await verifyToken(provider, token);
     if (!r.ok) continue;
-    saveSecret(`${provider}_token`, token);
+    saveSecret(SECRET_KEY[provider] ?? `${provider}_token`, token);
     const flagKey = `has_${provider}` as keyof ApiKeys;
     (cfg.api as Record<string, unknown>)[flagKey] = true;
     if (provider === "cloudflare" && r.account) cfg.api.cloudflare_account = r.account;

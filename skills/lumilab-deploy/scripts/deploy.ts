@@ -12,7 +12,7 @@
  *   bun run deploy.ts <venture-name> [--public]
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { spawnSync, spawn } from 'child_process';
 import { homedir } from 'os';
@@ -25,6 +25,42 @@ interface DeployOptions {
   venture: string;
   password?: string;
   public?: boolean;
+  target?: 'landing' | 'studio';   // 默认 landing（验证页）；studio = 项目作战室日志
+}
+
+/**
+ * 选要部署的目录。默认部署 **landing 验证页**（用户上线验证用的那个），
+ * 不是 studio 作战室日志。
+ *   - target='landing'（默认）：landing/v<最大N>/ 优先，否则 landing/（含 index.html）
+ *   - target='studio'：studio/
+ * 找不到对应目录时明确报错，绝不静默 fallback 到另一个（避免「部署了详情页」的坑）。
+ */
+function resolveDeploySource(ventureDir: string, target: 'landing' | 'studio'): { dir: string; label: string } {
+  if (target === 'studio') {
+    const studioDir = join(ventureDir, 'studio');
+    if (existsSync(join(studioDir, 'index.html'))) return { dir: studioDir, label: 'Studio 作战室日志' };
+    console.error(`✗ studio/index.html 不存在：${studioDir}\n  先渲染 Studio：lumilab render <venture>`);
+    process.exit(1);
+  }
+  // target === 'landing'
+  const landingRoot = join(ventureDir, 'landing');
+  if (existsSync(landingRoot)) {
+    // 找 landing/v<N>/ 最大版本
+    const versions = readdirSync(landingRoot)
+      .filter((d) => /^v\d+$/.test(d) && existsSync(join(landingRoot, d, 'index.html')))
+      .sort((a, b) => parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10));
+    if (versions.length > 0) {
+      return { dir: join(landingRoot, versions[0]), label: `Landing 验证页 (${versions[0]})` };
+    }
+    // 或 landing/ 根目录直接有 index.html
+    if (existsSync(join(landingRoot, 'index.html'))) {
+      return { dir: landingRoot, label: 'Landing 验证页' };
+    }
+  }
+  console.error(`✗ 没找到 landing 验证页：${landingRoot}/[v<N>/]index.html`);
+  console.error(`  先生成 landing：用 lumilab-idea-to-landing 跑完流水线，或直接用 lumilab-landing-mvp`);
+  console.error(`  （如果你确实想部署 Studio 作战室日志，加 --target studio）`);
+  process.exit(1);
 }
 
 interface ShareRecord {
@@ -62,30 +98,37 @@ function saveShares(data: { shares: ShareRecord[] }) {
 }
 
 function getCloudflareToken(): string {
-  // 优先走 keychain.ts（macOS Keychain / Linux secret-tool）；
-  // 仅当 keychain 后端不可用时回退到 ~/.lumilab/secrets.json（chmod 600）。
+  // Cloudflare token 在历史版本里被存过几种 key 名（wizard 存 cloudflare_token，
+  // chat-set 存 CLOUDFLARE_API_TOKEN，旧版 cloudflare_api_token）——这里把所有
+  // 变体都读一遍，避免「存在 A、读的是 B」的踩坑。
+  const KEY_VARIANTS = ['CLOUDFLARE_API_TOKEN', 'cloudflare_api_token', 'cloudflare_token', 'CLOUDFLARE_TOKEN'];
+  // env override 最优先
+  for (const k of KEY_VARIANTS) {
+    if (process.env[k]) return process.env[k] as string;
+  }
+  // keychain.ts（macOS Keychain / Linux secret-tool）
   const keychainScript = join(import.meta.dir, '..', '..', 'lumilab-config', 'scripts', 'keychain.ts');
   if (existsSync(keychainScript)) {
-    for (const key of ['CLOUDFLARE_API_TOKEN', 'cloudflare_api_token']) {
+    for (const key of KEY_VARIANTS) {
       const r = spawnSync('bun', ['run', keychainScript, 'get', key], { stdio: ['ignore', 'pipe', 'ignore'] });
       if (r.status === 0) {
         const v = r.stdout.toString().trim();
-        if (v) return v;
+        if (v && v !== 'fake') return v;
       }
     }
   }
-  // env override
-  if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
-  // fallback: plaintext secrets.json
+  // fallback: plaintext secrets.json —— 读所有变体（含大小写），跳过占位值 "fake"
   const secretsPath = join(LUMILAB_HOME, 'secrets.json');
   if (existsSync(secretsPath)) {
     try {
-      const secrets = JSON.parse(readFileSync(secretsPath, 'utf-8'));
-      const token = secrets.cloudflare_api_token || secrets.CLOUDFLARE_API_TOKEN;
-      if (token) return token;
+      const secrets = JSON.parse(readFileSync(secretsPath, 'utf-8')) as Record<string, unknown>;
+      for (const k of KEY_VARIANTS) {
+        const v = secrets[k];
+        if (typeof v === 'string' && v.trim() && v.trim() !== 'fake') return v.trim();
+      }
     } catch { /* fall through to error */ }
   }
-  console.error('Cloudflare token 未配置。先跑 `lumilab config`，或 `lumilab secrets set CLOUDFLARE_API_TOKEN <token>`。');
+  console.error('Cloudflare token 未配置（或值为占位 "fake"）。先跑 `lumilab config`，或 `lumilab secrets set CLOUDFLARE_API_TOKEN <真实 token>`。');
   process.exit(1);
 }
 
@@ -104,15 +147,17 @@ async function generateQrPng(url: string, outputPath: string) {
 async function deploy(opts: DeployOptions) {
   const config = loadConfig();
   const ventureDir = join(DATA_ROOT, 'ventures', opts.venture);
-  const studioDir = join(ventureDir, 'studio');
-
-  if (!existsSync(studioDir)) {
-    console.error(`Studio dir not found: ${studioDir}`);
-    console.error(`Did you generate the venture first? Try /lumilab new "<idea>"`);
+  if (!existsSync(ventureDir)) {
+    console.error(`venture 不存在：${ventureDir}`);
     process.exit(1);
   }
 
-  console.log(`\n📦 Deploying venture: ${opts.venture}\n`);
+  // 默认部署 landing 验证页，不是 studio 作战室
+  const target = opts.target ?? 'landing';
+  const { dir: sourceDir, label: sourceLabel } = resolveDeploySource(ventureDir, target);
+
+  console.log(`\n📦 Deploying venture: ${opts.venture}`);
+  console.log(`   部署内容：${sourceLabel}\n`);
 
   // Step 1: Determine password
   const isPublic = opts.public ?? false;
@@ -136,7 +181,7 @@ async function deploy(opts: DeployOptions) {
     console.log('  🔒 Encrypting (AES-GCM + PBKDF2 1M iter)...');
     const encryptResult = spawnSync(
       'bun',
-      ['run', join(__dirname, 'encrypt.ts'), studioDir, password, deployDir],
+      ['run', join(__dirname, 'encrypt.ts'), sourceDir, password, deployDir],
       { stdio: 'inherit' }
     );
     if (encryptResult.status !== 0) {
@@ -144,8 +189,8 @@ async function deploy(opts: DeployOptions) {
       process.exit(1);
     }
   } else {
-    // Public: just copy studio contents to deployDir
-    spawnSync('cp', ['-r', `${studioDir}/.`, deployDir]);
+    // Public: 直接拷贝源目录内容到 deployDir
+    spawnSync('cp', ['-r', `${sourceDir}/.`, deployDir]);
   }
 
   // Step 3: wrangler deploy
@@ -222,15 +267,25 @@ async function deploy(opts: DeployOptions) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error('Usage: bun run deploy.ts <venture-name> [--public] [--password=xxxxxx]');
+    console.error('Usage: bun run deploy.ts <venture-name> [--public] [--password=xxxxxx] [--target landing|studio]');
+    console.error('  默认部署 landing 验证页；--target studio 部署 Studio 作战室日志');
     process.exit(1);
   }
   const venture = args[0];
   const isPublic = args.includes('--public');
   const passwordArg = args.find(a => a.startsWith('--password='));
   const password = passwordArg ? passwordArg.split('=')[1] : undefined;
+  // --target landing|studio （也接受 --target=landing 写法）
+  const targetIdx = args.findIndex(a => a === '--target' || a.startsWith('--target='));
+  let target: 'landing' | 'studio' = 'landing';
+  if (targetIdx !== -1) {
+    const raw = args[targetIdx].includes('=') ? args[targetIdx].split('=')[1] : args[targetIdx + 1];
+    if (raw === 'studio') target = 'studio';
+    else if (raw === 'landing') target = 'landing';
+    else { console.error(`✗ --target 只能是 landing 或 studio（收到：${raw}）`); process.exit(2); }
+  }
 
-  await deploy({ venture, public: isPublic, password });
+  await deploy({ venture, public: isPublic, password, target });
 }
 
 main().catch(err => {

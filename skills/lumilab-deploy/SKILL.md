@@ -3,7 +3,7 @@ name: lumilab-deploy
 description: |
   One-command deployment of venture Studio to Cloudflare Pages with client-side encryption and password gate. Reads encrypted content (AES-GCM + PBKDF2 1M iterations) and wraps it in static HTML password gate. Uses wrangler CLI to push to Cloudflare Pages. Generates QR code for mobile access. Supports rotate-password and undeploy. Use when user types /lumilab deploy, /lumilab undeploy, or /lumilab rotate-password.
   关键词：deploy / 部署 / cloudflare pages / wrangler / 加密分享 / 密码门 / venture studio 部署 / 一键部署 / 二维码 / 公网链接
-version: 1.4.1
+version: 1.4.2
 metadata:
   hermes:
     tags: [deploy, cloudflare, encryption, aes-gcm, password-gate]
