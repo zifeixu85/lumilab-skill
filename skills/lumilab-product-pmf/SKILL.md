@@ -36,7 +36,7 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# product-pmf — VST Overlay
+# product-pmf — Lumi Lab Overlay
 
 ## 用途
 
@@ -134,7 +134,7 @@ Q1: 你现在有多少最近 14 天用过 ≥2 次的活跃用户？
 
 ### Phase B · 跑 Survey
 
-VST 生成一份 5 题 Survey（中文），用户发渠道（站内 banner / 邮件 / 私信）：
+Lumi Lab 生成一份 5 题 Survey（中文），用户发渠道（站内 banner / 邮件 / 私信）：
 
 ```
 Q1（核心）：如果以后再也不能用 <产品>，你的感受是：
@@ -156,7 +156,7 @@ Q5（所有人）：我们最应该改进什么？（一项）
 
 ### Phase C · 分析
 
-VST 输出 `pmf_score.md`：
+Lumi Lab 输出 `pmf_score.md`：
 
 ```markdown
 # PMF Score · <venture> · <date>
@@ -270,13 +270,13 @@ pmf:
 
 ```
 飞书 chat 里：
-1. VST 把 5 题 Survey 文本直接给用户复制
+1. Lumi Lab 把 5 题 Survey 文本直接给用户复制
 2. 用户发渠道，把 raw 回答粘回 chat
-3. VST 在 chat 里现场统计（≥30 条时）+ 输出 pmf_score 简版
+3. Lumi Lab 在 chat 里现场统计（≥30 条时）+ 输出 pmf_score 简版
 4. 提示落盘路径，等用户有浏览器时归档
 ```
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/pmf_*
 - **下游路由**：

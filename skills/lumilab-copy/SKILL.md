@@ -13,7 +13,7 @@ metadata:
     chat_only_ok: true
   category: agent
   agent: content
-  authors: [vst-team]
+  authors: [lumilab]
   upstream:
     - "johndoeblocks/copy-skill"
     - "shipshitdev/copy-validator"
@@ -195,7 +195,7 @@ delve / robust / crucial / comprehensive → 全部禁用（英文同理）
 ### 步骤 1 · 确定 awareness stage（HARD-GATE）
 
 ```
-VST: 你这次要打的人，处于哪个阶段？
+Coach: 你这次要打的人，处于哪个阶段？
 
      ○ Unaware — 不知道自己有这个问题（教育型文案）
      ○ Problem-aware — 知道烦，不知有解 ★ 早期最常见 ★
@@ -233,7 +233,7 @@ VST: 你这次要打的人，处于哪个阶段？
 ### 步骤 5 · 给用户 2x3 矩阵选
 
 ```
-推荐 2 个 H1（VST 选） + 用户选 1 个或自创 1 个
+推荐 2 个 H1（Lumi Lab 选） + 用户选 1 个或自创 1 个
 配 3 个 sub-headline 候选
 配 1-2 个 CTA 文案
 ```
@@ -303,7 +303,7 @@ E) [对比 / 反 alternative]
    测试: 独特性 ✓
 ```
 
-**VST 推荐**：B + E 二选一。
+**Lumi Lab 推荐**：B + E 二选一。
 - B 更适合首页 hero（身份共鸣强 + 短）
 - E 更适合 SEM / 投放（直接反对手）
 
@@ -369,7 +369,7 @@ copy_brief:
 - 不要在对话里搞 A/B 多选 UI — 让用户直接回"我选 B"或"我要改"
 - 最终 copy_brief.yaml 用代码块整段贴出，让用户存档
 - 如果是小红书 / 公众号标题任务，一次给 ≥8 个候选（短文案需要更多备选）
-- 永远问一次"awareness stage" — 哪怕用户不懂这词，VST 用大白话翻译："你这次要打的人，已经知道有这类产品了吗？"
+- 永远问一次"awareness stage" — 哪怕用户不懂这词，Lumi Lab 用大白话翻译："你这次要打的人，已经知道有这类产品了吗？"
 
 ## 关联
 

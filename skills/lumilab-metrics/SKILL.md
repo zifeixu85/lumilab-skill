@@ -38,7 +38,7 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# metrics — VST Overlay
+# metrics — Lumi Lab Overlay
 
 ## 用途
 
@@ -232,7 +232,7 @@ properties_global:
 
 ### Step 4 · 装工具（用户选）
 
-VST 不替选工具，但给推荐：
+Lumi Lab 不替选工具，但给推荐：
 
 ```
 ○ PostHog (self-host or cloud) — 推荐独立开发者，免费 1M events/月
@@ -363,14 +363,14 @@ review_cadence: monthly
 
 ```
 飞书 chat 里：
-1. VST 不画图，用 ASCII retention curve
+1. Lumi Lab 不画图，用 ASCII retention curve
 2. Event schema 用 chat 表格输出
-3. 用户每周一发当周 NSM 数 → VST 在 chat 里算 trend
+3. 用户每周一发当周 NSM 数 → Lumi Lab 在 chat 里算 trend
 4. 月度 review 在 chat 里出 markdown 报告
 5. 提示用户落盘路径
 ```
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/metrics.yaml + event_schema.yaml + north_star.md
 - **下游消费**：

@@ -55,7 +55,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 - 用户输入 `/lumilab launch` —— 主流程
 - 用户输入 `/lumilab sop` —— 单独生成
-- VST 检测到内容已生成但还没 SOP → 主动提示
+- Lumi Lab 检测到内容已生成但还没 SOP → 主动提示
 
 ## 7 日标准流程
 

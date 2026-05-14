@@ -102,6 +102,17 @@
 
 ---
 
+## [1.3.2] · 2026-05-14 · 清理旧项目名 + bundle 入口 SKILL.md
+
+### Changed
+- 清理全部 **VST / Venture Skill Team / vst-team** 旧项目名残留（改名 Lumi Lab 前的命名），21 个 SKILL.md + 脚本注释统一为 Lumi Lab；对话示例里的 `VST:` 前缀改为 `Coach:`
+- 新增 **bundle 入口 `SKILL.md`**（仓库根目录）—— 介绍整个 bundle、默认入口、23 skill 协同关系，含 agentskills.io v1 frontmatter
+- `VERSION` 1.3.1 → 1.3.2
+
+> 注：代码库内不含、也从未含任何「Fun Skills / 繁星」等比赛专有标识；本次只是清理旧项目名。
+
+---
+
 ## [1.3.1] · 2026-05-14 · 首次引导页打磨（基于截图反馈）
 
 > 用户实测首次引导页后的一轮打磨。

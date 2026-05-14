@@ -218,7 +218,7 @@ Research 跑完自动触发 Studio 重渲染。Studio index.html 增加「Resear
 Research 找到强信号 → 主动提示：
 
 ```
-VST: 调研完了。发现一个冲突需要 surface 给你：
+Coach: 调研完了。发现一个冲突需要 surface 给你：
 
      你最初的 h-001「分发耗时」: 0/12 Web + 1/15 XHS 提及
      调研发现 h-004「改写后丢味」: 3/12 Web + 5/15 XHS 提及

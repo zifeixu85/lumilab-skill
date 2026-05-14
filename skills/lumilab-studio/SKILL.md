@@ -264,7 +264,7 @@ export function startServer(workspacePath: string, port = 7777) {
 
 ## Anti-Slop（Studio 自己也必须遵守）
 
-Studio 是 VST 给用户的第一印象。**自己长得不能像 AI 做的**。
+Studio 是 Lumi Lab 给用户的第一印象。**自己长得不能像 AI 做的**。
 
 - 字体：Cabinet Grotesk / Geist Mono（不 Inter）
 - 颜色：OKLCH 中性 + 单一 accent（用户 design_direction 决定）

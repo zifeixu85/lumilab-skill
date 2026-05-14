@@ -37,7 +37,7 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# product-mvp — VST Overlay
+# product-mvp — Lumi Lab Overlay
 
 ## 用途
 
@@ -288,14 +288,14 @@ ranked:
 
 ```
 飞书 chat 里：
-1. VST 让用户口头列 hypotheses + 打分 → chat 表格
+1. Lumi Lab 让用户口头列 hypotheses + 打分 → chat 表格
 2. 推荐 MVP 类型 + success criteria → chat
 3. 让用户口头 commit 不许中途改
-4. Run 期间用户每天发 1 条 "today's number" 进 chat → VST 追踪
+4. Run 期间用户每天发 1 条 "today's number" 进 chat → Lumi Lab 追踪
 5. Day-15 chat 出 decision report
 ```
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/mvp_*
 - **下游路由**：

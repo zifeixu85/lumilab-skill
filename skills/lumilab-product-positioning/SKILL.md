@@ -2,7 +2,7 @@
 name: lumilab-product-positioning
 description: |
   April Dunford 5-step positioning (competitive alternatives → unique attributes → value → customers who care → market category). Lumi-Lab overlay with Anti-Slop and platform constraints. Use when the user asks how to introduce their product, has a landing page with high bounce, is stuck on "what market am I in", or growth has stalled and positioning is suspected.
-  关键词：product-positioning / 产品定位 / 市场定位 / April Dunford / Obviously Awesome / 竞争性替代品 / 市场类别 / 定位陈述 / VST overlay
+  关键词：product-positioning / 产品定位 / 市场定位 / April Dunford / Obviously Awesome / 竞争性替代品 / 市场类别 / 定位陈述 / Lumi Lab overlay
 version: 1.3.0
 metadata:
   hermes:
@@ -35,7 +35,7 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# product-positioning — VST Overlay
+# product-positioning — Lumi Lab Overlay
 
 ## 用途
 
@@ -189,7 +189,7 @@ we [key differentiator].
 和 [主要替代品] 不一样的是，[关键差异]。
 ```
 
-让用户填，VST 给 critique。
+让用户填，Lumi Lab 给 critique。
 
 ## 真实示例
 
@@ -279,13 +279,13 @@ we [key differentiator].
 无浏览器 / 无 file UI 时（飞书 chat / 微信 / 终端）：
 
 ```
-VST 在 chat 里走 6 题 HARD-GATE。每题用编号选项让用户回 "Q1: 2,3" 这种格式。
+Lumi Lab 在 chat 里走 6 题 HARD-GATE。每题用编号选项让用户回 "Q1: 2,3" 这种格式。
 最后把 positioning statement 直接贴在 chat 里，让用户复制走。
 不写 file，但提示用户："建议把这段贴到 data/ventures/<name>/positioning.md，
 下次 landing-mvp / launch-strategy 会读。"
 ```
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/positioning*.md
 - **关联记忆**：market category + competitive alternatives 写入 memory/resources/categories/

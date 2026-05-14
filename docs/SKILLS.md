@@ -54,7 +54,7 @@ The utility skills that make the bundle actually usable.
 
 ## Overlays · 11 skills
 
-Thin wrappers around upstream community skills, with VST-specific Anti-Slop + platform constraints applied to their output. Phase 1 will deepen these.
+Thin wrappers around upstream community skills, with Lumi Lab-specific Anti-Slop + platform constraints applied to their output. Phase 1 will deepen these.
 
 | Skill | Wraps |
 |---|---|

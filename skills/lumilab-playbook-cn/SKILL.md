@@ -30,7 +30,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 用途
 
-VST 内部知识库。其他 Skill 在需要方法论引用时 read 这里，不必重复嵌入完整方法论内容。
+Lumi Lab 内部知识库。其他 Skill 在需要方法论引用时 read 这里，不必重复嵌入完整方法论内容。
 
 ## 索引
 

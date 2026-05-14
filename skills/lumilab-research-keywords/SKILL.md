@@ -14,7 +14,7 @@ metadata:
     chat_only_ok: true
   category: agent
   agent: research
-  authors: [vst-team]
+  authors: [lumilab]
   upstream:
     - "DataForSEO API v3 (https://docs.dataforseo.com/v3/) — default provider"
     - "Keywords Everywhere API v1 (https://api.keywordseverywhere.com/docs/) — optional provider"
@@ -44,7 +44,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 在验证流程里的位置
 
-VST 的调研有两层，互补：
+Lumi Lab 的调研有两层，互补：
 
 | Skill | 回答的问题 | 性质 | 数据源 |
 |---|---|---|---|
@@ -250,7 +250,7 @@ Studio index 用它渲染红蓝海散点图（x=competition/KD, y=volume, 气泡
 搜索需求是一类**可证伪证据**。跑完后主动 surface：
 
 ```
-VST: 关键词调研完了。发现一个可以升格成假设的强信号：
+Coach: 关键词调研完了。发现一个可以升格成假设的强信号：
 
      「ai 改写不丢味」月搜索量 1,300，KD 仅 18，近 12 月趋势 +22%
      → 这是蓝海，且与你 h-002「用户在意改写后丢失原味」方向一致

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * Output validator for lumilab-design-direction.
- * Validates design_direction.json against the VST schema:
+ * Validates design_direction.json against the Lumi Lab schema:
  * chosen preset + 3 dials + palette + typography.
  * Exit 0 = valid, 1 = malformed.
  *

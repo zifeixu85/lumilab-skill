@@ -37,7 +37,7 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# launch-strategy — VST Overlay
+# launch-strategy — Lumi Lab Overlay
 
 ## 用途
 
@@ -281,14 +281,14 @@ assets:
 
 ```
 飞书 chat 里：
-1. VST chat 里做 readiness gate 5 题
+1. Lumi Lab chat 里做 readiness gate 5 题
 2. 不出 calendar.yaml，改输出 markdown 表格
 3. 每天用户发「today's launch number」回 chat
-4. VST 在 chat 里做 weekly 回顾
-5. PH launch 当天 VST chat 里每 2h 发 reminder "去回复评论"
+4. Lumi Lab 在 chat 里做 weekly 回顾
+5. PH launch 当天 Lumi Lab chat 里每 2h 发 reminder "去回复评论"
 ```
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/launch_*
 - **下游消费**：lumilab-content-repurpose（一个 launch 故事拆 5 平台）

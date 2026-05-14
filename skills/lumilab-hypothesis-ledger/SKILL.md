@@ -13,7 +13,7 @@ metadata:
     chat_only_ok: true
   category: foundation
   agent: review
-  authors: [vst-team]
+  authors: [lumilab]
   upstream:
     - "para-memory-files (~/.claude/skills/para-memory-files)"
     - "obra/superpowers-skills/collaboration/remembering-conversations"
@@ -35,7 +35,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 用途
 
-每个 venture 的核心 **可证伪假设** 集合，按 atomic YAML facts 存储。这是 VST 最重要的真理源，所有 Agent 都向它写 / 读。
+每个 venture 的核心 **可证伪假设** 集合，按 atomic YAML facts 存储。这是 Lumi Lab 最重要的真理源，所有 Agent 都向它写 / 读。
 
 ## 何时调用
 

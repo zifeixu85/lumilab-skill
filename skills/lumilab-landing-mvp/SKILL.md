@@ -13,7 +13,7 @@ metadata:
     chat_only_ok: true
   category: agent
   agent: landing
-  authors: [vst-team]
+  authors: [lumilab]
   upstream:
     - "github.com/Aston1690/claude-skill-landing-page (★ Anti-Slop + 6-phase 流水线金标准)"
     - "github.com/ooiyeefei/landing-page-gtm (GTM 定位 + Feature→Benefit)"

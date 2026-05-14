@@ -2,7 +2,7 @@
 name: lumilab-design-direction
 description: |
   Design direction picker for venture validation — 4 aesthetic presets (editorial / minimalist / brutalist / soft) + 3 dials (variance / motion / density, 0-100) + brand palette, with iframe live preview. Outputs design_direction.json that landing-mvp / studio / copy all inherit for visual consistency. Lumi-Lab Anti-Slop enforced: OKLCH only, no Inter/Roboto, no purple-gradient. Use when user types /lumilab design-direction, or asks to pick a visual style / aesthetic / color palette / typography before building landing or studio pages.
-  关键词：设计方向 / 美学 / 配色 / 字体 / 视觉风格 / 旋钮 / 实时预览 / design direction / aesthetic / color palette / typography / visual style / editorial / minimalist / brutalist / soft / VST overlay
+  关键词：设计方向 / 美学 / 配色 / 字体 / 视觉风格 / 旋钮 / 实时预览 / design direction / aesthetic / color palette / typography / visual style / editorial / minimalist / brutalist / soft / Lumi Lab overlay
 version: 1.3.0
 metadata:
   hermes:
@@ -31,11 +31,11 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# design-direction — VST Overlay (Minimal P0)
+# design-direction — Lumi Lab Overlay (Minimal P0)
 
 ## 用途
 
-提供 `Design direction - 4 presets + 3 dials + register` 能力。P0 极简 overlay 策略：frontmatter + 触发词 + 引用上游 + VST 规则叠加。
+提供 `Design direction - 4 presets + 3 dials + register` 能力。P0 极简 overlay 策略：frontmatter + 触发词 + 引用上游 + Lumi Lab 规则叠加。
 
 ## 上游引用
 
@@ -45,7 +45,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 - `/Users/cheche/workspace/skills-fun/Lumi Lab/reference/skills/`
 - `/Users/cheche/workspace/skills/01_active_research/lumi-lab/collected_skills/`
 
-## VST 上下文叠加
+## Lumi Lab 上下文叠加
 
 - **产物路径**：data/ventures/<name>/ 对应文件
 - **关联记忆**：相关 entity 写入 memory/resources/
@@ -74,7 +74,7 @@ bun run skills/lumilab-design-direction/scripts/serve.ts <venture-slug>
 ## 必做约束
 
 ```
-✓ 产物结构遵守 VST schema（ARCHITECTURE.md §10.3）
+✓ 产物结构遵守 Lumi Lab schema（ARCHITECTURE.md §10.3）
 ✓ 输出过 Anti-Slop
 ✓ 不替用户决策（user_challenge 类必 surface）
 ```
@@ -113,7 +113,7 @@ Bot: variance (0-100, 默认 40)?
 
 ## Output validation
 
-`scripts/validate-output.ts` 确定性校验 `design_direction.json` 是否符合 VST schema：`preset` 为 editorial/minimalist/brutalist/soft 之一、`samples` 恰好 4 个且 id 合法、`dials` 含 variance/motion/density 三项且均为 0-100 整数、`palette` 至少 1 个 `oklch()` 颜色且无 `#000`/`#fff`、`typography` 不含 Inter/Roboto。
+`scripts/validate-output.ts` 确定性校验 `design_direction.json` 是否符合 Lumi Lab schema：`preset` 为 editorial/minimalist/brutalist/soft 之一、`samples` 恰好 4 个且 id 合法、`dials` 含 variance/motion/density 三项且均为 0-100 整数、`palette` 至少 1 个 `oklch()` 颜色且无 `#000`/`#fff`、`typography` 不含 Inter/Roboto。
 
 ```bash
 bun run skills/lumilab-design-direction/scripts/validate-output.ts data/ventures/<slug>
