@@ -3,7 +3,7 @@ name: lumilab-deploy
 description: |
   One-command deployment of venture Studio to Cloudflare Pages with client-side encryption and password gate. Reads encrypted content (AES-GCM + PBKDF2 1M iterations) and wraps it in static HTML password gate. Uses wrangler CLI to push to Cloudflare Pages. Generates QR code for mobile access. Supports rotate-password and undeploy. Use when user types /lumilab deploy, /lumilab undeploy, or /lumilab rotate-password.
   关键词：deploy / 部署 / cloudflare pages / wrangler / 加密分享 / 密码门 / venture studio 部署 / 一键部署 / 二维码 / 公网链接
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [deploy, cloudflare, encryption, aes-gcm, password-gate]
@@ -17,9 +17,9 @@ metadata:
     - "wrangler (Cloudflare official CLI)"
     - "Web Crypto API (browser-native AES-GCM + PBKDF2)"
   outputs:
-    - "data/ventures/<name>/deploy/deploy-status.json"
+    - "data/ventures/<name>/deploy/manifest.json"
     - "data/ventures/<name>/deploy/encrypted-bundle/ (加密后的 HTML 包装层)"
-    - "data/ventures/<name>/qr.png"
+    - "data/ventures/<name>/deploy/qr.png"
     - "~/.lumilab/shares.json (新增/更新条目)"
   reads:
     - "data/ventures/<name>/studio/ (要部署的内容)"
@@ -72,8 +72,8 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 4. 生成 wrapper HTML（密码门 + Web Crypto API 解密 JS）
 5. wrangler pages deploy ./encrypted-bundle/ --project-name=<auto-named>
 6. 等待 Cloudflare build（20-40s）
-7. 生成二维码（QR.png）
-8. 更新 ~/.lumilab/shares.json
+7. 生成二维码 `deploy/qr.png`
+8. 更新 ~/.lumilab/shares.json + 写 `deploy/manifest.json`
 9. 输出 URL + 密码（提示用户单独告诉访问者）
 ```
 
@@ -269,16 +269,49 @@ user_input:
 - 配套：lumilab-config（提供 token）
 - 配套：lumilab-studio（提供要部署的 HTML 内容）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| wrangler 未安装 | abort，提示 `npm i -g wrangler`，不重试 |
+| Cloudflare 返回 401 | abort，token 失效，提示 `/lumilab config` 重配 |
+| 用户选「公开」 | 跳过加密步骤，manifest 写 `public: true`，无 encryption 块 |
+| `deploy:status` 且 venture 未部署过 | 报「未找到部署记录」，不创建空 manifest |
+| 同 venture 内容 hash 未变 | 跳过部署，复用上一版 URL |
+| `rotate-password` | 重新加密 + 推送，同时失效旧 localStorage 缓存 |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| wrangler | Cloudflare CLI | 免费 | free（Cloudflare Pages 免费层 500 build/月） | 用户全局安装，部署必需 |
+| Cloudflare Pages | 静态托管 | 免费层够用 | free（个人项目通常 $0/mo） | 加密 blob 托管 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~1-2K tokens / 次部署 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查 `deploy/manifest.json`：`versions` 为非空数组、每个版本含 `url`（https://）/ `deployed_at` / `public`（boolean），非 public 版本的 `encryption` 块满足 `algorithm == "AES-GCM"`、`kdf == "PBKDF2"`、`iterations >= 100000`。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+校验字段:
+- `deploy/manifest.json` → `versions`: array（非空）
+- `deploy/manifest.json` → `versions[].url`: string（必须 `https://` 开头）
+- `deploy/manifest.json` → `versions[].deployed_at`: string（非空，ISO-8601）
+- `deploy/manifest.json` → `versions[].public`: boolean
+- `deploy/manifest.json` → `versions[].encryption`: object（非 public 版本必需，含 `algorithm == "AES-GCM"`、`kdf == "PBKDF2"`、`iterations >= 100000`）
 
 ## Outputs
 
-`data/ventures/<slug>/deploy/manifest.json` · 远端 `<slug>.pages.dev`（AES-GCM + PBKDF2 加密）
+- `data/ventures/<slug>/deploy/manifest.json`（部署版本历史 + 加密参数）
+- `data/ventures/<slug>/deploy/encrypted-bundle/`（AES-GCM 加密后的 HTML 包装层）
+- `data/ventures/<slug>/deploy/qr.png`（移动端访问二维码）
+- `~/.lumilab/shares.json`（新增/更新分享条目）
+- 远端 `<slug>.pages.dev`（AES-GCM + PBKDF2 加密）
 
 ## Example
 
@@ -321,3 +354,10 @@ Lumi Lab 的差异：Cloudflare Pages + 客户端 AES-GCM/PBKDF2 1M 迭代加密
 ## Moat（复利护城河）
 
 deploy/manifest.json 累积所有部署历史（含旧 URL / 旧密码）。每个 venture 的 Studio 都可一键加密分享，形成你的私密作品集网络。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 manifest 版本数组 + 加密参数校验（AES-GCM / PBKDF2 / iterations ≥ 100000）；`anti-slop-lint.ts` 接入。
+- **0.2.0** — 补 `## 分支决策` if-then 表、6 位密码门、rotate 自动失效缓存。
+- **0.1.0-p0** — 初版：Cloudflare Pages 部署 + 客户端 AES-GCM/PBKDF2 加密 + 二维码。

@@ -3,7 +3,7 @@ name: lumilab-content-repurpose
 description: |
   Multi-platform content repurposing for venture validation. Takes one source content (idea, story, insight) and generates 5 platform-specific versions following each platform's hard constraints. Deep support for 小红书 / 微信公众号 / X. Template-based for 抖音 / 朋友圈 (Phase 0 lighter, Phase 1 enrich). Reads platform rules from memory/resources/platform-rules/. Use when user types /lumilab content or /lumilab build-assets.
   关键词：多平台内容 / 一稿七发 / 跨平台改写 / 内容矩阵 / 小红书 / 公众号 / 抖音 / 朋友圈 / X / 内容工厂 / 自媒体
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [content, xiaohongshu, wechat, douyin, x, repurpose]
@@ -20,11 +20,11 @@ metadata:
     - "github.com/johndoeblocks/copy-skill (Ogilvy + Handley)"
     - "github.com/revfactory/viral-copywriting"
   outputs:
-    - "data/ventures/<name>/content/xhs.md (深度)"
-    - "data/ventures/<name>/content/wechat.html (深度，含排版)"
-    - "data/ventures/<name>/content/x.md (深度，thread 格式)"
-    - "data/ventures/<name>/content/douyin.md (模板)"
-    - "data/ventures/<name>/content/moments.md (模板)"
+    - "data/ventures/<name>/content/xhs/<slug>.md (深度)"
+    - "data/ventures/<name>/content/wechat-mp/<slug>.md (深度，含排版)"
+    - "data/ventures/<name>/content/x-twitter/<slug>.md (深度，thread 格式)"
+    - "data/ventures/<name>/content/douyin/<slug>.md (模板)"
+    - "data/ventures/<name>/content/wechat-moments/<slug>.md (模板)"
   reads:
     - "memory/resources/platform-rules/{xiaohongshu,wechat-mp,douyin,wechat-moments,x-twitter}.md (必读)"
     - "data/ventures/<name>/product_definition.md (一句话定位)"
@@ -99,7 +99,7 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 
 ## 输出格式
 
-### content/xhs.md（小红书深度）
+### content/xhs/<slug>.md（小红书深度）
 
 ```markdown
 # 小红书发布版
@@ -129,7 +129,7 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 ✓ 违禁词扫描：通过
 ```
 
-### content/wechat.html（公众号 HTML + 排版）
+### content/wechat-mp/<slug>.md（公众号 HTML + 排版）
 
 ```html
 <!-- 公众号发布版 - 直接复制到后台编辑器 -->
@@ -156,7 +156,7 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 -->
 ```
 
-### content/x.md（X thread）
+### content/x-twitter/<slug>.md（X thread）
 
 ```markdown
 # X Thread - 7 tweets
@@ -190,7 +190,7 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 ✓ 语言一致性：[全英/全中]
 ```
 
-### content/douyin.md（模板版）
+### content/douyin/<slug>.md（模板版）
 
 ```markdown
 # 抖音口播脚本（P0 模板版）
@@ -226,7 +226,7 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 ✓ 标题 X 字（≤14）
 ```
 
-### content/moments.md（朋友圈模板）
+### content/wechat-moments/<slug>.md（朋友圈模板）
 
 ```markdown
 # 朋友圈发布版
@@ -277,32 +277,46 @@ Line 6: {CTA}
 
 ## 跨 runtime user-input 协议
 
-```yaml
-user_input:
-  - mode: terminal
-    method: "AskUserQuestion 钩子选择 / 源确认"
-  - mode: browser
-    method: "studio/decisions/06-review-content.html (P1，模块审阅)"
-    method: "studio/preview/content-{platform}.html (每个平台预览)"
-```
+terminal：`AskUserQuestion` 钩子选择 / 源确认。browser：`studio/preview/content-{platform}.html` 每平台预览（P1）。
 
 ## 引用
 
-- 上游：见 metadata.upstream
-- 必读：memory/resources/platform-rules/*.md
-- 配套：lumilab-design-direction（视觉一致性）
-- 配套：lumilab-copy（核心文案库）
+- 上游：见 metadata.upstream；必读 memory/resources/platform-rules/*.md
+- 配套：lumilab-design-direction / lumilab-copy
+
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 源信息齐全（product_definition + painpoints + landing_copy 都在） | 直接并行生成 5 平台 |
+| 缺 product_definition.md | HALT，先跑 lumilab-product-positioning |
+| 用户只要 1-2 个平台 | 只生成指定平台，跳过其余，不写空文件 |
+| 违禁词扫描命中 | 高亮 + 给替代词，拒绝输出该平台，其余正常 |
+| 标题超字数（XHS >38 / 公众号 >22 / 抖音 >14） | 自动截取 + 标 `[truncated]`，要求用户复核 |
+| `LUMILAB_CHANNEL != local` | 走 chat-only fallback，文本编号交互 |
+
+## Output validation
+
+`scripts/validate-output.ts` 是确定性校验器，扫 `content/<platform>/<slug>.md` 是否符合各平台硬规则（XHS 标题 ≤38 字、标签 3-10 个、≥1 图、无外链；公众号标题 ≤22 字、段落 ≤80 字；X thread 5-7 条、hashtag ≤2；抖音标题 ≤14 字 + 前 3 秒钩子；朋友圈 ≤6 行、无外链）。
+
+```bash
+bun run skills/lumilab-content-repurpose/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 全平台合规；exit 1 = 列出违例文件 + 规则
+bun run skills/lumilab-content-repurpose/scripts/validate-output.ts --help
+```
+
+生成 5 平台内容后必跑一次；任何 exit 1 都必须修复后再交付。
 
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | 约 $0.02–0.06（5 平台改写，复用宿主额度） | Lumi Lab 本身不直连 LLM，复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/content/{xhs,wechat-mp,douyin,wechat-moments,x}/*.md`
+`data/ventures/<slug>/content/{xhs,wechat-mp,x-twitter,douyin,wechat-moments}/<slug>.md`
 
 ## Example
 

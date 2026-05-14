@@ -3,7 +3,7 @@ name: lumilab-playbook-cn
 description: |
   Chinese-language methodology playbook for venture validation. Index of 13 frameworks (Mom Test / Lean Canvas / Sean Ellis 40% / Bob Moesta JTBD / April Dunford / YC office hours / etc.) plus China-specific platform rules. Pure knowledge skill, read by other Skills when they need methodology references. Use when user asks 「这个方法论是什么」「Mom Test 怎么用」「PMF 怎么测」etc.
   关键词：方法论 / playbook / 创业知识 / Mom Test / Lean Canvas / PMF / JTBD / 中文方法论 / 国内平台规则
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [playbook, chinese, platform-rules, 13-frameworks]
@@ -171,16 +171,38 @@ Skills 调用方式：
 ✓ 每周可更新（加新方法论 / 调整索引）
 ```
 
+## 分支决策
+
+| if 条件 | then 走哪条路径 |
+|---|---|
+| 用户问某方法论「是什么 / 怎么用」 | 返回对应索引段的一句话总结 + 5-10 核心点 |
+| 用户引用的方法论 ID 不存在 | 列出最相近 3 个建议，不硬造 |
+| 用户问国内平台规则（小红书/抖音/公众号等） | 指向 `references/platform-rules/<platform>.md`，含 2025-2026 更新 |
+| 用户用英文术语命中（如 "Jobs to be Done"） | 中英双索引，仍命中对应中文方法论 |
+| 其他 skill 需要方法论引用 | 直接 read 本 skill 对应段，不重复嵌入完整内容 |
+| 平台规则文件结构被改动 | 先跑 validate-output.ts 确认 4 字段更新条目完整再发布 |
+
+## Output validation
+
+本 skill 是知识库，不写 venture 文件，但 ship 了 `references/platform-rules/*.md` 供其他 skill 读。`scripts/validate-output.ts` 是确定性校验器，强制这些参考文件结构一致。
+
+校验字段（每个 `platform-rules/*.md`）：必有章节 `必做约束` / `2025–2026 规则更新`（string section，必填）· 每条 `### 更新 N` 含 4 字段 `发布时间` / `来源` / `影响` / `应对建议`（必填）· `xiaohongshu.md` 保持不变量「标题 ≤ 38 字」「标签 3-10」。
+
+```bash
+bun run scripts/validate-output.ts          # 默认校验 ./references
+# exit 0 = 结构一致，exit 1 = 逐条列出违规
+```
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free | ≥1.0，必需（仅 validate-output 用） |
+| host LLM | 宿主提供 | 取决于宿主 | ~0.5-2k tokens / 次引用查找 | 按需 grep 加载对应段，不全读 |
 
 ## Outputs
 
-不写文件；通过 references/ 提供 13 方法论 + 5 平台规则
+不写 venture 文件；通过 `references/` 提供 13 方法论 + 5 平台规则（5 个 platform-rules/*.md）
 
 ## Example
 
@@ -222,3 +244,8 @@ Lumi Lab 的差异：13 个中文方法论 + 5 平台规则统一索引，中英
 ## Moat（复利护城河）
 
 references 库持续更新，你的笔记可以并进来。跑得越久，这就是你私人的创业方法论库。
+
+## Changelog
+
+- **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（校验 references/platform-rules/*.md 结构一致：必做约束 + 2025–2026 规则更新章节 + 每条更新 4 字段 + xhs 硬规则不变量）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；Outputs 段明确产出为 5 个 platform-rules/*.md（与正文索引一致）。
+- **1.0.0-rc1** — 初版：13 中文方法论 + 5 平台规则索引。

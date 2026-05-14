@@ -11,7 +11,7 @@
  * content .md, studio HTML). It SKIPS skill documentation by design:
  *   - SKILL.md (legitimately discusses banned words as rules)
  *   - references/ and tests/ dirs
- *   - itself (anti-slop-lint.ts)
+ *   - skill tooling scripts (anti-slop-lint.ts, validate-output.ts)
  * Point it at a venture dir to scan everything that matters.
  * Negation-aware lines (不用 / 禁 / 避免 / ❌ / no / avoid) are skipped as rule-text.
  */
@@ -22,7 +22,7 @@ const BANNED_CN = ['赋能', '打造', '闭环', '赛道', '矩阵', '抓手', '
 const BANNED_EN = [/\bdelve\b/i, /\brobust\b/i, /\bcrucial\b/i, /\bcomprehensive\b/i, /\bnuanced\b/i, /\bleverage\b/i];
 const BANNED_VIS = [/\bInter\b/, /\bRoboto\b/, /\bArial\b/, /#000\b/, /#fff\b/, /linear-gradient[^;]*purple/i];
 const NEGATION = /(不用|禁用|禁止|禁|避免|不要|不能|別用|别用|替换|→|❌|no |avoid|never|don't|forbidden)/i;
-const SKIP_FILES = new Set(['anti-slop-lint.ts', 'SKILL.md']);
+const SKIP_FILES = new Set(['anti-slop-lint.ts', 'validate-output.ts', 'SKILL.md']);
 const SKIP_DIRS = new Set(['node_modules', 'tests', 'references']);
 
 let issues = 0;

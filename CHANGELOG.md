@@ -102,6 +102,70 @@
 
 ---
 
+## [1.0.0] · 2026-05-14 · 正式版
+
+> **Lumi Lab v1.0.0 正式发布。** 21 个 skill，跑在 Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI 里。
+> SkillLens 官方 Deep Review：**21 个 skill 全部 S 级，平均 91.59 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。
+
+### 致用户
+
+如果你是中国的独立开发者、OPC、startup 创始人——Lumi Lab 不是又一个「超级 prompt」，是一套跑在你已有 AI 宿主里的工作区：把模糊想法拆成 atomic 假设、生成不像 AI demo 的 landing 和多平台内容、跑 7 天验证 SOP、一条命令加密部署项目作战室。宿主提供 LLM，你只需要按需配几个工具 token（甚至全不配也能用大半功能）。三种宿主三条安装路径，飞书 chat 里一句话就能装、能配 key、能用。
+
+### Added
+
+**chat-mode 配置（B1）**
+- `wizard.ts` 检测 `LUMILAB_CHANNEL`，提供 3 个 agent-friendly 子命令：
+  - `--chat-prompts`：列出可配置 provider + 设置指引
+  - `--chat-status`：当前配置状态（不回显 token）
+  - `--chat-set <provider> <token>`：verify 真实 API → 写 keychain → 更新 config flag
+- 飞书 / Telegram chat 里 host LLM 编排：收集 token → 逐个 `--chat-set` → 完成。不再依赖浏览器 wizard
+- `verifyTikHub` 升级为真实 API 调用（原 P0 stub）
+
+**每个 skill 一个真 validator 脚本（B2）**
+- 21 个 `scripts/validate-output.ts`：确定性、可独立运行、exit 0/1、带 `--help`
+- YAML / JSON / 内容 / HTML 各类输出对应各自的 schema 校验
+- 每个 SKILL.md 加 `## Output validation` 段 + `校验字段:` schema 声明
+- 全部用自指 demo venture（lumilab-meta）实测通过
+
+**结构性补全（B2）**
+- 文件名跨段一致：frontmatter `outputs` ↔ 正文 ↔ `## Outputs` 三处对齐
+- `## Dependencies` 表加单次调用成本列
+- 每个 skill 加 `## 分支决策` if-then 表（6–7 行）
+- 每个 skill 加 `## Changelog` + `scripts/package.json`
+
+### Fixed
+- **3 个 validator schema bug**（用自指 demo 实测发现）：
+  - `hypothesis-ledger`：evidence 非空只在 `test_status=passed|failed` 时要求
+  - `studio`：校验真实的 `.nav-stage` 7 段导航，metrics/assets 段改为可选
+  - `design-direction`：校验真实 schema（`preset`/`dials`/`palette`/`typography`），移除臆想的 `samples` 数组检查
+- `anti-slop-lint.ts` 全 21 个加 `validate-output.ts` 到 SKIP_FILES（validator 含禁词检测常量，同 linter 自身）
+
+### Changed
+- `VERSION` 1.0.0-rc3 → **1.0.0**
+- `manifest.json` version → 1.0.0，release channel → stable
+- 21 个 SKILL.md frontmatter version → 1.0.0
+- README badge：1 S + 20 A → **21 S，平均 91.6**
+- `docs/SKILLLENS_REPORT.md` 重写为四轮迭代对比（rc1 → rc2 → rc3 → v1.0.0）
+
+### SkillLens 四轮迭代
+
+| | rc1 | rc2 | rc3 | **v1.0.0** |
+|---|---:|---:|---:|---:|
+| 平均分 | 80.53 | 87.32 | 87.25 | **91.59** |
+| S 级 | 0 | 0 | 1 | **21** |
+| 全部 verified | ✅ | ✅ | ✅ | ✅ |
+
+### 待你的环境收尾（不阻塞代码可用性）
+- 端到端 dogfood 安装真测（`./install.sh` + Claude Code / OpenClaw / Hermes 各识别一遍）
+- 飞书 e2e demo 录屏（需建飞书 bot）
+- ClawHub 发布（需注册 clawhub.ai 账号）
+- XHS / Exa 真 token 联调（代码就绪，需你的 API key）
+
+### 致谢
+方法论 / 上游 skill 致谢见 README.md。SkillLens 评测工具：github.com/Yannickdes/SkillLens。
+
+---
+
 ## [1.0.0-rc3] · 2026-05-14 · 首个 S 级 + README 中文化 + 3 bug 修复
 
 > 第三个候选发布。首个 SkillLens S 级 skill 出现（`lumilab-content-repurpose` 90.33）。README 改为中文为主，英文版保留为 `README.en.md`。修复 deep review 暴露的 3 个真实 bug。

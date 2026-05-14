@@ -1,9 +1,9 @@
 ---
 name: lumilab-metrics
 description: |
-  AARRR Pirate Metrics + Sean Ellis North Star + leading vs lagging + Amplitude/PostHog event schema. Cohort retention curve reading. Lumi-Lab overlay with Chinese-first event naming and Anti-Slop for vanity metrics.
+  AARRR Pirate Metrics + Sean Ellis North Star + leading vs lagging + Amplitude/PostHog event schema. Cohort retention curve reading. Lumi-Lab overlay with Chinese-first event naming and Anti-Slop for vanity metrics. Use when the user asks which metrics to track, can't tell if a product is healthy from GA data, needs an event schema before MVP launch, or wants to read a cohort retention curve.
   关键词：metrics / AARRR / 海盗指标 / north star / leading / lagging / vanity / retention curve / event schema / PostHog / Amplitude
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [aarrr, north-star, retention, amplitude, posthog]
@@ -402,16 +402,46 @@ review_cadence: monthly
 - 上游：wshobson/startup-metrics-framework
 - 配套：lumilab-product-pmf / lumilab-product-mvp / lumilab-launch-strategy / lumilab-founder-coach
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 用户 0 用户 0 流量 | 拒绝装埋点，回 `lumilab-product-mvp` |
+| 用户问「PostHog 怎么配置」 | 不答工具配置，本 skill 只解决测什么/怎么命名 |
+| 用户问「转化率太低怎么办」 | 转 `lumilab-product-pmf` |
+| cohort retention 不足 4 周 | 拒绝解读 retention curve，先攒数据 |
+| W4 retention flatten 在 40%+ | 准备 launch，路由到 `lumilab-launch-strategy` |
+| W4 持续下降未 flatten | 优先做 retention，不做 acquisition |
+| 用户把 PV / 总注册数 当核心指标 | 警示 vanity，替换为 actionable（W1 retention / activation rate） |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~5-9K tokens / 次 schema 设计 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查 `metrics.yaml`（含 `north_star`（有 `name` + `measure_cadence`）和 `aarrr` 五段 `acquisition`/`activation`/`retention`/`referral`/`revenue`）与 `event_schema.yaml`（含 `events` 列表，每个 event 名为 verb_noun snake_case，事件数不超过 20）。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+校验字段:
+- `metrics.yaml` → `north_star`: object（必含 `name`: string、`measure_cadence`: string）
+- `metrics.yaml` → `aarrr`: object（必含五段 `acquisition` / `activation` / `retention` / `referral` / `revenue`，均为 object）
+- `event_schema.yaml` → `events`: list（非空，长度 ≤ 20）
+- `event_schema.yaml` → `events[].name`: string（必须匹配 verb_noun snake_case：`^[a-z]+(_[a-z0-9]+)+$`）
 
 ## Outputs
 
-`data/ventures/<slug>/metrics.yaml`（AARRR 事件 schema）
+- `data/ventures/<slug>/metrics.yaml`（north star + AARRR 指标）
+- `data/ventures/<slug>/event_schema.yaml`（核心 6-10 个事件定义）
+- `data/ventures/<slug>/north_star.md`（月度 review 报告）
+- `data/ventures/<slug>/retention_curve.md`（cohort retention 判读）
 
 ## Example
 
@@ -453,3 +483,10 @@ Lumi Lab 的差异：AARRR + North Star + vanity/actionable 双列对照 + cohor
 ## Moat（复利护城河）
 
 metrics.yaml 是累积的事件 schema，schema 版本化。跑得越久，事件定义越稳，跨 venture 的指标可对比。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 event 命名 verb_noun snake_case 检查 + 事件数 ≤ 20 上限；`anti-slop-lint.ts` 扫 vanity metric 词。
+- **0.2.0** — 补 leading vs lagging 配对规范、cohort retention 4 周才解读约束、`## 分支决策` if-then 表。
+- **0.1.0-p0** — 初版：AARRR + North Star + vanity/actionable 双列对照 + event schema 设计原则。

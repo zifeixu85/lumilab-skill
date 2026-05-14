@@ -6,11 +6,11 @@ English ｜ [简体中文](README.md)
 
 **Lumi Lab** is a 21-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Drop it into your AI host's skills directory and it turns a fuzzy idea into shippable, testable, decision-traceable artifacts — landing page, multi-platform content, hypothesis ledger, growth SOP, deployable Studio page.
 
-[![Version](https://img.shields.io/badge/version-1.0.0--rc3-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-1_S_+_20_A_·_avg_87.3_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -245,7 +245,7 @@ A super prompt is text. Lumi Lab is a workspace.
 
 ## Quality
 
-All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **1 S + 20 A, avg 87.3 / 100, all 21 `deepReviewCertificate` `verified`**. Top: `lumilab-content-repurpose` 90.33 (S grade). See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
+All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **all 21 at S grade, avg 91.6 / 100, all 21 `deepReviewCertificate` `verified`**. Every skill ships a runnable `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts` copy checker. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
 
 ---
 
@@ -259,12 +259,14 @@ All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 
 ---
 
-## v1.0.0-rc3 status
+## v1.0.0 status
 
 ✅ Ready:
 - 21 skills with full SKILL.md + agentskills.io v1 frontmatter
+- Each skill ships `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts`
 - Studio HTML renderer (editorial aesthetic)
 - Setup Wizard / Share Manager / Design Direction browser UIs
+- **chat-mode config**: in Feishu / Telegram, `wizard.ts --chat-set <provider> <token>` configures keys directly (verifies real API → writes keychain)
 - Cloudflare deploy + client-side encryption (AES-GCM + PBKDF2 1M)
 - localStorage password cache (no re-prompt on refresh)
 - PARA three-tier memory layout
@@ -272,14 +274,14 @@ All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - `lumilab` CLI (incl. retro / research-xhs / research-web / secrets)
 - Real keychain backend (macOS Keychain / Linux secret-tool)
 - XHS / Exa real integration code + mock fallback when no token
-- Self-referencing demo venture
-- SkillLens: 1 S + 20 A, avg 87.3, all verified
+- Self-referencing demo venture (re-verified under v1.0)
+- **SkillLens: all 21 skills at S grade, avg 91.6, all verified**
 
-⏳ rc3 → final:
-- End-to-end dogfood install test (run on your machine)
+⏳ Pending your environment (does not block code usability):
+- End-to-end dogfood install test (run `./install.sh` on your machine)
 - Feishu e2e demo recording (needs a Feishu bot)
-- ClawHub publish (needs account registration)
-- XHS / Exa real-token integration test
+- ClawHub publish (needs a clawhub.ai account)
+- XHS / Exa real-token integration test (code ready, needs your API keys)
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full manifest.
 

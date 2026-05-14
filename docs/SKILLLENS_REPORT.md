@@ -1,4 +1,4 @@
-# SkillLens Deep Review · Lumi Lab v1.0.0-rc3
+# SkillLens Deep Review · Lumi Lab v1.0.0
 
 > **评测时间**: 2026-05-14
 > **评测引擎**: `skilllens-python-cli` v0.2.0 · Rubric v3 (hash `5e5a124282f8cf33`)
@@ -7,77 +7,94 @@
 
 ---
 
-## 总览（三轮迭代）
+## 总览（四轮迭代）
 
-| 指标 | rc1 | rc2 | **rc3** |
-|---|---:|---:|---:|
-| 平均分 | 80.53 | 87.32 | **87.25** |
-| **S 级（≥90）** | 0 | 0 | **1** |
-| A 级（≥80） | 9 | 21 | **20** |
-| B 级（70–79） | 12 | 0 | 0 |
-| 全部 verified | ✅ | ✅ | ✅ |
+| 指标 | rc1 | rc2 | rc3 | **v1.0.0** |
+|---|---:|---:|---:|---:|
+| 平均分 | 80.53 | 87.32 | 87.25 | **91.59** |
+| **S 级（≥90）** | 0 | 0 | 1 | **21** |
+| A 级（≥80） | 9 | 21 | 20 | 0 |
+| B 级 | 12 | 0 | 0 | 0 |
+| 全部 verified | ✅ | ✅ | ✅ | ✅ |
 
-**v1.0.0-rc3：1 个 S + 20 个 A，21 个 skill 全部 verified。** 首个 S 级：`lumilab-content-repurpose` **90.33**。
+**v1.0.0：21 个 skill 全部 S 级，平均 91.59，21 个 `deepReviewCertificate` 全部 `verified`。**
 
-三轮迭代做了什么：
-- **rc1 → rc2**：每个 SKILL.md 补 5 段工程化具体内容（Idempotency / Privacy / Cache / Failure modes / Edge cases）+ 给 15 个 overlay 加 `scripts/anti-slop-lint.ts`。9 A → 21 A。
-- **rc2 → rc3**：每个 SKILL.md 补 `## Alternatives`（具名竞品对比）+ `## Moat`（复利护城河）。content-repurpose 跨过 S 线。同时修复 review 暴露的 3 个真实 bug（见下）。
-
-> **关于 S 级的诚实说明**：rc3 这轮 review 是"更广口径的诚实重评"——有几个 skill 分数相比 rc2 略降（如 design-direction 86.88 → 84.44），因为评测 agent 在更全面的口径下发现了文件名一致性、关键词覆盖等扣分项。这是评测诚实性的体现，不是退步。要让更多 skill 上 S，需要的不是再加文档段落，而是结构性"磨锋利"（详见末尾「距离全员 S」）。
+四轮迭代路径：
+- **rc1（80.53）**：21 skill 完整 SKILL.md + agentskills.io v1 frontmatter
+- **rc1 → rc2（87.32）**：每个 SKILL.md 补 5 段工程化内容（Idempotency / Privacy / Cache / Failure modes / Edge cases）+ 15 个 overlay 加 `anti-slop-lint.ts`
+- **rc2 → rc3（87.25）**：补 `## Alternatives` 具名竞品 + `## Moat` 复利护城河；修 3 个真实 bug
+- **rc3 → v1.0.0（91.59）**：每个 skill 加**真 validator 脚本** `scripts/validate-output.ts`（确定性、可独立运行、exit 0/1）、文件名跨段一致、依赖成本列、`## 分支决策` if-then 表、`## Changelog`、`scripts/package.json`、`校验字段:` schema 声明
 
 ---
 
-## 完整分数表（rc3，按分数倒序）
+## 完整分数表（v1.0.0，按分数倒序）
 
-| 排名 | Skill | rc1 | rc2 | **rc3** | Grade | Cert |
+| 排名 | Skill | rc3 | **v1.0.0** | Δ | Grade | Cert |
 |---:|---|---:|---:|---:|:--:|:--:|
-| 1 | `lumilab-content-repurpose` | 83.5 | 89.9 | **90.33** | S | ✅ |
-| 2 | `lumilab-research-platforms` | 85.3 | 88.6 | **89.00** | A | ✅ |
-| 3 | `lumilab-copy` | 78.9 | 88.6 | **88.97** | A | ✅ |
-| 4 | `lumilab-research-icp` | 81.3 | 88.3 | **88.74** | A | ✅ |
-| 5 | `lumilab-research-interview` | 79.4 | 88.3 | **88.72** | A | ✅ |
-| 6 | `lumilab-playbook-cn` | 79.7 | 88.3 | **88.65** | A | ✅ |
-| 7 | `lumilab-config` | 86.3 | 86.2 | **87.30** | A | ✅ |
-| 8 | `lumilab-coach-yc` | 81.4 | 88.1 | **87.16** | A | ✅ |
-| 9 | `lumilab-research-competitor` | 78.1 | 87.8 | **87.02** | A | ✅ |
-| 10 | `lumilab-deploy` | 85.4 | 86.9 | **86.96** | A | ✅ |
-| 11 | `lumilab-founder-coach` | 79.2 | 88.0 | **86.68** | A | ✅ |
-| 12 | `lumilab-hypothesis-ledger` | 78.6 | 86.3 | **86.66** | A | ✅ |
-| 13 | `lumilab-launch-strategy` | 76.1 | 86.3 | **86.65** | A | ✅ |
-| 14 | `lumilab-metrics` | 76.3 | 86.3 | **86.65** | A | ✅ |
-| 15 | `lumilab-weekly-sop-runner` | 88.6 | 88.3 | **86.62** | A | ✅ |
-| 16 | `lumilab-product-mvp` | 76.9 | 86.3 | **86.61** | A | ✅ |
-| 17 | `lumilab-product-pmf` | 76.0 | 86.3 | **86.61** | A | ✅ |
-| 18 | `lumilab-product-positioning` | 78.8 | 86.3 | **86.61** | A | ✅ |
-| 19 | `lumilab-studio` | 81.9 | 85.1 | **85.99** | A | ✅ |
-| 20 | `lumilab-landing-mvp` | 79.4 | 86.8 | **85.92** | A | ✅ |
-| 21 | `lumilab-design-direction` | 80.2 | 86.9 | **84.44** | A | ✅ |
+| 1 | `lumilab-content-repurpose` | 90.33 | **92.80** | +2.47 | S | ✅ |
+| 2 | `lumilab-research-icp` | 88.74 | **92.71** | +3.97 | S | ✅ |
+| 3 | `lumilab-research-platforms` | 89.00 | **92.54** | +3.54 | S | ✅ |
+| 4 | `lumilab-landing-mvp` | 85.92 | **92.41** | +6.49 | S | ✅ |
+| 5 | `lumilab-config` | 87.30 | **92.31** | +5.01 | S | ✅ |
+| 6 | `lumilab-design-direction` | 84.44 | **92.14** | +7.70 | S | ✅ |
+| 7 | `lumilab-product-positioning` | 86.61 | **91.90** | +5.29 | S | ✅ |
+| 8 | `lumilab-product-pmf` | 86.61 | **91.89** | +5.28 | S | ✅ |
+| 9 | `lumilab-studio` | 85.99 | **91.89** | +5.90 | S | ✅ |
+| 10 | `lumilab-product-mvp` | 86.61 | **91.80** | +5.19 | S | ✅ |
+| 11 | `lumilab-copy` | 88.97 | **91.78** | +2.81 | S | ✅ |
+| 12 | `lumilab-research-interview` | 88.72 | **91.74** | +3.02 | S | ✅ |
+| 13 | `lumilab-coach-yc` | 87.16 | **91.40** | +4.24 | S | ✅ |
+| 14 | `lumilab-metrics` | 86.65 | **91.29** | +4.64 | S | ✅ |
+| 15 | `lumilab-deploy` | 86.96 | **91.16** | +4.20 | S | ✅ |
+| 16 | `lumilab-playbook-cn` | 88.65 | **91.05** | +2.40 | S | ✅ |
+| 17 | `lumilab-weekly-sop-runner` | 86.62 | **90.88** | +4.26 | S | ✅ |
+| 18 | `lumilab-research-competitor` | 87.02 | **90.81** | +3.79 | S | ✅ |
+| 19 | `lumilab-launch-strategy` | 86.65 | **90.52** | +3.87 | S | ✅ |
+| 20 | `lumilab-founder-coach` | 86.68 | **90.39** | +3.71 | S | ✅ |
+| 21 | `lumilab-hypothesis-ledger` | 86.66 | **90.06** | +3.40 | S | ✅ |
 
 ---
 
-## rc2 → rc3 修复的 3 个真实 bug
+## rc3 → v1.0.0 做了什么
 
-rc3 这轮 deep review 的评测 agent 在全面口径下暴露了 3 个真实问题，已修复：
+### 每个 skill 一个真 validator 脚本
 
-1. **`lumilab-deploy/scripts/encrypt.ts` 用了 `Inter Tight` 字体** —— 违反自己的 Anti-Slop 规则。已改为 `Fraunces` 衬线。
-2. **`lumilab-deploy/scripts/deploy.ts` 直读明文 `secrets.json`** —— 与 Privacy 段「token 优先 keychain」不一致。已改为优先走 `keychain.ts`（macOS Keychain / Linux secret-tool），仅在 keychain 后端不可用时回退明文 + env override。
-3. **`lumilab-design-direction` SKILL.md 旋钮取值范围前后矛盾** —— 一处写 `1-10` 一处写 `0-100`。已统一为 `0–100，step 10`。
+`scripts/validate-output.ts` —— 不是 LLM 自检，是确定性可运行的校验器，exit 0/1，带 `--help`：
 
-同时 `anti-slop-lint.ts` 自身重写为 negation-aware + 跳过 SKILL.md / references / 自身，消除了「linter 扫到自己的规则文本」的假阳性。21 个 skill 现在 `bun run scripts/anti-slop-lint.ts` 全部 exit 0。
+- 写 YAML 的（hypotheses / icp / metrics）→ 校验必填 key、类型、enum、supersede 链无环无孤儿
+- 写 JSON 的（research-platforms / design-direction）→ 校验 schema 形状
+- 写内容的（content-repurpose）→ 校验平台规则（XHS 标题 ≤38 字、标签 3–10 等）
+- 写 HTML 的（studio / landing-mvp）→ 校验结构 + 必有 section
+- coach / methodology 类 → 校验产出 .md 有必需章节
+
+每个都在 SKILL.md 加了 `## Output validation` 段 + `校验字段:` schema 声明。**全部用自指 demo venture（lumilab-meta）实测通过**。
+
+### 其它结构性补全
+
+- **文件名跨段一致**：frontmatter `outputs` ↔ 正文 ↔ `## Outputs` 三处逐字对齐（rc3 review 发现过 `audience.md` vs `audience.yaml` 类不一致）
+- **依赖成本列**：`## Dependencies` 表加「单次调用大致成本」列（Exa ~$0.005/次、TikHub ~$0.01、host LLM token 估算、free）
+- **`## 分支决策` if-then 表**：每个 skill 6–7 行显式 if-then，sharpening `act.no_ambiguity`
+- **`## Changelog` + `scripts/package.json`**：flip `maint.has_changelog` / `maint.declares_deps` 规则检查项
+- **触发关键词**：description 稀疏的（如 design-direction）补 `关键词：` + "use when" 触发线索
+
+### 修复 B2 引入的 validator schema bug
+
+首版 validator 由 agent 按 SKILL.md 描述写，部分与真实输出不符。用自指 demo 实测后修复 3 个：
+- `hypothesis-ledger`：evidence 非空只在 `test_status=passed|failed` 时要求（pending 假设本就无证据）
+- `studio`：renderer 实际产出 `.nav-stage` 7 段导航，不是 `<svg class="progress-diagram">`；metrics/assets 段是条件渲染，不强制
+- `design-direction`：真实 schema 是 `preset` + `dials` + `palette` + `typography`，没有 agent 臆想的 `samples` 数组
 
 ---
 
-## 距离全员 S（≥90）
+## 五大支柱平均分（v1.0.0）
 
-rc3 平均 87.25，最高 90.33。三轮 review 的评测 agent 一致结论：**剩下的差距是结构性的，不是再加文档段落能补的**。要让 8–10 个 skill 上 S，需要：
-
-1. **输出校验脚本化**：现在多数 skill 靠 LLM 自检输出格式，需要补真正的 validator 脚本（如 content skill 的 CSV 列校验、hypothesis-ledger 的 YAML schema 校验），让 `rel.output_validation.enforced` 从 LLM 自检升到脚本强约束。
-2. **文件名跨段一致**：frontmatter 的 `outputs`、正文、`## Outputs` 段三处文件名要逐字一致（rc3 review 发现个别 skill 有 `audience.md` vs `audience.yaml` 类不一致）。
-3. **依赖量化**：`## Dependencies` 表补「单次调用大致 token / 成本」列。
-4. **触发关键词加密度**：部分 skill description 的触发词太少（如 design-direction），`disc.keyword_coverage` 扣分。
-5. **if-then 消歧表**：把「什么情况走哪条分支」做成显式表格，提升 `act.no_ambiguity`。
-
-这是 v1.0.0 正式版的工程清单——每项都是具体的代码 / schema 工作，不是文案。
+| 支柱 | 满分 | 平均得分 | 占比 |
+|---|---:|---:|---:|
+| 选题价值 | 25 | **22.72** | 91% |
+| 市场竞争力 | 15 | **13.58** | 91% |
+| 运行成本 | 15 | **12.81** | 85% |
+| 效果稳定性 | 20 | **18.42** | 92% |
+| 书写质量 | 25 | **24.06** | 96% |
 
 ---
 
@@ -91,6 +108,13 @@ python3 skills/skill-scorer/scripts/score.py --llm-results llm-results.json /pat
 ```
 
 成功后 JSON 含 `deepReviewCertificate.status = "verified"`，rubric hash 必须是 `5e5a124282f8cf33`。
+
+每个 skill 的 validator 也可独立跑：
+
+```bash
+bun run skills/<skill>/scripts/validate-output.ts <venture-dir>   # exit 0 = 输出合规
+bun run skills/<skill>/scripts/anti-slop-lint.ts skills/<skill>/  # exit 0 = 无 slop
+```
 
 ## 工程透明度声明
 

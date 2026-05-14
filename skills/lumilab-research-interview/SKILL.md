@@ -3,7 +3,7 @@ name: lumilab-research-interview
 description: |
   用户访谈脚本与教练。基于 Rob Fitzpatrick The Mom Test 三原则 + Bob Moesta JTBD switch interview + 5 layers of why。生成访谈提纲、识别 8 种访谈反模式、按 saturation 规则（5-8 个达到饱和）判断是否够、把录音转录提炼成可用结构化数据。Use when 用户准备打第一批冷启动电话、准备做 ICP 验证访谈、已经做了几次访谈但拿到的回答全是空话。
   关键词：interview / Mom Test / 用户访谈 / JTBD switch / 5 whys / 访谈脚本 / 访谈反模式 / saturation / 妈妈测试
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [mom-test, interview, jtbd-switch, 5-whys]
@@ -342,16 +342,39 @@ Saturation 报告也用对话纯文本输出，附原话引用列表，不画图
 - 下游：`lumilab-copy`（VoC 全部从这里来）、`lumilab-hypothesis-ledger`（更新支持/反向证据）
 - 升级：interview_synthesis 中反复出现的痛点升格为 `memory/resources/jtbd-library/`
 
+## 分支决策
+
+| if 条件 | then 走哪条路径 |
+|---|---|
+| 用户没有 5 个具体可联系的人 | 反触发 — 先走 lumilab-research-icp 把 ICP 收窄到能列名字 |
+| 用户已有 ≥30 付费用户 | 反触发 — 走 icp skill 里的 Sean Ellis 40% PMF survey |
+| 用户带来一段录音/转录 | 跳过脚本生成，直接走步骤 3 转录提炼 |
+| 完成 5 次访谈且重复度 ≥70% | 接近饱和，建议做 1-2 次「挑战样本」后进步骤 5 synthesis |
+| 完成 8 次仍发散（重复度 <70%） | 回头改 ICP，不继续加访谈量 |
+| 单次访谈 8 反模式触发 >2 个 | 让用户重做该访谈，不计入证据 |
+| 5 次访谈全是熟人 | 标 single_source_risk = 高，要求补 ≥60% 非熟人 |
+
+## Output validation
+
+`scripts/validate-output.ts` 是确定性校验器，强制 SKILL.md「输出 schema」「反 Slop 自检」「Edge cases」里的结构规则。
+
+校验字段（`interviews/<id>.md`）：必有章节 `痛点` / `当前方案` / `触发瞬间` / `付费证据` / `反模式扫描` / `推荐链`（string section，全部必填）· `interviewer_talk_ratio`（number，< 0.3）· `痛点` 章节含逐字原话（≥1 句）。校验字段（`interview_synthesis.md`）：痛点频次表（含 N/M 形式）· `saturation`（必填）。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<name>/
+# exit 0 = 合规，exit 1 = 逐条列出违规
+```
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free | ≥1.0，必需 |
+| host LLM | 宿主提供 | 取决于宿主 | ~2-5k tokens / 单次访谈提炼 | 转录提炼 + 反模式扫描复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/interviews/<id>.md`
+`data/ventures/<slug>/interview_script.md` · `data/ventures/<slug>/interviews/<id>.md` · `data/ventures/<slug>/interview_synthesis.md`
 
 ## Example
 
@@ -393,3 +416,8 @@ Lumi Lab 的差异：Mom Test 三原则 + 8 反模式自动标红 + 5 layers of 
 ## Moat（复利护城河）
 
 `interviews/` 每个对象独立归档，跑过 20+ 访谈后能 grep 出反复出现的 struggling moment——这是质性数据的复利。
+
+## Changelog
+
+- **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（interviews/<id>.md 六大章节 + interviewer_talk_ratio <0.3 + 痛点章节逐字原话，interview_synthesis.md 痛点频次表 + saturation）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；统一 outputs 文件名（Outputs 段补齐 frontmatter 的 interview_script.md / interviews/<id>.md / interview_synthesis.md 三件）。
+- **1.0.0-rc1** — 初版：Mom Test 三原则 + 8 反模式 + switch interview + saturation rule。

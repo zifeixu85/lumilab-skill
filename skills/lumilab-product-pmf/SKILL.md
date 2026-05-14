@@ -1,9 +1,9 @@
 ---
 name: lumilab-product-pmf
 description: |
-  PMF measurement & engine. Sean Ellis 40% Survey + Rahul Vohra Superhuman PMF engine + Brian Balfour 4-fit. Lumi-Lab overlay with Chinese-first instrumentation and Anti-Slop.
-  关键词：product-market-fit / PMF / Sean Ellis 40% / Superhuman engine / 4-fit / retention curve
-version: 1.0.0-rc1
+  PMF measurement & engine. Sean Ellis 40% Survey + Rahul Vohra Superhuman PMF engine + Brian Balfour 4-fit. Lumi-Lab overlay with Chinese-first instrumentation and Anti-Slop. Use when the product has been live 6+ weeks with 40+ active users, the retention curve will not flatten, or the founder asks "do we have PMF".
+  关键词：product-market-fit / PMF / 产品市场契合 / Sean Ellis 40% / Superhuman engine / 4-fit / retention curve / 留存曲线 / 留存分析
+version: 1.0.0
 metadata:
   hermes:
     tags: [pmf, sean-ellis, superhuman, balfour-4-fit]
@@ -233,6 +233,8 @@ Q: 你的 funnel 哪一段最卡？
 
 ## 输出 schema
 
+`metrics.yaml` 的 `pmf:` 段字段：`measured_at`（date）、`sample_size`（int，<40 标 insufficient）、`very_disappointed_pct` / `somewhat_disappointed_pct` / `not_disappointed_pct`（float）、`hxc_archetype`（string，行为描述非人口学）、`hxc_core_value`（string）、`bridge_top_3`（string[]）、`next_measure`（date）、`leading_indicators`（object）。`pmf_score.md` 必含 Sean Ellis Score / HXC Archetype / Bridge analysis / Recommended roadmap / Leading indicators 五段。由 `scripts/validate-output.ts` 强制校验。
+
 ```yaml
 # data/ventures/<name>/metrics.yaml
 pmf:
@@ -303,16 +305,40 @@ pmf:
 - 上游：refoundai/measuring-pmf + omermetin/pmf
 - 配套：lumilab-founder-coach / lumilab-metrics / lumilab-product-positioning / lumilab-launch-strategy
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 活跃用户 < 40 | HALT，回 lumilab-product-mvp 拉用户，不出 PMF 报告 |
+| 产品上线 < 2 周 | HALT，数据噪声太大，等满 2 周 |
+| 还没装事件埋点 | 先跑 lumilab-metrics |
+| Sean Ellis < 25% | 转 lumilab-product-positioning 重做核心价值 |
+| Sean Ellis 25-40% | 跑本 skill 的 HXC double-down + Superhuman engine 流程 |
+| Sean Ellis ≥ 40% | 转 lumilab-launch-strategy 开始放量 |
+| Sean Ellis < 40% 且想知道卡哪 | 跑 Phase D 的 Brian Balfour 4-fit 诊断 |
+
+## Output validation
+
+`scripts/validate-output.ts` 确定性校验 `pmf_score.md`（必含 Sean Ellis Score / HXC Archetype / Bridge analysis / Recommended roadmap / Leading indicators 五段，且样本 ≥40）与 `pmf_survey_<date>.csv`（表头 + ≥1 行回答，≥2 列）。
+
+```bash
+bun run skills/lumilab-product-pmf/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 结构合法且样本充足；exit 1 = 列出缺失段 / 样本不足
+bun run skills/lumilab-product-pmf/scripts/validate-output.ts --help
+```
+
+出 PMF 报告前必跑；样本 <40 直接 exit 1，阻止「样本太小还出判断」。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | 约 $0.01–0.04（survey 设计 + 回答分析，复用宿主额度） | Lumi Lab 本身不直连 LLM，复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/pmf_survey.md` · `pmf_score.yaml`
+`data/ventures/<slug>/pmf_score.md` · `pmf_survey_<date>.csv` · `4fit_map.md` · `retention_curve.md`
 
 ## Example
 
@@ -324,7 +350,7 @@ pmf:
 
 ## Idempotency
 
-PMF survey 每次跑写新一份 `pmf_survey-<ISO>.md`；`pmf_score.yaml` 是累计版本（用户提交一次加一行）。
+PMF survey 每次跑写新一份 `pmf_survey_<date>.csv`；`pmf_score.md` 每次测量重写当期报告，`metrics.yaml` 的 `pmf:` 段累计（用户提交一次加一行历史）。
 
 ## Privacy
 
@@ -353,4 +379,8 @@ Lumi Lab 的差异：Sean Ellis 40% Survey + Superhuman PMF engine + Brian Balfo
 
 ## Moat（复利护城河）
 
-pmf_score.yaml 累计每次测量，retention 曲线随时间画出来。多次测量的趋势比单次快照可信得多。
+`metrics.yaml` 的 `pmf:` 段累计每次测量，retention 曲线随时间画出来。多次测量的趋势比单次快照可信得多。
+
+## Changelog
+
+- 1.0.0-rc1：Sean Ellis 40% + Superhuman engine + Balfour 4-fit；新增 validate-output.ts 校验器、分支决策表、依赖成本列、package.json；统一产物文件名为 pmf_score.md / pmf_survey_<date>.csv。

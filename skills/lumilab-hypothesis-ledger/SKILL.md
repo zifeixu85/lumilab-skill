@@ -3,7 +3,7 @@ name: lumilab-hypothesis-ledger
 description: |
   Atomic hypothesis ledger for Lumi Lab. Track startup hypotheses as YAML facts with supersede history, confidence scoring, test methods, and verification counts. Generates HTML diff view when hypothesis evolves. Use when user wants to add/update/supersede/list hypotheses, when Research Agent finds evidence that contradicts a hypothesis, when Review Agent runs weekly retro, or when ven­ture decision needs traceable history.
   关键词：假设 / 假设管理 / hypothesis / ledger / 创业假设 / supersede / 复盘 / 验证 / Mom Test / lean startup / atomic fact
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [hypothesis, atomic-fact, supersede, lean-startup]
@@ -251,16 +251,46 @@ user_input:
 - 配套：`lumilab-founder-coach`（Layer 1 生成初始假设）
 - 配套：`lumilab-research-platforms`（产出 evidence 喂回）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 用户给 idea 但无 active 假设 | 走 Op 1 Add，生成 3 条最大假设 |
+| Research Agent 写入 evidence 且与某 fact 矛盾 | 走 Op 4 Supersede（旧 fact status→superseded），不改旧 fact 文字 |
+| Research Agent 写入 evidence 且支持某 fact | 走 Op 2 Add Evidence，证据足够再升 confidence |
+| `verification_count` 达到 3 | surface 用户，确认后升格到 `resources/proven-hooks/` |
+| active 假设数 > 10 | 不再 Add，提示用户先收敛 idea |
+| 用户问「为什么 X 假设变了」 | 走 Op 5 Read，读 h-old + h-new + 调 diff view |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~2-5K tokens / 次操作 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查 `hypotheses.yaml`：每条 fact 的 `id` 匹配 `h-NNN` 且唯一、`confidence ∈ {high,medium,low}`、`status ∈ {active,superseded}`、`evidence[]` 非空、`superseded_by` 指向存在的 id（无孤儿）、supersede 链无回环。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+每次 supersede 操作后应跑一遍，确保链完整。
+
+校验字段:
+- `hypotheses.yaml` → `[].id`: string（必须匹配 `h-NNN`，全局唯一）
+- `hypotheses.yaml` → `[].confidence`: enum（`high` | `medium` | `low`）
+- `hypotheses.yaml` → `[].status`: enum（`active` | `superseded`）
+- `hypotheses.yaml` → `[].evidence`: list（非空）
+- `hypotheses.yaml` → `[].superseded_by`: string（可空；非空时必须指向存在的 id，链无回环，且 `status` 必须为 `superseded`）
 
 ## Outputs
 
-`data/ventures/<slug>/hypotheses.yaml`（atomic facts，含 supersede 链）
+- `data/ventures/<slug>/hypotheses.yaml`（atomic facts，含 supersede 链）
+- `data/ventures/<slug>/studio/preview/hypothesis-diff.html`（supersede 时生成的 Thariq diff view）
 
 ## Example
 
@@ -303,3 +333,10 @@ Lumi Lab 的差异：每个假设是带 `id` / `confidence` / `evidence` / super
 ## Moat（复利护城河）
 
 复利在证据链：跑得越久，ledger 里 superseded 链越长，你能回放"为什么当初放弃这个方向"。新 venture 可以 grep 历史 ledger 找"我是不是又在犯同一个假设错误"。删了就什么都没有，留着就是你的判断力数据库。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 supersede 链孤儿检测 + 回环检测；`anti-slop-lint.ts` 接入。
+- **0.2.0** — 补 `## 分支决策` if-then 表、`status: superseded` 软删除、Studio diff view。
+- **0.1.0-p0** — 初版：atomic YAML 假设（`id` / `confidence` / `evidence`）+ supersede 历史链。

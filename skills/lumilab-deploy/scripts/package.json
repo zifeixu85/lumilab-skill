@@ -1,0 +1,6 @@
+{
+  "name": "lumilab-deploy-scripts",
+  "private": true,
+  "type": "module",
+  "engines": { "bun": ">=1.0" }
+}

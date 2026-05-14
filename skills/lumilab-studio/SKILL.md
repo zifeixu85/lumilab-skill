@@ -1,9 +1,9 @@
 ---
 name: lumilab-studio
 description: |
-  HTML rendering engine + interactive decision pages for venture Studio. Renders MD/YAML data layer into spatial HTML (Thariq "values reading" pattern). Generates index.html with SVG progress diagram, decisions/* interactive pages (clarify, design-direction, retro, manage), and preview/* asset previews. Supports dual mode (file:// static read + localhost:7777 interactive). Auto re-renders on data change.
-  关键词：studio / 作战室 / 项目网页 / html dashboard / svg progress / 交互页 / 渲染引擎 / dual mode / file 协议 / localhost
-version: 1.0.0-rc1
+  HTML rendering engine + interactive decision pages for venture Studio. Renders MD/YAML data layer into spatial HTML (Thariq "values reading" pattern). Generates index.html with SVG progress diagram, decisions/* interactive pages (clarify, design-direction, retro, manage), and preview/* asset previews. Supports dual mode (file:// static read + localhost:7777 interactive). Auto re-renders on data change. Use when the user types /lumilab studio, when any data/ventures/ file changes and the dashboard needs re-rendering, or when an interactive decision page (config / manage / retro) must open.
+  关键词：studio / 作战室 / 项目网页 / html dashboard / svg progress / 交互页 / 渲染引擎 / dual mode / file 协议 / localhost / 数据驱动渲染
+version: 1.0.0
 metadata:
   hermes:
     tags: [studio, html, editorial, progress, venture-journal]
@@ -58,6 +58,19 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 - 用户 `/lumilab studio [venture]` → 浏览器打开 index
 - 用户 `/lumilab design-direction` → 启动 localhost + 打开 design-direction.html
 - 用户 `/lumilab config` / `/lumilab manage` → 启动 localhost + 打开 setup/manage
+
+## 渲染流程
+
+```
+1. 读 data/ventures/<name>/*（MD/YAML 数据底层）
+2. 解析 design_direction.json → 注入 tokens.css
+3. renderIndex → index.html（含 SVG progress）
+4. renderDecisions → decisions/*.html（交互页）
+5. renderPreview → preview/*.html（资产预览）
+6. validate-output.ts 校验结构 → 通过才算完成
+```
+
+数据变化触发 auto-rerender，重复步骤 2-6。
 
 ## 渲染引擎
 
@@ -130,7 +143,7 @@ skills/lumilab-studio/
 
 ## index.html 结构
 
-详见 PRODUCT_DESIGN §5.5.1。关键区块：
+渲染产物 `studio/index.html` 必含字段：`<svg class="progress-diagram">`（≥5 个 `.stage` 节点）、progress timeline / hypotheses / metrics / decisions / assets 五个区块、且不含禁用字体与 `#000`/`#fff`。由 `scripts/validate-output.ts` 强制校验。详见 PRODUCT_DESIGN §5.5.1。关键区块：
 
 ```
 1. Header（venture name + day count + 设置）
@@ -286,16 +299,40 @@ user_input:
 - 配套：所有 Skill（消费它们的输出）
 - 配套：lumilab-deploy（消费 Studio 产物）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| Agent 写入 `data/ventures/<name>/` 任何文件 | auto-rerender 对应 HTML，数据底层不变 |
+| 用户 `/lumilab studio` 且只看 index/preview | `file://` 直接打开，不启 server |
+| 用户 `/lumilab design-direction` 或 config/manage | 启 `localhost:7777`，交互页 POST 回写 |
+| 端口 7777 被占 | 顺延 7778 / 7779 / 7780 |
+| YAML 解析失败 | 不破坏旧 HTML，输出 `studio/index.error.html` 含诊断 |
+| hypothesis 数 > 50 | SVG progress 自动分组渲染 |
+| 用户 `/lumilab deploy` | 转 lumilab-deploy，Cloudflare Pages + 加密 + 密码门 |
+
+## Output validation
+
+`scripts/validate-output.ts` 确定性校验渲染后的 `studio/index.html`：必含 `<svg class="progress-diagram">` 且 ≥5 个 `.stage` 节点、必含 progress timeline / hypotheses / metrics / decisions / assets 五个区块、且不含禁用字体（Inter/Roboto/Arial）和 `#000`/`#fff`。
+
+```bash
+bun run skills/lumilab-studio/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 结构完整且过 Anti-Slop 抽检；exit 1 = 列出缺失区块 / 违例
+bun run skills/lumilab-studio/scripts/validate-output.ts --help
+```
+
+每次 render 后必跑；确保 HTML 呈现层结构完整、Studio 自身不长成 AI slop。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地渲染 + HTTP server） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | $0（纯模板渲染，不调 LLM） | Studio 是确定性渲染引擎，不直连 LLM |
 
 ## Outputs
 
-`data/ventures/<slug>/studio/index.html`（含 SVG 进度 + 假设卡 + 决策时间线）
+`data/ventures/<slug>/studio/index.html`（含 SVG 进度 + 假设卡 + 决策时间线）· `studio/decisions/*.html` · `studio/preview/*.html`
 
 ## Example
 
@@ -338,3 +375,7 @@ Lumi Lab 的差异：MD/YAML → 编辑磁带式 HTML（Fraunces + OKLCH + SVG 9
 ## Moat（复利护城河）
 
 每个 venture 一个 Studio，跨 venture 的 Studio 横向看就是你的创业作品集。数据变 HTML 自动变，永远不过时。
+
+## Changelog
+
+- 1.0.0-rc1：MD/YAML → 编辑磁带式 HTML 渲染引擎 + 双模式 + SVG 9 阶段进度图；新增 validate-output.ts 校验器、分支决策表、依赖成本列。

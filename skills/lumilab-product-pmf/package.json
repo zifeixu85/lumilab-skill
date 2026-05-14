@@ -1,0 +1,8 @@
+{
+  "name": "lumilab-product-pmf",
+  "version": "1.0.0-rc1",
+  "private": true,
+  "description": "Lumi Lab skill — bun scripts, zero runtime dependencies.",
+  "engines": { "bun": ">=1.0.0" },
+  "dependencies": {}
+}

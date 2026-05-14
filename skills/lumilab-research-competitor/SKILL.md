@@ -3,7 +3,7 @@ name: lumilab-research-competitor
 description: |
   Competitor / alternative landscape 真的有用的那种。不做 feature matrix。基于 April Dunford 竞争定位框架 + Clayton Christensen disruption theory + "alternatives to nothing" 思维。把"竞品"扩展为：直接竞品 / 间接替代品 / status quo（什么都不做） / forced-choice 替代。Use when 用户准备做定位、写 landing、要回答"为什么选你不选 X"，或在 pivot 前想看清楚周围地形。
   关键词：competitor / 竞品分析 / 替代品 / alternatives / April Dunford / positioning / disruption / 反 feature matrix / status quo
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [competitor, positioning, april-dunford, christensen]
@@ -295,16 +295,45 @@ positioning:
 - 下游：`lumilab-copy` hero / FAQ "我们和 X 有什么不同"、`lumilab-landing-mvp` positioning band
 - 升级：positioning.yaml 进入 `memory/resources/positioning-library/` 当跨 ≥3 venture 复用
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| `icp.yaml` 不存在 | 拒绝开始，先走 `lumilab-research-icp` |
+| 用户列出 alternatives < 3 个 | 提示补「alternatives to nothing」，回步骤 1 |
+| 用户要「功能对比表给销售看」 | 拒绝产出 feature matrix（Dunford 明确禁止） |
+| 用户问「竞品融了多少钱」 | 转 `lumilab-research-market`，不在本 skill 范围 |
+| 2x2 落格后 D 格（status quo）为空 | 强制回步骤 2 补全，D 格通常是真敌人 |
+| 用户问「哪个竞品更好」 | 不答优劣，转为八维描述性打分 + anti-positioning |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~6-10K tokens / 次完整分析 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查 `positioning.yaml`（`for_who` / `not_for_who` / `market_frame`、`alternatives` 四类齐全、`primary_enemy` 已命名、`disruption_path ∈ {low-end,new-market,sustaining}`）与 `competitor_landscape.md`（含 `native_pain` + `anti_positioning` 两维，且不是被禁的 feature matrix）。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+校验字段:
+- `positioning.yaml` → `positioning`: object（必含 `for_who` / `not_for_who` / `market_frame`，均为 string）
+- `positioning.yaml` → `positioning.alternatives`: object（必含 `direct` / `indirect` / `forced_choice` / `status_quo` 四类）
+- `positioning.yaml` → `primary_enemy`: string（必须命名，April Dunford 规则）
+- `positioning.yaml` → `disruption_path`: enum（`low-end` | `new-market` | `sustaining`）
+- `competitor_landscape.md` → 必含 `native_pain` + `anti_positioning` 两维；禁止 ≥5 列的 feature matrix 表头
 
 ## Outputs
 
-`data/ventures/<slug>/competitor.md`
+- `data/ventures/<slug>/competitor_landscape.md`（八维评估表 + anti-positioning 候选）
+- `data/ventures/<slug>/positioning.yaml`（Dunford 5-step 定位结构）
+- `data/ventures/<slug>/alternatives_quadrant.md`（2x2 ASCII + 每格说明）
 
 ## Example
 
@@ -316,7 +345,7 @@ positioning:
 
 ## Idempotency
 
-`competitor.md` 表格追加新行，旧行保留并标 `last_checked: <date>`。
+`competitor_landscape.md` 表格追加新行，旧行保留并标 `last_checked: <date>`。
 
 ## Privacy
 
@@ -324,7 +353,7 @@ positioning:
 
 ## Cache
 
-竞品页面快照按 URL hash 缓存到 `research/competitor-snapshots/`，30 天复用一次。
+竞品页面快照按 URL hash 缓存到 `research/competitor-snapshots/`，30 天复用一次。`competitor_landscape.md` 带 `last_checked` 时间戳，未过期不重抓。
 
 ## Failure modes
 
@@ -345,4 +374,11 @@ Lumi Lab 的差异：April Dunford 竞争框架 + Christensen disruption 分类 
 
 ## Moat（复利护城河）
 
-competitor.md 带 `last_checked` 时间戳，竞品快照缓存到 `research/competitor-snapshots/`。跑得越久越能看到竞品演化轨迹。
+`competitor_landscape.md` 带 `last_checked` 时间戳，竞品快照缓存到 `research/competitor-snapshots/`。跑得越久越能看到竞品演化轨迹。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 `disruption_path` 枚举校验 + feature matrix 检测（Dunford-banned）；`anti-slop-lint.ts` 接入。
+- **0.2.0** — 补 `## 分支决策` if-then 表、`primary_enemy` 强制命名、八维评估表加 `native_pain` + `anti_positioning`。
+- **0.1.0-p0** — 初版：April Dunford 5-step 定位 + Christensen disruption 分类 + alternatives 四象限。

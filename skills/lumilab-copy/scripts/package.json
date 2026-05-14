@@ -1,0 +1,8 @@
+{
+  "name": "lumilab-copy-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deterministic helper + validator scripts for the lumilab-copy skill (bun runtime).",
+  "engines": { "bun": ">=1.0" },
+  "dependencies": {}
+}

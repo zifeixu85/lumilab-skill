@@ -1,9 +1,9 @@
 ---
 name: lumilab-product-mvp
 description: |
-  MVP = riskiest-assumption test, not minimum viable feature. Marty Cagan + Eric Ries lineage. Concierge / Wizard-of-Oz / fake door / smoke test / explainer video patterns. Lumi-Lab Chinese overlay with platform-aware fake-door scripts.
-  关键词：MVP / riskiest assumption / concierge / Wizard of Oz / fake door / smoke test / explainer video
-version: 1.0.0-rc1
+  MVP = riskiest-assumption test, not minimum viable feature. Marty Cagan + Eric Ries lineage. Concierge / Wizard-of-Oz / fake door / smoke test / explainer video patterns. Lumi-Lab Chinese overlay with platform-aware fake-door scripts. Use when the user says they are about to write code / build an MVP, lists 10+ features for v1, or asks how to design a concierge or fake-door test.
+  关键词：MVP / riskiest assumption / 最小可行产品 / 最高风险假设 / concierge / Wizard of Oz / fake door / smoke test / explainer video / 假门测试 / 烟雾测试
+version: 1.0.0
 metadata:
   hermes:
     tags: [mvp, marty-cagan, riskiest-assumption, concierge, wizard-of-oz]
@@ -215,6 +215,8 @@ Q: 跑这个 MVP 之前，你认为：
 
 ## 输出 schema
 
+`riskiest_assumptions.yaml` 字段：`ranked[]`（必填，按 risk_score 降序）、每项 `id`（string）、`text`（string）、`likelihood_wrong`（int 1-5）、`impact_wrong`（int 1-5）、`risk_score`（int = L×I）、`test`（string|null）、`status`（pending|queued|validated|invalidated）。`mvp_plan.md` 字段：Riskiest assumption / MVP type / Build scope / Success criteria（必含可测阈值）/ Timeline / Linked hypotheses / Decision tree 七段。由 `scripts/validate-output.ts` 强制校验。
+
 `data/ventures/<name>/mvp_plan.md`:
 
 ```markdown
@@ -324,16 +326,40 @@ ranked:
 - 上游：jlengrand/slc-scope + shawnpang/mvp-scoping
 - 配套：lumilab-founder-coach / lumilab-product-positioning / lumilab-product-pmf / lumilab-landing-mvp
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 没有 audience.md 或 positioning.md | HALT，回去做 lumilab-product-positioning |
+| 已有 ≥40 个活跃用户 | 转 lumilab-product-pmf，不在此跑 MVP |
+| riskiest risk 是 value risk（#1） | 优先 fake door / smoke test，工期 ≤1 周 |
+| riskiest risk 是 feasibility risk（#3） | 才允许 single-feature MVP，工期 ≤6 周 |
+| 用户回答「再加一个 feature 就完整」 | 拒绝写 MVP plan，回 Step 1 重排 risk |
+| MVP 跑完全部 pass | 标 `[validated]`，去下一条 riskiest assumption |
+| MVP 跑完 fail | surface 给 lumilab-founder-coach Layer 3（pivot vs persevere） |
+
+## Output validation
+
+`scripts/validate-output.ts` 确定性校验 `mvp_plan.md`（必含 Riskiest assumption / MVP type / Build scope / Success criteria / Decision tree 五段，且 Success criteria 含可测阈值）与 `riskiest_assumptions.yaml`（必含 `ranked:` 列表，每项有 id / likelihood_wrong / impact_wrong / risk_score）。
+
+```bash
+bun run skills/lumilab-product-mvp/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 结构合法；exit 1 = 列出缺失段 / 缺失 key
+bun run skills/lumilab-product-mvp/scripts/validate-output.ts --help
+```
+
+写完 mvp_plan.md 后必跑；阻止「跑完才补 success criteria」这类结构缺陷。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | 约 $0.01–0.03（一次 MVP 规划对话，复用宿主额度） | Lumi Lab 本身不直连 LLM，复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/mvp_plan.md`（riskiest assumption test）
+`data/ventures/<slug>/mvp_plan.md` · `riskiest_assumptions.yaml` · `mvp_test_<id>.md`（riskiest assumption test）
 
 ## Example
 
@@ -375,3 +401,7 @@ Lumi Lab 的差异：Marty Cagan riskiest-assumption test + 5 种 MVP 类型（c
 ## Moat（复利护城河）
 
 riskiest assumption 列表带 `[validated]` / `[invalidated]` 状态累积，你能回放"我验证过哪些假设、哪些被推翻"。
+
+## Changelog
+
+- 1.0.0-rc1：Marty Cagan riskiest-assumption 框架 + 6 种 MVP 形态；新增 validate-output.ts 校验器、分支决策表、依赖成本列、package.json。

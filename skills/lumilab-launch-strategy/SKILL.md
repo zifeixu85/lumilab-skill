@@ -1,9 +1,9 @@
 ---
 name: lumilab-launch-strategy
 description: |
-  Cold-start playbook for OPC/独立开发者. Kevin Kelly 1000 true fans + Marc Lou ship-fast bundling + Product Hunt launch + Lenny Rachitsky cold-start. Lumi-Lab Chinese ladder: 飞书/微信小圈子 → 小红书 → 公众号 → 播客 → PH/HN.
+  Cold-start playbook for OPC/独立开发者. Kevin Kelly 1000 true fans + Marc Lou ship-fast bundling + Product Hunt launch + Lenny Rachitsky cold-start. Lumi-Lab Chinese ladder: 飞书/微信小圈子 → 小红书 → 公众号 → 播客 → PH/HN. Use when the user is ready to launch a venture, needs a 4-8 week cold-start plan, or wants a weekly launch calendar with quantified success criteria.
   关键词：launch / 冷启动 / Product Hunt / 1000 true fans / ship fast / Lenny Rachitsky / 小红书冷启动
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [launch, 1000-true-fans, product-hunt, cold-start, marc-lou]
@@ -320,16 +320,46 @@ assets:
 - 上游：aitytech/launch-strategy + ognjengt/go-to-market
 - 配套：lumilab-product-positioning / lumilab-product-pmf / lumilab-content-repurpose / lumilab-metrics
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| PMF score < 15% | 拒绝 launch，回 `lumilab-product-pmf` |
+| positioning_statement 未定 | 回 `lumilab-product-positioning` |
+| Readiness gate 有任一 ✗ | 不排日历，让用户补 4 周后再来 |
+| 产品类型 = B2C 工具/内容 | 用中国阶梯（小红书 + 公众号 + 播客 + PH） |
+| 产品类型 = Dev/SaaS/全球受众 | 用 PH + HN + Twitter/X + Indie Hackers |
+| 用户要在第 1-2 周上 Product Hunt | 警示阶段错配，先跑小圈子（纯英文 dev 产品除外） |
+| launch 结果 < 目标 50% | 路由到 `lumilab-founder-coach` Layer 2 复盘 |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~6-12K tokens / 次完整规划 | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查 `launch_calendar.yaml`（含 `launch_window` / `type`、`weeks` 列表 ≥ 4 条、每条 week 有 `channel` + `target`）与 `launch_plan.md`（含 Readiness gate 段）。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+校验字段:
+- `launch_calendar.yaml` → `launch_window`: string
+- `launch_calendar.yaml` → `type`: string
+- `launch_calendar.yaml` → `weeks`: list（≥ 4 条）
+- `launch_calendar.yaml` → `weeks[].channel`: string；`weeks[].target`: string（每条 week 均必需）
+- `launch_plan.md` → 必含 `Readiness gate` 段
 
 ## Outputs
 
-`data/ventures/<slug>/launch_plan.md`
+- `data/ventures/<slug>/launch_plan.md`（4-8 周冷启动 playbook，重跑写 `launch_plan.v<n>.md`）
+- `data/ventures/<slug>/launch_calendar.yaml`（按周日历 + 量化 success criteria）
+- `data/ventures/<slug>/launch_assets/`（各平台 launch 素材）
 
 ## Example
 
@@ -371,3 +401,10 @@ Lumi Lab 的差异：1000 true fans + Marc Lou ship fast，按 venture 类型（
 ## Moat（复利护城河）
 
 launch_plan.v<n>.md 留档，跑过几次 launch 后能复盘"哪个阶段我总是跳太快"。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 `weeks` ≥ 4 条 + 每条 channel/target 校验、Readiness gate 段检测；`anti-slop-lint.ts` 接入。
+- **0.2.0** — 补 `## 分支决策` if-then 表、按 venture 类型（B2C / B2B）分流、中国式 launch 阶梯。
+- **0.1.0-p0** — 初版：1000 true fans + Marc Lou ship fast，4-8 周冷启动 playbook + 按周日历。

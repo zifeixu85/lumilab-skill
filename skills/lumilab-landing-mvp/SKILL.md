@@ -3,7 +3,7 @@ name: lumilab-landing-mvp
 description: |
   Production-quality Landing Page generator for venture validation. Generates HTML5 + standalone styles.css with email capture, payment intent CTA (P1), and FAQ. Enforces 6-phase non-skippable pipeline (Research → Content Extraction → Image Catalog → Build → Verify → Deploy-ready). Anti-Slop 17 banned words + 8 banned visual patterns + 6-rule quality gate. Output reflects design_direction.json (preset/dials/palette/typography). Use when user types /lumilab build-assets or /lumilab landing, after design-direction page submitted.
   关键词：landing page / 落地页 / 销售页 / HTML 落地页 / 邮件收集 / CTA / hero / 价值主张 / 转化 / Anti-Slop / awwwards / editorial / brutalist / 暖色 luxury
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [landing-page, anti-slop, copywriting]
@@ -22,11 +22,12 @@ metadata:
     - "github.com/johndoeblocks/copy-skill (Ogilvy + Handley 文案)"
     - "github.com/dominikmartn/nothing-design-skill (减法决策)"
   outputs:
-    - "data/ventures/<name>/landing_page.html"
-    - "data/ventures/<name>/styles.css"
-    - "data/ventures/<name>/landing_copy.md"
-    - "data/ventures/<name>/image_catalog.md"
-    - "data/ventures/<name>/email_collection_config.md"
+    - "data/ventures/<name>/landing/v<n>/index.html"
+    - "data/ventures/<name>/landing/v<n>/styles.css"
+    - "data/ventures/<name>/landing/v<n>/copy.md"
+    - "data/ventures/<name>/landing/v<n>/image_catalog.md"
+    - "data/ventures/<name>/landing/v<n>/email_collection_config.md"
+    - "data/ventures/<name>/landing/v<n>/anti-slop-checklist.md"
     - "data/ventures/<name>/studio/preview/landing.html (Studio 预览版)"
   reads:
     - "data/ventures/<name>/design_direction.json (必读 - 风格)"
@@ -55,7 +56,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 - 邮件捕获表单（Phase 0 写到本地 JSON / Phase 1 接 Resend）
 - 通过 6 条 frontend-design 自检 gate
 
-## 6 阶段不可跳步流水线（来自 Aston1690）
+## 工作流程：6 阶段不可跳步流水线（来自 Aston1690）
 
 ```
 Phase 1: Research        - 读 product_definition / audience / painpoints / pricing
@@ -262,17 +263,21 @@ Phase 1：接 Resend / Loops 真发邮件。
 
 ## 输出文件清单
 
-每次完成：
+产物字段：`index.html`（语义化 HTML5）、`styles.css`（CSS custom properties + @keyframes）、`copy.md`（文案源）、`image_catalog.md`（图片清单：file / size / alt / source / purpose 字段）、`email_collection_config.md`、`anti-slop-checklist.md`（≥6 行勾选项）。由 `scripts/validate-output.ts` 强制校验。
+
+每次完成写到递增版本目录 `landing/v<n>/`（上一版保留，便于 A/B 对比）：
 
 ```
 data/ventures/<name>/
-├── landing_page.html        ← 主页面
-├── styles.css                ← 独立 CSS
-├── landing_copy.md           ← 所有文案的源（便于改）
-├── image_catalog.md          ← 图片清单（Phase 3 产物）
-├── email_collection_config.md
+├── landing/v<n>/
+│   ├── index.html                ← 主页面
+│   ├── styles.css                ← 独立 CSS
+│   ├── copy.md                   ← 所有文案的源（便于改）
+│   ├── image_catalog.md          ← 图片清单（Phase 3 产物）
+│   ├── email_collection_config.md
+│   └── anti-slop-checklist.md    ← 6 条质量 gate 自检结果
 └── studio/preview/
-    └── landing.html          ← Studio 内嵌预览（带 self-check 段）
+    └── landing.html              ← Studio 内嵌预览（带 self-check 段）
 ```
 
 ## Studio Preview 增强
@@ -371,16 +376,41 @@ user_input:
 - 配套：lumilab-content-repurpose（同 hero 文字可改写到各平台）
 - 配套：lumilab-studio（preview）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| `design_direction.json` 缺失 | HALT，先触发 lumilab-design-direction 交互页 |
+| product_definition / audience / painpoints 任一缺失 | HALT，回 lumilab-product-positioning 补齐 |
+| 6 阶段中任一阶段未完成 | 不可跳步，回到未完成阶段 |
+| Phase 5 的 6 条质量 gate 挂 ≥ 2 条 | 拒绝输出 HTML，回 Phase 4 改文案/布局 |
+| 字体未安装 | 退化到 system serif/mono，但保留 OKLCH 配色 |
+| 同一 venture 再次生成 | 写新 `landing/v<n>/`，旧版保留 |
+| 用户要上线 | 转 lumilab-deploy（Cloudflare Pages） |
+
+## Output validation
+
+`scripts/validate-output.ts` 取最新 `landing/v<n>/`，确定性校验 `index.html` + `styles.css` + `anti-slop-checklist.md`（≥6 行勾选项），并跑 6 条质量 gate：无 Inter/Roboto/Arial、无紫色 hero 渐变、非「居中 H1 + 3 列卡片」、用 CSS custom properties、≥1 个 `@keyframes`、语义化 HTML5 标签齐全；外加 `#000`/`#fff` 抽检。
+
+```bash
+bun run skills/lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 6 条 gate 全过；exit 1 = 列出挂掉的 gate
+bun run skills/lumilab-landing-mvp/scripts/validate-output.ts --help
+```
+
+Phase 5 必跑；exit 0 才能进 Phase 6 Deploy-ready。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地执行 + 校验） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | 约 $0.03–0.08（6 阶段流水线 + HTML/CSS 生成，复用宿主额度） | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 图片生成（gemini-image / fal-ai-media） | 可选外部 skill | 付费 | 约 $0.01–0.04/张（仅当 catalog 用 AI 生成图，picsum 占位则 $0） | Phase 3 图片清单，可用占位图跳过 |
 
 ## Outputs
 
-`data/ventures/<slug>/landing/index.html` · `landing/copy.md` · `landing/anti-slop-checklist.md`
+`data/ventures/<slug>/landing/v<n>/index.html` · `styles.css` · `copy.md` · `image_catalog.md` · `email_collection_config.md` · `anti-slop-checklist.md`
 
 ## Example
 
@@ -423,3 +453,7 @@ Lumi Lab 的差异：6 阶段流水线 + 强制 Anti-Slop 自检（禁 Inter / #
 ## Moat（复利护城河）
 
 `landing/v<n>/` 版本递增，每次迭代都留档，A/B 对比有数据。design direction 一旦定下，后续所有 venture 的 landing 风格一致——这是单次生成工具做不到的品牌沉淀。
+
+## Changelog
+
+- 1.0.0-rc1：6 阶段不可跳步流水线 + Anti-Slop 三层规则 + 6 条质量 gate；新增 validate-output.ts（确定性跑 6 条 gate）、分支决策表、依赖成本列、package.json；统一产物路径为 landing/v<n>/。

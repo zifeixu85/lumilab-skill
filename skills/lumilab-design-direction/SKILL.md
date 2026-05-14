@@ -1,9 +1,9 @@
 ---
 name: lumilab-design-direction
 description: |
-  Design direction - 4 presets + 3 dials + register. Lightweight overlay over upstream skill(s). Lumi-Lab-specific Anti-Slop and platform constraints applied when output is consumed by other VST Skills.
-  关键词：design-direction / VST overlay
-version: 1.0.0-rc1
+  Design direction picker for venture validation — 4 aesthetic presets (editorial / minimalist / brutalist / soft) + 3 dials (variance / motion / density, 0-100) + brand palette, with iframe live preview. Outputs design_direction.json that landing-mvp / studio / copy all inherit for visual consistency. Lumi-Lab Anti-Slop enforced: OKLCH only, no Inter/Roboto, no purple-gradient. Use when user types /lumilab design-direction, or asks to pick a visual style / aesthetic / color palette / typography before building landing or studio pages.
+  关键词：设计方向 / 美学 / 配色 / 字体 / 视觉风格 / 旋钮 / 实时预览 / design direction / aesthetic / color palette / typography / visual style / editorial / minimalist / brutalist / soft / VST overlay
+version: 1.0.0
 metadata:
   hermes:
     tags: [design-direction, aesthetic, dials, live-preview, interactive-card]
@@ -15,6 +15,8 @@ metadata:
   agent: design
   upstream:
     - "Leonxlnx/taste-skill + pbakaus/impeccable"
+  outputs:
+    - "data/ventures/<name>/design_direction.json (4 样本 + 3 旋钮 + 调色板 + 字体)"
   status: P0-ready
   full_overlay_in: phase_1
   interactive_page:
@@ -97,16 +99,44 @@ Bot: variance (0-100, 默认 40)?
 
 输出写入 `data/ventures/<slug>/design_direction.json`，与浏览器模式 schema 完全一致，下游 skill（landing-mvp / studio）无需改动。
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| `LUMILAB_CHANNEL=local` 且浏览器可用 | 启 `localhost:7777`，5 步交互页 |
+| `LUMILAB_CHANNEL=feishu` / `telegram` | 切 interactive card 模式（4 按钮 + 旋钮 ±10） |
+| runtime 不支持卡片按钮 | 降级为纯文本编号交互 |
+| 端口 7777 被占 | 顺延 7778 / 7779 / 7780 |
+| 同时关闭 motion + 高 density | 警示对比度不足，要求用户复核 |
+| iframe live preview 渲染失败 | 退化为静态 4 样本图片 |
+| `design_direction.json` 已存在 | 覆盖写入；旧版可手动归档为 `design_direction.v<n>.json` |
+
+## Output validation
+
+`scripts/validate-output.ts` 确定性校验 `design_direction.json` 是否符合 VST schema：`preset` 为 editorial/minimalist/brutalist/soft 之一、`samples` 恰好 4 个且 id 合法、`dials` 含 variance/motion/density 三项且均为 0-100 整数、`palette` 至少 1 个 `oklch()` 颜色且无 `#000`/`#fff`、`typography` 不含 Inter/Roboto。
+
+```bash
+bun run skills/lumilab-design-direction/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = schema 合法；exit 1 = 列出每条违例
+bun run skills/lumilab-design-direction/scripts/validate-output.ts --help
+```
+
+用户提交后必跑；schema 不合法直接 exit 1，阻止下游 landing-mvp / studio 消费坏数据。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地 HTTP server + 校验） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | $0（交互页纯前端，不调 LLM）；chat fallback 约 $0.005 | 浏览器模式不耗 LLM，仅 chat 编号模式有少量对话 |
 
 ## Outputs
 
-`data/ventures/<slug>/design_direction.json`（4 样本 + 3 旋钮）
+`data/ventures/<slug>/design_direction.json` 字段：`preset`（editorial|minimalist|brutalist|soft）、`samples`（恰好 4 项，每项 `id` 属预设集）、`dials`（`variance`/`motion`/`density`，均为 int 0-100）、`palette`（≥1 个 `oklch()` 颜色，禁 `#000`/`#fff`）、`typography`（display + body 字体名，禁 Inter/Roboto）。由 `scripts/validate-output.ts` 强制校验。
+
+## Changelog
+
+- 1.0.0-rc1：4 预设 + 3 旋钮 + 实时预览交互页 + chat-only 卡片降级；新增 validate-output.ts schema 校验器、分支决策表、依赖成本列、package.json；补全 description 触发关键词。
 
 ## Example
 

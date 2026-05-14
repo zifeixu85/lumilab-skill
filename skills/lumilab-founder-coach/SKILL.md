@@ -3,7 +3,7 @@ name: lumilab-founder-coach
 description: |
   Three-layer founder coach for solopreneurs and OPC. Layer 1 = methodology coach (YC office-hours, Mom Test, Lean Canvas, Sean Ellis PMF, Jobs-to-be-Done). Layer 2 = cognitive trap warning (sunk cost, self-validation, faith-without-evidence, hammer-looking-for-nails, decision fatigue). Layer 3 = psychological support (loneliness, self-doubt, recovery from failed hypotheses, when to rest, pivot-vs-persevere). Use when user wants to clarify a startup idea, when hypothesis fails, when user shows signs of decision fatigue, when stuck between pivot and persevere, or when launching a new venture.
   关键词：创业教练 / founder coach / idea 澄清 / 假设拆解 / 决策疲劳 / 复盘心理 / pivot 还是 persevere / YC / Mom Test / Lean Startup / 创业心理 / 苏格拉底式提问 / 毛泽东思想式追问
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [founder-coach, validation, methodology, yc, mom-test]
@@ -348,8 +348,10 @@ VST: 在 pivot vs persevere 之间，我帮你过 5 个问题：
 每次 coach session 结束：
 
 ```
-data/ventures/<name>/coach_session_<YYYYMMDD-HHMM>.md
+data/ventures/<name>/coach_session_<ts>.md
 ```
+
+（`<ts>` 为 `YYYYMMDD-HHMM` 时间戳）
 
 格式：
 ```markdown
@@ -413,12 +415,46 @@ user_input:
 - 配套：lumilab-research-platforms（如需现场调研）
 - 配套：lumilab-product-positioning（输出去做定位）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| 假设 failed 比例 > 50% + 决策密度 > 10/3d | 默认推荐 Layer 3（心理 + Pivot 判断），但用户可改选 |
+| 假设 failed = 1 + 决策密度正常 | 默认推荐 Layer 2（认知陷阱 + 复盘） |
+| 全部假设 pending + 决策密度 < 5 | 默认推荐 Layer 1（方法论教练） |
+| `project_brief.md` 缺失 | 拒绝开始，提示先 `lumilab new` |
+| Layer 3 被调用但用户无失败假设 | 转 Layer 1，不凭空共情 |
+| 单天决策 > 12 或连续 3 天 > 8 | 强提示「建议停下」，把当前事降级为 mechanical |
+| `hypotheses.yaml` supersede 链格式错误 | 不自动修复，报错让用户手动审核 |
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | ~8-20K tokens / 次会话（8-15 轮对话） | Lumi Lab 本身不直连 LLM，复用宿主 |
+
+## Output validation
+
+`scripts/validate-output.ts`（bun，确定性校验）检查最近一份 `coach_session_<ts>.md`：含 H1 `# Coach Session @ <timestamp>`、`**Layer**:` 字段值为 `L1|L2|L3`、`## Conversation` / `## Outputs` / `## Next suggested action` 三段齐全，且 `## Next suggested action` 非空。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<slug>/   # exit 0 = valid, 1 = invalid
+bun run scripts/validate-output.ts --help
+```
+
+校验字段:
+- `coach_session_<ts>.md` → H1 标题: string（必须匹配 `# Coach Session @ <timestamp>`）
+- `coach_session_<ts>.md` → `**Layer**`: enum（`L1` | `L2` | `L3`）
+- `coach_session_<ts>.md` → 必含三段: `## Conversation` / `## Outputs` / `## Next suggested action`
+- `coach_session_<ts>.md` → `## Next suggested action`: 非空
+
+## Outputs
+
+- `data/ventures/<slug>/audience.md`（Layer 1 输出：archetype 四象限 + 用户旅程）
+- `data/ventures/<slug>/hypotheses.yaml`（initial 3-5 假设，经 lumilab-hypothesis-ledger 写入）
+- `data/ventures/<slug>/risks.md`（已识别风险）
+- `data/ventures/<slug>/coach_session_<ts>.md`（每次会话归档）
 
 ## Example
 
@@ -462,3 +498,10 @@ Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 +
 ## Moat（复利护城河）
 
 用得越久越准：`coach_session_*.md` 累积成你的思考轨迹，`MEMORY.md` 记住你的历史失败模式，下一个 venture 开局时 coach 能直接引用"你上次在这一步栽过"。这是单次对话型工具给不了的复利。
+
+## Changelog
+
+- **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
+- **0.3.0** — `validate-output.ts` 加 `coach_session` Layer 枚举 + 三段结构校验；`anti-slop-lint.ts` 接入。
+- **0.2.0** — 补 `## 分支决策` if-then 表、Layer 3 心理向、读 `decisions.yaml` 检测决策疲劳。
+- **0.1.0-p0** — 初版：三层教练（方法论 / 认知陷阱 / 心理）+ HARD-GATE 一次一问 + 会话归档。

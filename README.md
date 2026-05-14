@@ -6,11 +6,11 @@
 
 **Lumi Lab** 是一套 21 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录，它就能把一个模糊的想法，变成可发布、可验证、决策可追溯的产物——landing page、多平台内容、假设账本、增长 SOP、可部署的 Studio 页。
 
-[![版本](https://img.shields.io/badge/version-1.0.0--rc3-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.0.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-1_S_+_20_A_·_avg_87.3_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -251,7 +251,7 @@ lumilab help                          显示帮助
 
 ## 质量评测
 
-21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**1 个 S + 20 个 A，平均 87.3 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。最高 `lumilab-content-repurpose` 90.33（S 级）。
+21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 91.6 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器。
 
 详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
 
@@ -267,12 +267,14 @@ lumilab help                          显示帮助
 
 ---
 
-## v1.0.0-rc3 状态
+## v1.0.0 状态
 
 ✅ 已就绪：
 - 21 个 skill，完整 SKILL.md + agentskills.io v1 frontmatter
+- 每个 skill 带 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器
 - Studio HTML 渲染引擎（编辑式美学）
 - Setup Wizard / Share Manager / Design Direction 三个浏览器 UI
+- **chat-mode 配置**：飞书 / Telegram 里 `wizard.ts --chat-set <provider> <token>` 直接配 key（verify 真实 API → 写 keychain）
 - Cloudflare 部署 + 客户端加密（AES-GCM + PBKDF2 1M）
 - localStorage 密码缓存（刷新不重复要密码）
 - PARA 三层记忆布局
@@ -280,14 +282,14 @@ lumilab help                          显示帮助
 - `lumilab` CLI（含 retro / research-xhs / research-web / secrets）
 - 真 keychain 后端（macOS Keychain / Linux secret-tool）
 - XHS / Exa 真集成代码 + 无 token 时 mock 降级
-- 自指 demo venture
-- SkillLens：21 A，平均 87.3，全部 verified
+- 自指 demo venture（已用 v1.0 重跑验证）
+- **SkillLens：21 个 skill 全部 S 级，平均 91.6，全部 verified**
 
-⏳ rc2 → final 待收尾：
-- 端到端 dogfood 安装真测（需在你的机器上跑）
+⏳ 待你的环境收尾（不阻塞代码可用性）：
+- 端到端 dogfood 安装真测（需在你的机器上跑 `./install.sh`）
 - 飞书 e2e demo 录屏（需建飞书 bot）
-- ClawHub 发布（需注册账号）
-- XHS / Exa 真 token 联调
+- ClawHub 发布（需注册 clawhub.ai 账号）
+- XHS / Exa 真 token 联调（代码就绪，需你的 API key）
 
 详见 [`CHANGELOG.md`](CHANGELOG.md)。
 

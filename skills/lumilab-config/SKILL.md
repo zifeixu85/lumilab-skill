@@ -12,7 +12,7 @@ description: |
   Use when user types /lumilab config, /lumilab manage, or on first /lumilab init.
 
   关键词：setup wizard / config / 配置 / tool token / cloudflare / exa / share management / 分享管理 / secrets / 密钥管理 / venture 密码
-version: 1.0.0-rc1
+version: 1.0.0
 status: P0-ready
 metadata:
   hermes:
@@ -203,31 +203,48 @@ user_input:
 - `lumilab-research-platforms` reads Exa / TikHub
 - Publishing skills (content-repurpose) read WeChat / X tokens
 
-## Chat-only fallback (LUMILAB_CHANNEL != local)
+## Chat-only mode (LUMILAB_CHANNEL != local) — 已实装
 
-当 `LUMILAB_CHANNEL` 环境变量为 `feishu` / `telegram` / `slack` 等（由 OpenClaw / Hermes gateway 注入）时，浏览器 wizard 不可用——skill 自动进入**文本交互模式**：
+飞书 / Telegram / Slack 等 chat 环境没有浏览器。`wizard.ts` 自动检测 `LUMILAB_CHANNEL`，提供 **3 个 agent-friendly 子命令**（每个输出确定性 JSON，host LLM 解析后回复用户）：
 
-1. **Setup Wizard 文本版**：agent 依次提问（每次一项），用户在 chat 内回复：
-   ```
-   Bot: 请粘贴你的 Cloudflare API token（可跳过）：
-   User: cf_abc...
-   Bot: ✓ Cloudflare verify 通过（账户 ID acc_xxx）
-   Bot: 请粘贴 Exa API key（可跳过）：
-   User: skip
-   Bot: ✓ 跳过 Exa
-   ...
-   ```
-   每次 verify 失败返回 `E_401 · token 无效` 等标准错误码，用户可立即修正。
+```bash
+# 1. 列出可配置 provider + 设置指引
+bun run scripts/wizard.ts --chat-prompts
 
-2. **Share Manager 文本版**：
-   - `@bot lumilab list shares` → 飞书 markdown 表格
-   - `@bot lumilab share <name>` → interactive card 含 URL / 复制按钮 / QR 图片附件 / rotate 按钮
+# 2. 看当前配置状态（不回显 token 值）
+bun run scripts/wizard.ts --chat-status
 
-3. **Secrets 写入**：所有 token 经 `scripts/keychain.ts` 写入 macOS Keychain / Linux secret-tool / `~/.lumilab/secrets.json`（自动选择）。
+# 3. 配置一个 token：verify 真实 API → 写 keychain → 更新 config flag
+bun run scripts/wizard.ts --chat-set <provider> <token>
+bun run scripts/wizard.ts --chat-set exa -          # token 从 stdin 读，不进进程列表
+```
 
-4. **降级标志**：agent 在 chat 回复末尾附 `[mode: chat-fallback]`，便于排查。
+支持的 provider：`cloudflare` / `exa` / `tikhub` / `stripe` / `resend`。
 
-详见 `scripts/keychain.ts`（M6 真 keychain bridge）和 `manifest.json` 的 `chat_fallback: "text-wizard"`。
+**典型飞书对话流程**（host LLM 编排）：
+
+```
+User: 帮我配置 lumilab 的 Exa key
+Bot:  [调 wizard.ts --chat-prompts] → 告诉用户去 exa.ai 拿 key
+User: 我的 key 是 abc123...
+Bot:  [调 wizard.ts --chat-set exa abc123...]
+      → {"ok":true,"provider":"exa","backend":"macos-keychain","verified":"..."}
+      → 回复用户「✓ Exa 已配置并通过 verify，research-web 现在走真实搜索」
+```
+
+`--chat-set` 行为：
+1. 调对应的 `verifyXxx()` 打**真实 API**（Cloudflare/Exa/Stripe/Resend/TikHub），失败返回标准错误码 `E_401`/`E_403`/`E_429`/`E_NET`
+2. verify 通过 → 经 `scripts/keychain.ts` 写入（优先 macOS Keychain / Linux secret-tool，兜底 `~/.lumilab/secrets.json` chmod 600）
+3. 更新 `~/.lumilab/config.json` 的 `api.has_<provider>` flag
+4. 输出 JSON 含 `backend` 字段（`macos-keychain` / `linux-secret-tool` / `plaintext`）
+
+**Share Manager 文本版**：
+- `@bot lumilab list shares` → 飞书 markdown 表格
+- `@bot lumilab share <name>` → interactive card 含 URL / 复制按钮 / QR 图片附件 / rotate 按钮
+
+`LUMILAB_CHANNEL != local` 且没给 `--chat-*` 子命令时，wizard.ts 不会尝试开浏览器——直接打印 chat 命令用法 JSON。
+
+详见 `scripts/wizard.ts` 的 chat-mode 段、`scripts/keychain.ts`（M6 真 keychain bridge）和 `manifest.json` 的 `chat_fallback: "text-wizard"`。
 
 ## Secrets backend (M6 真 keychain)
 
@@ -247,12 +264,36 @@ bun run scripts/keychain.ts migrate-plaintext
 
 迁移后 `~/.lumilab/secrets.json` 内容归档到 `secrets.json.migrated-<ts>`，主文件标记为 `{ _migrated_to: <backend> }`。
 
+## 分支决策
+
+| if 条件 | then 走哪条路径 |
+|---|---|
+| `lumilab config` 首次运行 + 有浏览器 | 走 5 步浏览器 Wizard |
+| `LUMILAB_CHANNEL != local`（飞书/TG/Slack）| 走 chat-mode 子命令（`--chat-prompts` / `--chat-status` / `--chat-set`），不开浏览器 |
+| 有浏览器但 `lumilab manage` | 走 Share Manager dashboard，不走 Wizard |
+| 其他 skill 需要某 tool token | 静默 decrypt 读取，无 UI |
+| token verify 返回 E_401 / E_403 / E_429 | 返回对应错误码 + 具体修复链接，不写入 secrets |
+| macOS Keychain 已存在同 service+account 条目 | `set` 先 delete 再 add，防重复条目 |
+| 用户尝试配置 LLM API key | 拒绝 — host 才管 LLM key，不存任何 LLM key 字段 |
+
+## Output validation
+
+`scripts/validate-output.ts` 是确定性校验器，强制 SKILL.md「Hard constraints」「Secrets abstraction」里的约束。
+
+校验字段：`secrets.json` 任何深度的键名不得匹配 LLM key（anthropic / openai / dashscope / gemini，命中即判违规）· `secrets.json.venture_passwords.<slug>`（string，6 位数字）· `config.json.default_share_password`（string，6 位数字，若存在）· `shares.json[].url`（string，每条必填）。
+
+```bash
+bun run scripts/validate-output.ts          # 默认校验 ~/.lumilab/
+# exit 0 = 合规，exit 1 = 逐条列出违规（LLM key 泄漏永远判违规）
+```
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free | ≥1.0，必需 |
+| host LLM | 宿主提供 | 取决于宿主 | ~0.5-1k tokens / chat-mode 编排 | 仅 chat 模式编排用，wizard 本身无 LLM |
+| 各 tool API（Cloudflare/Exa/TikHub/Stripe/Resend） | verify endpoint | 各家计费 | verify 调用通常免费额度内（~1 次/配置） | 仅做 token verify，不产生业务调用 |
 
 ## Outputs
 
@@ -298,3 +339,8 @@ Lumi Lab 的差异：5 步浏览器 wizard + 真实 API verify（返回 E_401/E_
 ## Moat（复利护城河）
 
 配一次，所有 venture 和 skill 共用 `~/.lumilab/`。keychain 后端让 token 跟着系统钥匙串走，换项目不用重配。
+
+## Changelog
+
+- **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（secrets.json 必须不含任何 LLM key 字段 + venture_passwords 6 位数字 + config.json 默认密码格式 + shares.json 每条带 url）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；确认 outputs 文件名三处一致（config.json / secrets.json / shares.json）。
+- **1.0.0-rc1** — 初版：5 步 Setup Wizard + Share Manager + 跨平台 secrets。

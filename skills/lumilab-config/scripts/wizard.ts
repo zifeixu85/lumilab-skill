@@ -233,8 +233,20 @@ async function verifyResend(token: string): Promise<VerifyResult> {
 
 async function verifyTikHub(token: string): Promise<VerifyResult> {
   if (!token || token.length < 8) return { ok: false, code: "E_FORMAT", error: "token 太短" };
-  // TikHub real verify deferred to P1 (endpoint differs by tier). For P0, accept non-empty.
-  return { ok: true, meta: "P0 阶段未实际验证，首次使用时再检查" };
+  try {
+    // 用 TikHub 的 user daily-usage 端点做最小验证（不消耗抓取配额）。
+    const r = await fetch("https://api.tikhub.io/api/v1/tikhub/user/get_user_info", {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (r.ok) return { ok: true, meta: "TikHub API verify 通过" };
+    if (r.status === 401) return { ok: false, code: "E_401", error: "TikHub 401：API key 无效" };
+    if (r.status === 403) return { ok: false, code: "E_403", error: "TikHub 403：权限不足或套餐未开通" };
+    if (r.status === 429) return { ok: false, code: "E_429", error: "TikHub 429：触发限流" };
+    // 端点路径可能随版本变化——非 4xx 时不阻塞用户，保存并提示首次使用时再检查
+    return { ok: true, meta: `TikHub 返回 ${r.status}，已保存，首次抓取时会再验证` };
+  } catch (e) {
+    return { ok: false, code: "E_NET", error: `网络错误：${(e as Error).message}` };
+  }
 }
 
 async function verifyGeneric(_provider: string, token: string): Promise<VerifyResult> {
@@ -1493,8 +1505,158 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+// ─────────────  chat-mode (LUMILAB_CHANNEL != local)  ─────────────
+//
+// 飞书 / Telegram / Slack 等 chat 环境没有浏览器。这套 --chat-* 子命令是
+// agent-friendly 的：host LLM 在对话里收集 token，然后逐个调 --chat-set。
+// 每个命令输出确定性 JSON，便于 agent 解析后回复用户。
+//
+//   wizard.ts --chat-prompts          列出可配置的 provider + 设置指引
+//   wizard.ts --chat-status           当前已配置了什么（不回显 token 值）
+//   wizard.ts --chat-set <p> <token>  verify + 写入（优先 keychain）一个 token
+//   wizard.ts --chat-set <p> -        token 从 stdin 读（避免出现在进程列表）
+
+type ChatProvider = {
+  id: string;
+  label: string;
+  secretKey: string;       // keychain / secrets.json 里的 key 名
+  configFlag: keyof ApiKeys;
+  required: boolean;
+  setupHint: string;
+};
+
+const CHAT_PROVIDERS: ChatProvider[] = [
+  { id: "cloudflare", label: "Cloudflare API Token", secretKey: "cloudflare_api_token", configFlag: "has_cloudflare", required: false,
+    setupHint: "dash.cloudflare.com → My Profile → API Tokens → Create Token（权限：Account·Cloudflare Pages:Edit + Account Settings:Read）。启用 `lumilab deploy`。" },
+  { id: "exa", label: "Exa API Key", secretKey: "exa_api_key", configFlag: "has_exa", required: false,
+    setupHint: "exa.ai → Dashboard → API Keys。启用 `lumilab research-web` 真实搜索。" },
+  { id: "tikhub", label: "TikHub API Key", secretKey: "tikhub_api_key", configFlag: "has_tikhub", required: false,
+    setupHint: "tikhub.io → 注册 → API Key。启用 `lumilab research-xhs` 真实抓取小红书。" },
+  { id: "stripe", label: "Stripe Secret Key", secretKey: "stripe_secret_key", configFlag: "has_stripe", required: false,
+    setupHint: "dashboard.stripe.com → Developers → API keys → Secret key。Pro tier。" },
+  { id: "resend", label: "Resend API Key", secretKey: "resend_api_key", configFlag: "has_resend", required: false,
+    setupHint: "resend.com → API Keys。Pro tier，发邮件用。" },
+];
+
+// 把一个 token 写进 keychain（优先）或 secrets.json（兜底）。
+function persistSecret(secretKey: string, token: string): { backend: string } {
+  const keychainScript = join(import.meta.dir, "keychain.ts");
+  if (existsSync(keychainScript)) {
+    const envKey = secretKey.toUpperCase();
+    const r = Bun.spawnSync(["bun", "run", keychainScript, "set", envKey, token], { stdout: "pipe", stderr: "pipe" });
+    if (r.exitCode === 0) {
+      const backend = (r.stdout?.toString() || "").match(/in (\S+)/)?.[1] || "keychain";
+      return { backend };
+    }
+  }
+  // fallback: secrets.json (chmod 600)
+  saveSecret(secretKey, token);
+  return { backend: "plaintext" };
+}
+
+function chatPrompts(): void {
+  const out = {
+    mode: "chat",
+    channel: process.env.LUMILAB_CHANNEL ?? "local",
+    intro: "Lumi Lab 不需要 LLM API key（宿主已提供）。以下都是可选的工具 token，按需配置。",
+    providers: CHAT_PROVIDERS.map(p => ({ id: p.id, label: p.label, required: p.required, setup: p.setupHint })),
+    next: "收集到 token 后，对每个调用：wizard.ts --chat-set <id> <token>",
+  };
+  console.log(JSON.stringify(out, null, 2));
+}
+
+function chatStatus(): void {
+  const cfg = loadConfig();
+  const out = {
+    mode: "chat",
+    channel: process.env.LUMILAB_CHANNEL ?? "local",
+    configured: CHAT_PROVIDERS.map(p => ({
+      id: p.id, label: p.label,
+      configured: Boolean(cfg.api[p.configFlag]),
+    })),
+    note: "不回显 token 值。已配置的 provider 对应的 skill 即可启用真实 API；未配置的走 mock fallback。",
+  };
+  console.log(JSON.stringify(out, null, 2));
+}
+
+async function chatSet(providerId: string, rawToken: string): Promise<void> {
+  const provider = CHAT_PROVIDERS.find(p => p.id === providerId);
+  if (!provider) {
+    console.log(JSON.stringify({ ok: false, code: "E_PROVIDER", error: `未知 provider：${providerId}。可选：${CHAT_PROVIDERS.map(p => p.id).join(" / ")}` }));
+    process.exit(2);
+  }
+  let token = rawToken;
+  if (token === "-") token = (await Bun.stdin.text()).trim();
+  if (!token) {
+    console.log(JSON.stringify({ ok: false, code: "E_EMPTY", error: "token 为空" }));
+    process.exit(2);
+  }
+  // verify against real API
+  const result = await verifyToken(provider.id, token);
+  if (!result.ok) {
+    console.log(JSON.stringify({ ok: false, provider: provider.id, code: result.code ?? "E_VERIFY", error: result.error ?? "验证失败" }));
+    process.exit(1);
+  }
+  // persist
+  const { backend } = persistSecret(provider.secretKey, token);
+  // update config flag
+  const cfg = loadConfig();
+  (cfg.api[provider.configFlag] as boolean) = true;
+  if (provider.id === "cloudflare" && result.account) cfg.api.cloudflare_account = result.account;
+  cfg.step = Math.max(cfg.step, 4);
+  saveConfig(cfg);
+  console.log(JSON.stringify({
+    ok: true, provider: provider.id, backend,
+    verified: result.account || result.meta || "API verify 通过",
+  }));
+}
+
+async function runChatMode(argv: string[]): Promise<boolean> {
+  const idx = argv.findIndex(a => a.startsWith("--chat-"));
+  if (idx === -1) return false;
+  const cmd = argv[idx];
+  if (cmd === "--chat-prompts") { chatPrompts(); return true; }
+  if (cmd === "--chat-status")  { chatStatus(); return true; }
+  if (cmd === "--chat-set") {
+    const provider = argv[idx + 1];
+    const token = argv[idx + 2];
+    if (!provider || token === undefined) {
+      console.log(JSON.stringify({ ok: false, code: "E_USAGE", error: "用法：wizard.ts --chat-set <provider> <token|->" }));
+      process.exit(2);
+    }
+    await chatSet(provider, token);
+    return true;
+  }
+  console.log(JSON.stringify({ ok: false, code: "E_CMD", error: `未知 chat 命令：${cmd}` }));
+  process.exit(2);
+}
+
 // ─────────────  entry  ─────────────
 
 if (import.meta.main) {
-  await startServer();
+  const argv = process.argv.slice(2);
+  const channel = process.env.LUMILAB_CHANNEL ?? "local";
+  const hasChatFlag = argv.some(a => a.startsWith("--chat-"));
+
+  if (hasChatFlag) {
+    // 显式 --chat-* 命令：直接走 chat 模式（任何环境都能用）
+    await runChatMode(argv);
+  } else if (channel !== "local") {
+    // chat 环境但没给子命令：打印用法，不要尝试开浏览器
+    console.log(JSON.stringify({
+      mode: "chat",
+      channel,
+      error: "E_NO_BROWSER",
+      message: `当前在 ${channel} 环境，没有浏览器。请用 chat 子命令：`,
+      commands: [
+        "wizard.ts --chat-prompts   # 列出可配置项",
+        "wizard.ts --chat-status    # 看当前配置",
+        "wizard.ts --chat-set <provider> <token>   # 配置一个 token",
+      ],
+    }, null, 2));
+    process.exit(0);
+  } else {
+    // local：开浏览器 wizard
+    await startServer();
+  }
 }

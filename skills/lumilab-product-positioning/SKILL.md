@@ -1,9 +1,9 @@
 ---
 name: lumilab-product-positioning
 description: |
-  April Dunford 5-step positioning. Lightweight overlay over upstream skill(s). Lumi-Lab-specific Anti-Slop and platform constraints applied when output is consumed by other VST Skills.
-  关键词：product-positioning / VST overlay
-version: 1.0.0-rc1
+  April Dunford 5-step positioning (competitive alternatives → unique attributes → value → customers who care → market category). Lumi-Lab overlay with Anti-Slop and platform constraints. Use when the user asks how to introduce their product, has a landing page with high bounce, is stuck on "what market am I in", or growth has stalled and positioning is suspected.
+  关键词：product-positioning / 产品定位 / 市场定位 / April Dunford / Obviously Awesome / 竞争性替代品 / 市场类别 / 定位陈述 / VST overlay
+version: 1.0.0
 metadata:
   hermes:
     tags: [positioning, april-dunford, obviously-awesome]
@@ -223,6 +223,8 @@ we [key differentiator].
 
 ## 输出 schema
 
+`positioning.md` 字段：Step 1 Competitive alternatives（≥3，必含 1 个人肉/凑合方法）/ Step 2 Unique attributes / Step 3 Value / Step 4 Customers who care a lot（具体行为信号，禁「所有 X 用户」）/ Step 5 Market category / Step 6 Positioning statement / Validation / Linked hypotheses。`positioning_statement.md` 字段：一行版 + 一段版 + landing hero 版，禁「更好的 X」。`competitive_alternatives.md` 字段：≥3 条替代品列表。由 `scripts/validate-output.ts` 强制校验。
+
 写 `data/ventures/<name>/positioning.md`：
 
 ```markdown
@@ -308,16 +310,40 @@ VST 在 chat 里走 6 题 HARD-GATE。每题用编号选项让用户回 "Q1: 2,3
 - 上游：alirezarezvani/product-discovery
 - 配套：lumilab-founder-coach（前置）/ lumilab-landing-mvp（下游）/ lumilab-launch-strategy（下游）
 
+## 分支决策
+
+| 条件 | 动作 |
+|---|---|
+| idea 还没成型 | HALT，回 lumilab-founder-coach |
+| 产品 0 用户 0 访谈 | HALT，先做用户访谈再回来 |
+| 用户只想要 tagline | 转 lumilab-copy，positioning ≠ copywriting |
+| Step 4 用户答「所有 X 用户」 | HALT 在 Step 4，强制收窄到可识别行为信号 |
+| unique attributes 列出 < 2 条 | 回 Step 2 再深挖，不进 Step 3 |
+| positioning statement 含「更好的 X」 | 拒绝定稿，回 Step 5 重选 category |
+| 5 步走完且 validation ≥3/5 通过 | 落盘，路由到 lumilab-landing-mvp / lumilab-content-repurpose |
+
+## Output validation
+
+`scripts/validate-output.ts` 确定性校验 `positioning.md`（必含 Step 1-6 + Validation + Linked hypotheses）、`positioning_statement.md`（非空、不含「更好的 X」反模式）、`competitive_alternatives.md`（≥3 个替代品）。
+
+```bash
+bun run skills/lumilab-product-positioning/scripts/validate-output.ts data/ventures/<slug>
+# exit 0 = 5 步完整 + 无 better-X 反模式；exit 1 = 列出缺失项
+bun run skills/lumilab-product-positioning/scripts/validate-output.ts --help
+```
+
+定稿前必跑；自动拦截「跳步」和「更好的 X」死亡陷阱。
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | $0（本地执行） | ≥1.0，必需 |
+| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | 约 $0.01–0.03（6 题 HARD-GATE 对话 + critique，复用宿主额度） | Lumi Lab 本身不直连 LLM，复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/positioning.md`
+`data/ventures/<slug>/positioning.md` · `positioning_statement.md` · `competitive_alternatives.md`
 
 ## Example
 
@@ -359,3 +385,7 @@ Lumi Lab 的差异：April Dunford 5 步严格走完，反"better X"检测（必
 ## Moat（复利护城河）
 
 positioning.v<n>.md 版本对比能看到定位如何收窄。一旦定位确定，下游 copy / landing / launch 全部继承，一致性是品牌资产。
+
+## Changelog
+
+- 1.0.0-rc1：April Dunford 5 步 HARD-GATE 流程 + 反 better-X 检测；新增 validate-output.ts 校验器、分支决策表、依赖成本列、package.json。

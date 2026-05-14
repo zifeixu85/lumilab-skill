@@ -3,7 +3,7 @@ name: lumilab-copy
 description: |
   文案不是写出来的，是从用户原话里挖出来的。基于 Joanna Wiebe Copy Hackers VoC mining + Eugene Schwartz 5 awareness stages + 经典 headline 框架（4U / PAS / AIDA / BAB）+ 中文小红书/公众号 hook patterns。强制反 Slop 用词清单（禁"赋能/打造/赛道/闭环/心智/抓手"等）。Use when 用户要写 landing hero、邮件主题、小红书标题、公众号开头、cold outreach 第一句、广告短文案。
   关键词：copy / 文案 / VoC / voice of customer / 5 awareness stages / Joanna Wiebe / Eugene Schwartz / Schwartz / Wiebe / headline / hook / 标题 / 反 Slop
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [copywriting, eugene-schwartz, voice-of-customer, 4u, pas, aida]
@@ -380,16 +380,38 @@ copy_brief:
 - 升级：跨 venture 反复 work 的 hook pattern 升格到 `memory/resources/hook-library/`
 - 反 Slop 词表升级：发现新 Slop 词 → 加入 `memory/resources/anti-slop-cn.md`
 
+## 分支决策
+
+| if 条件 | then 走哪条路径 |
+|---|---|
+| 没有 icp.yaml 或 interviews/ | 拒做 — 无 VoC 来源写不出 copy，先回 research-icp / research-interview |
+| 用户不确定 awareness stage | 默认 problem_aware（80% 早期 ICP 在这），但仍标注 |
+| 任务是小红书 / 公众号标题 | 一次给 ≥8 个候选（短文案需更多备选），跳过 2x3 矩阵 |
+| 任务是 landing hero | 出 ≥5 候选 + 2x3 矩阵（2 H1 × 3 sub） |
+| 候选 H1 出现禁词清单任一词 | 强制重写该候选，不计入交付数 |
+| 运行在 chat 环境（无浏览器） | 走 Chat-only fallback，纯文本编号列表，不搞多选 UI |
+
+## Output validation
+
+`scripts/validate-output.ts` 是确定性校验器，强制 SKILL.md「输出 schema」「反 Slop 自检」里的结构规则。
+
+校验字段（`copy_brief.yaml`）：`surface` / `awareness_stage` / `h1` / `cta_primary`（必填）· `awareness_stage`（enum：unaware | problem_aware | solution_aware | product_aware | most_aware）· `h1`（string，≤25 字，不含禁词）· `anti_slop_pass`（bool，须为 true）· `forbidden_words_found`（array，须为空）。`copy_candidates.md`：候选数 ≥5。`voc_mining.md`：逐字原话 ≥10 句。
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<name>/
+# exit 0 = 合规，exit 1 = 逐条列出违规
+```
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free | ≥1.0，必需 |
+| host LLM | 宿主提供 | 取决于宿主 | ~4-10k tokens / 一次 copy 任务 | VoC mining + 候选生成复用宿主 |
 
 ## Outputs
 
-`data/ventures/<slug>/copy/{headline,subhead,cta,...}.md`
+`data/ventures/<slug>/copy_brief.yaml` · `data/ventures/<slug>/copy_candidates.md` · `data/ventures/<slug>/voc_mining.md`
 
 ## Example
 
@@ -401,7 +423,7 @@ copy_brief:
 
 ## Idempotency
 
-每个 copy 元素（headline / subhead / cta）一份独立 `.md`，重跑覆盖该元素，其它不动。
+`copy_brief.yaml` 重跑覆盖最新决策；`copy_candidates.md` / `voc_mining.md` 追加新轮次（`## Round <n>`），保留历史候选与原话。
 
 ## Privacy
 
@@ -431,3 +453,8 @@ Lumi Lab 的差异：Eugene Schwartz awareness stages + Joanna Wiebe VoC mining 
 ## Moat（复利护城河）
 
 voc-bank.yaml 累积你用户的真实语言，跑得越久文案越像"用户自己说的话"而不是营销腔。
+
+## Changelog
+
+- **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（copy_brief.yaml 必填键+awareness_stage 枚举+H1 ≤25 字+anti_slop_pass，copy_candidates.md ≥5 候选，voc_mining.md ≥10 句原话）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；统一 outputs 文件名（Outputs 段 / Idempotency 段改回 frontmatter 的 copy_brief.yaml / copy_candidates.md / voc_mining.md）。
+- **1.0.0-rc1** — 初版：VoC mining + 5 awareness stages + 反 Slop 禁词。

@@ -3,7 +3,7 @@ name: lumilab-research-platforms
 description: |
   Dual-channel platform research for venture validation. Channel A = browser automation (Playwright / CDP) for 小红书 (P0), 抖音 / 微博 / 知乎 / B 站 (P1). Channel B = third-party APIs (Exa / Tavily for web; TikHub / 飞瓜 / 新榜 for China). Outputs cross-platform synthesis with pain point density, source URLs, evidence excerpts. Feeds back to hypothesis-ledger as evidence. Use when user types /lumilab research or asks for market/competitor/painpoint data.
   关键词：调研 / research / 市场调研 / 竞品分析 / 小红书搜索 / web search / 双通道 / Playwright / Exa / TikHub / cross-platform / 痛点挖掘
-version: 1.0.0-rc1
+version: 1.0.0
 metadata:
   hermes:
     tags: [xhs, exa, tikhub, research, playwright]
@@ -21,10 +21,9 @@ metadata:
     - "github.com/openclaudia/icp-builder (ICP 画像)"
     - "Exa.ai / Tavily / TikHub / 飞瓜 / 新榜 APIs"
   outputs:
-    - "data/ventures/<name>/research/web_findings.md"
-    - "data/ventures/<name>/research/xhs_findings.md"
-    - "data/ventures/<name>/research/cross_platform_synthesis.md (★ 推荐先看)"
-    - "data/ventures/<name>/research/sources.jsonl (一行一条原始数据)"
+    - "data/ventures/<name>/research/xhs_raw.json (XHS 原始抓取数据)"
+    - "data/ventures/<name>/research/web_exa.json (Web 原始搜索数据)"
+    - "data/ventures/<name>/research/cross_platform_synthesis.md (★ 推荐先看，跨平台合成)"
     - "data/ventures/<name>/research/painpoint_density.csv (痛点跨平台分布)"
   reads:
     - "data/ventures/<name>/project_brief.md (idea + 关键词)"
@@ -100,7 +99,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
    - 痛点词
    - 情感分布
    - 用户画像信号
-6. 写 xhs_findings.md
+6. 写 xhs_raw.json
 ```
 
 **Chrome profile 管理**：用 `~/.lumilab/config.json.search.xhs_chrome_profile`（默认 "openclaw"）。允许用户配多账号 profile。
@@ -154,7 +153,7 @@ interface SearchResult {
 }
 ```
 
-写到 `research/sources.jsonl`（一行一条）。
+每条 SearchResult 落进 `research/xhs_raw.json`（`notes[]`）或 `research/web_exa.json`（`results[]`）。
 
 ## Cross-Platform Synthesis
 
@@ -290,16 +289,39 @@ user_input:
 - 配套：lumilab-research-interview / icp / competitor（其他维度）
 - 配套：lumilab-studio（渲染 Insights 区块）
 
+## 分支决策
+
+| if 条件 | then 走哪条路径 |
+|---|---|
+| 用户未指定 `--platforms` | 跑 config.json 里所有启用通道（默认 xhs + web） |
+| `TIKHUB_API_KEY` 缺失 + 无 Chrome profile | XHS 通道回退 mock，标 `source: mock`，web 通道照常 |
+| `EXA_API_KEY` 缺失 | web 通道回退 mock；提示用户去 lumilab-config 配置 |
+| XHS 未登录态 + headless 环境 | 跳过 XHS Playwright，只跑 API/mock 通道，不强制扫码 |
+| 同一 keyword 24h 内已有 raw json 且无 `--force` | 复用缓存，不重新抓取 |
+| synthesis 发现跨平台强信号与现有 hypothesis 冲突 | surface 给用户选 supersede，不自决 |
+
+## Output validation
+
+`scripts/validate-output.ts` 是确定性 JSON schema 校验器，校验 `xhs_raw.json` / `web_exa.json` 的 `source` 枚举、必填键、`notes[]` / `results[]` 元素类型。下游 skill 消费前必须先过校验：
+
+```bash
+bun run scripts/validate-output.ts data/ventures/<name>/research/
+# exit 0 = schema 合规，exit 1 = 有违规并逐条列出
+```
+
 ## Dependencies
 
-| 依赖 | 类型 | 是否付费 | 说明 |
-|---|---|---|---|
-| bun | CLI runtime | 免费 | ≥1.0，必需 |
-| host LLM | 由 Claude Code / OpenClaw / Cursor / Hermes 提供 | 取决于宿主 | Lumi Lab 本身不直连 LLM，复用宿主 |
+| 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
+|---|---|---|---|---|
+| bun | CLI runtime | 免费 | free | ≥1.0，必需 |
+| host LLM | 宿主提供 | 取决于宿主 | ~3-8k tokens / synthesis | 综合分析复用宿主，不直连 |
+| Exa.ai API | Web 搜索 | 付费 | ~$0.005 / 次搜索（深度 12 查询约 $0.06） | 缺 key 回退 mock |
+| TikHub API | XHS 数据 | 付费 | ~$0.01 / 次搜索（按配额计） | 缺 key 回退 mock 或 Playwright |
+| Playwright Chromium | XHS 浏览器通道 | 免费 | free（本地浏览器，仅耗时） | 备选 XHS 通道，需登录态 |
 
 ## Outputs
 
-`data/ventures/<slug>/research/xhs_raw.json` · `research/web_exa.json`
+`data/ventures/<slug>/research/xhs_raw.json` · `research/web_exa.json` · `research/cross_platform_synthesis.md` · `research/painpoint_density.csv`
 
 ## Example
 
@@ -342,3 +364,8 @@ Lumi Lab 的差异：TikHub（XHS）+ Exa（Web）双通道，结构化 JSON 输
 ## Moat（复利护城河）
 
 research/history/ 累积所有抓取快照，同一 keyword 跨时间的趋势可对比——这是单次搜索给不了的。
+
+## Changelog
+
+- **1.0.0-rc4** — 新增 `scripts/validate-output.ts`（xhs_raw.json / web_exa.json 确定性 schema 校验器）+ Output validation 段；新增 分支决策 if-then 表；Dependencies 表加单次调用约成本列；统一 outputs 文件名（frontmatter / 正文 / Outputs 段一致，改用脚本真实产出的 xhs_raw.json / web_exa.json）。
+- **1.0.0-rc1** — 初版：双通道平台调研 + 跨平台合成。
