@@ -102,6 +102,38 @@
 
 ---
 
+## [1.0.0-rc3] · 2026-05-14 · 首个 S 级 + README 中文化 + 3 bug 修复
+
+> 第三个候选发布。首个 SkillLens S 级 skill 出现（`lumilab-content-repurpose` 90.33）。README 改为中文为主，英文版保留为 `README.en.md`。修复 deep review 暴露的 3 个真实 bug。
+
+### Added
+- 每个 SKILL.md 补 `## Alternatives`（具名竞品对比：v0 / bolt / Notion / 通用 LLM / G2 等）+ `## Moat`（复利护城河：累积会话历史 / supersede 链 / voc-bank / research history）
+- `README.md` 全量中文化；英文版保留为 `README.en.md`，双向语言切换链接
+- `docs/SKILLLENS_REPORT.md` 重写为三轮迭代对比（rc1 / rc2 / rc3）
+
+### Fixed
+- **`lumilab-deploy/scripts/encrypt.ts` 用了 `Inter Tight` 字体** —— 违反自身 Anti-Slop 规则，改为 `Fraunces`
+- **`lumilab-deploy/scripts/deploy.ts` 直读明文 `secrets.json`** —— 与 Privacy 声明不一致，改为优先 `keychain.ts`（macOS Keychain / Linux secret-tool）+ env override + 明文兜底
+- **`lumilab-design-direction` SKILL.md 旋钮取值范围矛盾** —— `1-10` vs `0-100`，统一为 `0–100，step 10`
+- **`anti-slop-lint.ts` 假阳性** —— 重写为 negation-aware + 跳过 SKILL.md / references / 自身。21 个 skill 现在全部 `bun run scripts/anti-slop-lint.ts` exit 0
+
+### Changed
+- `VERSION` 1.0.0-rc2 → 1.0.0-rc3
+- SkillLens badge：21 A → 1 S + 20 A
+
+### SkillLens 评分（三轮）
+
+| | rc1 | rc2 | **rc3** |
+|---|---:|---:|---:|
+| 平均分 | 80.53 | 87.32 | **87.25** |
+| S 级 | 0 | 0 | **1** |
+| A 级 | 9 | 21 | **20** |
+| 全部 verified | ✅ | ✅ | ✅ |
+
+首个 S：`lumilab-content-repurpose` **90.33**。距离全员 S 的工程清单见 `docs/SKILLLENS_REPORT.md`。
+
+---
+
 ## [1.0.0-rc2] · 2026-05-14 · SkillLens 21 A 全员晋级
 
 > 第二个候选发布。在 rc1 基础上：21 个 skill 全部 SkillLens A 级（rc1 是 9 A + 12 B），平均分从 80.53 升到 **87.32**。最高 `lumilab-content-repurpose` **89.93**（距离 S 仅 0.07）。

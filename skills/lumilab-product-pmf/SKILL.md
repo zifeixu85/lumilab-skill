@@ -342,3 +342,15 @@ survey 回答存本地；用户敏感信息（邮箱 / 电话）不写入主 YAM
 
 "Very disappointed" 比例计算包含权重；用户群分 power user / regular / inactive 三档分别看比例。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「我有 PMF 吗」**：会凭感觉说"看起来不错"。
+- **NPS 工具**：只测满意度，不是 Sean Ellis 40% 框架。
+
+Lumi Lab 的差异：Sean Ellis 40% Survey + Superhuman PMF engine + Brian Balfour 4-fit，样本 <40 直接标 insufficient。
+
+## Moat（复利护城河）
+
+pmf_score.yaml 累计每次测量，retention 曲线随时间画出来。多次测量的趋势比单次快照可信得多。

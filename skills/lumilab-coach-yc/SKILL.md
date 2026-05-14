@@ -383,3 +383,15 @@ hypotheses:
 
 "Talk to users" 维度若回答 0 用户 → 直接判 default dead；"Be obsessed" 若 < 4 小时/周 → 警示。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **读 YC 文章 / 看 office hours 录像**：单向，不针对你的 idea 追问。
+- **通用 LLM 模拟 YC 合伙人**：会即兴发挥，不严格按 6 forcing questions 逐个 gate。
+
+Lumi Lab 的差异：6 个 forcing questions 严格逐个过，回答太短触发 follow-up，0 用户直接判 default dead。
+
+## Moat（复利护城河）
+
+`yc_drill.md` 每轮追加，你能看到自己对同一个 forcing question 的回答如何随时间变具体——这是成长轨迹。

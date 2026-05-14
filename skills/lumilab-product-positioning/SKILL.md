@@ -347,3 +347,15 @@ VST 在 chat 里走 6 题 HARD-GATE。每题用编号选项让用户回 "Q1: 2,3
 
 反 "better X" 检测：positioning statement 含 "the only" / "the first" 才通过；"who cares a lot" 必须是具体 segment。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「帮我定位」**：容易写成"更好的 X"。
+- **定位类书 / 课**：知道方法但不针对你的产品逐步走。
+
+Lumi Lab 的差异：April Dunford 5 步严格走完，反"better X"检测（必须有 "the only" / "the first"），"who cares a lot" 必须是具体 segment。
+
+## Moat（复利护城河）
+
+positioning.v<n>.md 版本对比能看到定位如何收窄。一旦定位确定，下游 copy / landing / launch 全部继承，一致性是品牌资产。

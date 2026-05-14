@@ -58,7 +58,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 交互页（P0-ready）
 
-5 步：选样本 → 调 3 旋钮（variance/motion/density 1-10）→ 选品牌色 → live preview → 提交。
+5 步：选样本 → 调 3 旋钮（variance/motion/density，取值 0–100，step 10）→ 选品牌色 → live preview → 提交。
 产物：`data/ventures/<venture>/design_direction.json`。
 
 ```bash
@@ -136,3 +136,15 @@ iframe live preview 失败时退化为静态 4 样本图片；浏览器不可用
 
 variance / motion / density 旋钮取值 0–100 各 step 10；同时关闭 motion + 高 density → 警示对比度不足。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「给我个设计风格」**：给文字描述，无法实时预览、无法量化调节。
+- **Figma / Dribbble 找灵感**：要人工翻译成 token，不沉淀。
+
+Lumi Lab 的差异：4 套美学样本 + 3 旋钮（variance / motion / density）+ iframe 实时预览，输出 design_direction.json 下游直接消费。
+
+## Moat（复利护城河）
+
+design_direction.json 一旦定下，landing / studio / copy 全部继承同一审美。跨 venture 复用形成你的设计语言。

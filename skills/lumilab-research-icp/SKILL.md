@@ -329,3 +329,16 @@ segment 模板缓存；同一 idea 重跑 ICP 输出有相似度（>70%）则提
 
 至少 1 个 JTBD struggling moment（具体场景 + 时间 + 当下情绪）才算 valid ICP。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「我的目标用户是谁」**：会给"25–35 岁一二线城市"这种泛画像。
+- **市场调研报告**：贵、慢、不针对你的 idea。
+- **「用户画像」模板**：填了一堆字段但没有 JTBD struggling moment。
+
+Lumi Lab 的差异：拒绝"all developers / everyone"，强制 narrow 到 segment-of-one + 至少 1 个具体 JTBD struggling moment（场景 + 时间 + 情绪）。
+
+## Moat（复利护城河）
+
+`icp.v<n>.yaml` 版本累积，你能看到 ICP 如何随访谈收窄。多个 venture 的 ICP 横向对比能发现"我总是吸引同一类用户"。

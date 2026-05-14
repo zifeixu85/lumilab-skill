@@ -95,7 +95,7 @@ function generateGateHtml(opts: {
     --color-text: oklch(18% 0.005 60);
     --color-accent: oklch(45% 0.18 12);
     --color-muted: oklch(60% 0.005 60);
-    --font-display: 'Cabinet Grotesk', 'Inter Tight', system-ui, sans-serif;
+    --font-display: 'Cabinet Grotesk', 'Fraunces', Georgia, serif;
     --font-mono: 'Geist Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }

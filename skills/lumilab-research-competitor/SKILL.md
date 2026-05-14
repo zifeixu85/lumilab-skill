@@ -334,3 +334,15 @@ positioning:
 
 Christensen disruption 分类需用户主动指认（不自动判断）；forced-choice 类竞品需注明触发场景。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「列竞品」**：给 feature matrix，不分替代品 / 直接竞品 / forced-choice。
+- **G2 / Capterra**：只有同类直接竞品，看不到"alternatives to nothing"。
+
+Lumi Lab 的差异：April Dunford 竞争框架 + Christensen disruption 分类 + "用户现在不用任何工具"也算竞争对手。
+
+## Moat（复利护城河）
+
+competitor.md 带 `last_checked` 时间戳，竞品快照缓存到 `research/competitor-snapshots/`。跑得越久越能看到竞品演化轨迹。

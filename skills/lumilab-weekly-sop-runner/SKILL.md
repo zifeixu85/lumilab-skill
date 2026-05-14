@@ -340,3 +340,16 @@ Day blueprint 模板缓存到 `references/blueprint-template.md`，每次只 pat
 
 周末 Day 6/7 调度自动跳过；用户跨时区时按本机时区计算 Day；retro 文件名 ISO timestamp 防同一秒并发覆盖。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「给我个 7 天计划」**：给一次性清单，不冷启动、不留每日 brief、没有数据回收表。
+- **Notion / 飞书周报模板**：静态，不读 venture 假设，不引导决策阈值。
+- **各类 OKR 工具**：太重，不为 7 天验证实验设计。
+
+Lumi Lab 的差异：Day 0–7 blueprint 每天自带 cold-start brief，发布日历 + 数据回收表 + 决策阈值，retro 四桶交互页落 YAML。
+
+## Moat（复利护城河）
+
+每周 retro YAML 累积成增长实验日志。跑过 3 个 venture 后，你能 grep 所有 retro 找"哪类强信号反复出现"——这是模式抽取，单周计划工具给不了。

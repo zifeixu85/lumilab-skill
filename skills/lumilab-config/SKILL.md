@@ -286,3 +286,15 @@ config / shares 按 mtime 缓存；verify 结果按 token 前 8 位 + 60 分钟 
 
 同一 service + account 已存在时 `set` 先 delete 再 add（防 macOS Keychain 重复条目）；plaintext 迁移失败回滚保留原文件。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **手动编辑 .env / config 文件**：易错，无 verify，token 明文散落。
+- **通用密码管理器**：存得了但不针对 AI 宿主的 tool token 场景，不做 API verify。
+
+Lumi Lab 的差异：5 步浏览器 wizard + 真实 API verify（返回 E_401/E_403/E_429）+ macOS Keychain / Linux secret-tool 真后端 + 从不存 LLM key。
+
+## Moat（复利护城河）
+
+配一次，所有 venture 和 skill 共用 `~/.lumilab/`。keychain 后端让 token 跟着系统钥匙串走，换项目不用重配。

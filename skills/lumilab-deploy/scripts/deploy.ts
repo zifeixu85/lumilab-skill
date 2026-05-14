@@ -61,19 +61,31 @@ function saveShares(data: { shares: ShareRecord[] }) {
 }
 
 function getCloudflareToken(): string {
-  // P0 简化：从 ~/.lumilab/secrets.json（明文）读取
-  // P1 切到加密 secrets.enc + keychain
+  // 优先走 keychain.ts（macOS Keychain / Linux secret-tool）；
+  // 仅当 keychain 后端不可用时回退到 ~/.lumilab/secrets.json（chmod 600）。
+  const keychainScript = join(import.meta.dir, '..', '..', 'lumilab-config', 'scripts', 'keychain.ts');
+  if (existsSync(keychainScript)) {
+    for (const key of ['CLOUDFLARE_API_TOKEN', 'cloudflare_api_token']) {
+      const r = spawnSync('bun', ['run', keychainScript, 'get', key], { stdio: ['ignore', 'pipe', 'ignore'] });
+      if (r.status === 0) {
+        const v = r.stdout.toString().trim();
+        if (v) return v;
+      }
+    }
+  }
+  // env override
+  if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
+  // fallback: plaintext secrets.json
   const secretsPath = join(LUMILAB_HOME, 'secrets.json');
-  if (!existsSync(secretsPath)) {
-    console.error(`Cloudflare token not configured. Run /lumilab config first.`);
-    process.exit(1);
+  if (existsSync(secretsPath)) {
+    try {
+      const secrets = JSON.parse(readFileSync(secretsPath, 'utf-8'));
+      const token = secrets.cloudflare_api_token || secrets.CLOUDFLARE_API_TOKEN;
+      if (token) return token;
+    } catch { /* fall through to error */ }
   }
-  const secrets = JSON.parse(readFileSync(secretsPath, 'utf-8'));
-  if (!secrets.cloudflare_api_token) {
-    console.error(`Cloudflare token not configured. Run /lumilab config first.`);
-    process.exit(1);
-  }
-  return secrets.cloudflare_api_token;
+  console.error('Cloudflare token 未配置。先跑 `lumilab config`，或 `lumilab secrets set CLOUDFLARE_API_TOKEN <token>`。');
+  process.exit(1);
 }
 
 async function generateQrPng(url: string, outputPath: string) {

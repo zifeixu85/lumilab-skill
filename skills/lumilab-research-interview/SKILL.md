@@ -381,3 +381,15 @@ Saturation 报告也用对话纯文本输出，附原话引用列表，不画图
 
 5 layers of why 至少 3 层；compliments / hypotheticals / generic future 等反模式自动标红高亮。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM 帮你设计访谈问题**：会写出引导性问题（"你会不会喜欢…"），违反 Mom Test。
+- **问卷工具（Typeform 等）**：拿到的是 hypotheticals，不是过去行为。
+
+Lumi Lab 的差异：Mom Test 三原则 + 8 反模式自动标红 + 5 layers of why + saturation rule（5–8 个访谈饱和）。
+
+## Moat（复利护城河）
+
+`interviews/` 每个对象独立归档，跑过 20+ 访谈后能 grep 出反复出现的 struggling moment——这是质性数据的复利。

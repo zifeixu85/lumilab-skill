@@ -308,3 +308,16 @@ user_input:
 
 venture slug 含中文 / 特殊字符自动 punycode；password rotate 同时失效 localStorage cache；删除部署同时清 shares.json 条目。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **Vercel / Netlify 直接部署**：不带客户端加密 + 密码门，分享即公开。
+- **加密笔记工具**：能加密但不是可分享的 web 页。
+- **通用 LLM 帮你写部署脚本**：能跑但不做 AES-GCM + PBKDF2 + 密码门 + localStorage 缓存。
+
+Lumi Lab 的差异：Cloudflare Pages + 客户端 AES-GCM/PBKDF2 1M 迭代加密 + 6 位密码门 + rotate 自动失效缓存，端到端密码不离开本机。
+
+## Moat（复利护城河）
+
+deploy/manifest.json 累积所有部署历史（含旧 URL / 旧密码）。每个 venture 的 Studio 都可一键加密分享，形成你的私密作品集网络。

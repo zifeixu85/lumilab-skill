@@ -1,122 +1,125 @@
 # Lumi Lab
 
-> **A skills bundle for founders. From a vague idea to a market experiment in 7 days.**
+> **给创业者的 Skills bundle。把一个模糊的想法，7 天跑成一次市场实验。**
 
-**Lumi Lab** is a 21-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Drop it into your AI host's skills directory and it turns a fuzzy idea into shippable, testable, decision-traceable artifacts — landing page, multi-platform content, hypothesis ledger, growth SOP, deployable Studio page.
+[English](README.en.md) ｜ 简体中文
 
-[![Version](https://img.shields.io/badge/version-1.0.0--rc2-orange)](CHANGELOG.md)
+**Lumi Lab** 是一套 21 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录，它就能把一个模糊的想法，变成可发布、可验证、决策可追溯的产物——landing page、多平台内容、假设账本、增长 SOP、可部署的 Studio 页。
+
+[![版本](https://img.shields.io/badge/version-1.0.0--rc3-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
-[![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-21_A_·_avg_87.3_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-1_S_+_20_A_·_avg_87.3_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
-## What this is (and isn't)
+## 它是什么，不是什么
 
-| Lumi Lab is | Lumi Lab isn't |
+| Lumi Lab 是 | Lumi Lab 不是 |
 |---|---|
-| A **skills bundle** dropped into `~/.claude/skills/` | A standalone Agent product |
-| Invoked from inside Claude Code / OpenClaw / Cursor | A web app or SaaS |
-| Provides files: HTML, YAML, CSV, MD | Provides a chat UI |
-| **Uses your host's LLM** | Requires your own LLM API key |
-| Reads/writes `~/.lumilab/` for state | Phones home |
+| 一套 **Skills bundle**，丢进 `~/.claude/skills/` 用 | 一个独立的 Agent 产品 |
+| 在 Claude Code / OpenClaw / Cursor 里被调用 | 一个 web app 或 SaaS |
+| 产出文件：HTML、YAML、CSV、Markdown | 提供一个聊天界面 |
+| **用你宿主自己的 LLM** | 要你自己的 LLM API key |
+| 读写 `~/.lumilab/` 做状态 | 偷偷上报数据 |
 
-**You don't give Lumi Lab an LLM API key.** Your AI host already has one — Lumi Lab plugs into it. The optional tokens it asks for are **tool integrations** (Cloudflare for deploying Studios, Exa for web search, TikHub for Xiaohongshu API, etc.).
-
----
-
-## Why this exists
-
-**Skills are no longer scarce. Orchestration is.**
-
-The problem isn't finding a prompt or skill. It's knowing:
-- which skills to chain when you have a new idea
-- which platform constraints actually matter (XHS ≤ 38-char title, X thread ≤ 7 posts, etc.)
-- when to pivot a hypothesis instead of polishing the landing page
-- how to publish a private project Studio that doesn't look like an AI demo
-
-Lumi Lab encodes the answers as 21 self-contained skills + a shared `~/.lumilab/` state directory + 3 utility browser UIs (Setup Wizard, Share Manager, Design Direction).
+**你不用给 Lumi Lab LLM API key。** 你的 AI 宿主已经有了——Lumi Lab 接进去就行。它要的那些可选 token 都是**工具集成**（Cloudflare 部署 Studio、Exa 做网页搜索、TikHub 拿小红书 API 等）。
 
 ---
 
-## What you get
+## 为什么有这东西
 
-### A Founder Coach with three modes
+**Skill 不再稀缺，编排才稀缺。**
 
-Not a chatbot — a coach that picks one of three modes based on your state:
+难的不是找一个 prompt 或一个 skill，而是知道：
+
+- 有了新想法，该串哪些 skill
+- 哪些平台规则是真的要命的（小红书标题 ≤ 38 字、X thread ≤ 7 条…）
+- 假设该 pivot 了，而不是继续打磨 landing page
+- 怎么发一个不像 AI demo 的私密项目 Studio
+
+Lumi Lab 把这些答案编码成 21 个自包含的 skill + 一个共享的 `~/.lumilab/` 状态目录 + 3 个浏览器工具 UI（Setup Wizard、Share Manager、Design Direction）。
+
+---
+
+## 你得到什么
+
+### 一个有三种模式的创始人教练
+
+不是 chatbot——是一个会根据你的状态切换三种模式的教练：
 
 ```
-○ Methodology   YC office hours / Mom Test / Lean Canvas / Sean Ellis
-○ Cognitive     sunk-cost detection / "where's the evidence?" / decision fatigue
-○ Psychological recovery from failed hypotheses / pivot vs. persevere
+○ 方法论    YC office hours / Mom Test / Lean Canvas / Sean Ellis
+○ 认知陷阱  沉没成本检测 / "证据在哪？" / 决策疲劳
+○ 心理向    从失败假设里恢复 / pivot 还是 persevere
 ```
 
-One question at a time. Refuses to skip ahead.
+一次一个问题。拒绝跳步。
 
-### A Hypothesis Ledger that never deletes
+### 一个永不删除的假设账本
 
-Every assumption is an atomic YAML fact with an `id`, confidence, test method, evidence, supersede history. You can pivot — the old hypothesis stays with `status: superseded` and `superseded_by: <new-id>`. The Studio renders the diff inline.
+每个假设都是一条带 `id`、置信度、验证方法、证据、supersede 历史的 atomic YAML。你可以 pivot——旧假设保留 `status: superseded` + `superseded_by: <新 id>`。Studio 把 diff 内联渲染出来。
 
-### A Studio per venture
+### 每个 venture 一个 Studio
 
-Each idea gets its own project page — a printable journal with editorial typography (Fraunces serif + JetBrains Mono), SVG progress timeline, hypothesis cards, decision trail. OKLCH on warm newsprint with grain overlay.
+每个想法有自己的项目页——一份可打印的实验日志，编辑式排版（Fraunces 衬线 + JetBrains Mono）、SVG 进度时间线、假设卡片、决策轨迹。暖纸色 OKLCH + 颗粒噪声纹理。
 
-### Three browser UIs (no LLM needed)
+### 三个浏览器 UI（不需要 LLM）
 
-- **Setup Wizard** (`lumilab config`) — 5 steps. Asks for tool tokens you actually need: Cloudflare, Exa, TikHub. **Never asks for an LLM key.**
-- **Share Manager** (`lumilab manage`) — every deployed Studio, with reveal-password / rotate / delete.
-- **Design Direction** (`lumilab design-direction <venture>`) — 4 aesthetic samples + 3 dials (variance / motion / density) + iframe live preview. Output writes `design_direction.json` consumed by downstream skills.
+- **Setup Wizard**（`lumilab config`）— 5 步。问你真正需要的工具 token：Cloudflare、Exa、TikHub。**从不问 LLM key。**
+- **Share Manager**（`lumilab manage`）— 列出每个已部署的 Studio，可显示密码 / rotate / 删除。
+- **Design Direction**（`lumilab design-direction <venture>`）— 4 套美学样本 + 3 个旋钮（variance / motion / density）+ iframe 实时预览。产出 `design_direction.json` 供下游 skill 消费。
 
-### One-command deploy with password gate
+### 一条命令部署 + 密码门
 
 ```
 $ lumilab deploy my-venture
 
-  🔑 using password: ••••••
-  🔒 encrypting (AES-GCM + PBKDF2 1M iter)
+  🔑 使用密码：••••••
+  🔒 加密中（AES-GCM + PBKDF2 1M 迭代）
   ☁️  wrangler pages deploy → my-venture-yourname.pages.dev
 
-  ✅ deployed
-     URL:      https://my-venture-yourname.pages.dev
-     Password: 728345   (share this separately)
+  ✅ 已部署
+     URL：     https://my-venture-yourname.pages.dev
+     密码：    728345   （单独分享）
 ```
 
-Visitors enter the password once. With "Remember on this device" checked, refreshing or new-tabbing won't re-prompt — localStorage cache invalidates automatically when you rotate the password.
+访客输一次密码。勾上「在此设备记住」后，刷新或新开标签页不再重复要密码——rotate 密码时 localStorage 缓存自动失效。
 
-### Platform know-how baked in
+### 平台规则内置
 
-Five Chinese platforms (小红书, 公众号, 抖音, 朋友圈, X) each have hard rules in `skills/lumilab-content-repurpose/references/platform-rules/`:
+5 个中国平台（小红书、公众号、抖音、朋友圈、X）各有硬规则，存在 `skills/lumilab-playbook-cn/references/platform-rules/`：
 
 ```
-xiaohongshu.md:
-- 标题 ≤ 38 字 (中文 ×2, 英文/数字 ×1)
+xiaohongshu.md：
+- 标题 ≤ 38 字（中文 ×2，英文 / 数字 ×1）
 - 图文必有图（无图不可发）
-- 图视频不可混用
+- 图 / 视频不可混用
 - 首图必须可读
-- 标签 3-10 个
-- 不在正文放外链
+- 标签 3–10 个
+- 正文不放外链
 ```
 
-The Content skill reads these before generating anything. No LLM "推断" — written-down rules.
+内容 skill 在生成任何东西之前先读这些规则。不靠 LLM「推断」——是写下来的规则。2025–2026 最新更新已纳入。
 
 ---
 
-## Install
+## 安装
 
-### Prerequisites
+### 前置依赖
 
-- **bun ≥ 1.0** (runtime + script runner)
-- **wrangler** (Cloudflare CLI; only if you'll use `lumilab deploy`)
-- **qrencode** (optional, for `lumilab manage` QR codes)
+- **bun ≥ 1.0**（运行时 + 脚本）
+- **wrangler**（Cloudflare CLI；只在你要用 `lumilab deploy` 时需要）
+- **qrencode**（可选，`lumilab manage` 生成二维码用）
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 npm install -g wrangler
-brew install qrencode    # macOS; or `apt install qrencode`
+brew install qrencode    # macOS；或 `apt install qrencode`
 ```
 
-### Install the skills bundle
+### 安装 skills bundle
 
 Lumi Lab 支持三种宿主的三条安装路径——选你正在用的：
 
@@ -151,137 +154,153 @@ openclaw channels login --channel feishu
 /skills install https://github.com/zifeixu85/lumilab
 ```
 
-Hermes 会 quarantine → `skills_guard` 静态扫描 → 写入 `~/.hermes/skills/lumilab/`。后续 `@bot 帮我用 lumilab 走一遍这个 idea` 即可调用。
+Hermes 会 quarantine → `skills_guard` 静态扫描 → 写入 `~/.hermes/skills/lumilab/`。之后 `@bot 帮我用 lumilab 走一遍这个 idea` 即可调用。
 
-### Configure (one-time, 2 min)
+### 配置（一次性，2 分钟）
 
 ```bash
 lumilab config
 ```
 
-Opens a 5-step browser wizard. Pick the tool tokens you want. **Skip any of them** — basic skills (coach, hypothesis ledger, content) work without external tokens.
+打开一个 5 步浏览器 wizard。选你想要的工具 token。**全部可跳过**——基础 skill（coach、假设账本、内容）不需要任何外部 token 也能用。
 
-### Try the demo
+### 试试 demo
 
 ```bash
 lumilab list
 lumilab studio lumilab-meta
 ```
 
-Opens the self-referencing demo venture in your browser.
+在浏览器里打开自指 demo venture。
 
-### Your own venture
+### 你自己的 venture
 
 ```bash
-lumilab new "AI content factory for Xiaohongshu KOLs"
+lumilab new "给小红书 KOL 的 AI 内容工厂"
 ```
 
-Then in **your AI host** (Claude Code, OpenClaw, etc.):
+然后在**你的 AI 宿主**里（Claude Code、OpenClaw 等）：
 
-> "Switch to lumilab-founder-coach Layer 1 (methodology). Use YC office-hours forcing questions, HARD-GATE pacing, one question at a time. Write the output to hypotheses.yaml and audience.md."
+> 「切到 lumilab-founder-coach 第 1 层（方法论）。用 YC office-hours 的 forcing questions，HARD-GATE 节奏，一次一个问题。输出写到 hypotheses.yaml 和 audience.md。」
 
-The host's LLM does the thinking; the skill provides the structure.
+宿主的 LLM 负责思考；skill 提供结构。
 
 ```bash
-lumilab render          # refresh Studio HTML
-lumilab studio          # view
-lumilab deploy          # publish + encrypt + URL + password
+lumilab render          # 重渲 Studio HTML
+lumilab studio          # 查看
+lumilab deploy          # 发布 + 加密 + URL + 密码
 ```
 
 ---
 
-## Commands
+## 命令
 
 ```
-lumilab new "<idea>"            start a new venture
-lumilab list                    list ventures
-lumilab studio [venture]        open Studio in browser
-lumilab render [venture]        re-render Studio HTML
+lumilab new "<想法>"            启动新 venture
+lumilab list                    列出所有 venture
+lumilab studio [venture]        浏览器打开 Studio
+lumilab render [venture]        重新渲染 Studio HTML
 
-lumilab design-direction [venture]    pick aesthetic + dials + live preview
-lumilab deploy <venture>              deploy to Cloudflare Pages w/ password gate
-lumilab manage                        manage all deployed Studios
+lumilab design-direction [venture]    选美学方向 + 旋钮 + 实时预览
+lumilab deploy <venture>              部署到 Cloudflare Pages（带密码门）
+lumilab manage                        管理所有已部署的 Studio
 lumilab config                        Setup Wizard
 
-lumilab help                          show help
+lumilab retro [venture]               周复盘四桶交互页
+lumilab research-xhs "<关键词>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
+lumilab research-web  "<查询>"  [...]  Exa Web 搜（需 EXA_API_KEY，无 key 自动 mock）
+lumilab secrets <动作> [...]           keychain CLI：which|get|set|del|list|migrate-plaintext
+
+lumilab help                          显示帮助
 ```
 
-Inside Claude Code / OpenClaw / etc., the skills `coach / clarify / research / build-assets / launch / review` are invoked **conversationally**:
+在 Claude Code / OpenClaw 里，`coach / clarify / research / build-assets / launch / review` 这些 skill 通过**对话式**调用：
 
-> "Run lumilab-research-platforms for venture xhs-factory, channels: web + xhs"
+> 「为 venture xhs-factory 跑 lumilab-research-platforms，通道：web + xhs」
 
 ---
 
-## Inside the box
+## 盒子里有什么
 
-| Layer | Count | Skills |
+| 层 | 数量 | Skills |
 |---|---|---|
-| **Core (self-built)** | 5 | hypothesis-ledger, founder-coach, landing-mvp, content-repurpose, weekly-sop-runner |
-| **Infrastructure** | 3 | config (Setup Wizard + Share Manager), deploy (Cloudflare + encryption), research-platforms (XHS + Web) |
-| **Rendering** | 1 | studio (HTML + SVG progress + hypothesis cards + decision timeline) |
-| **Overlays (upstream wrappers)** | 11 | coach-yc, research-{interview,icp,competitor}, product-{positioning,pmf,mvp}, copy, launch-strategy, metrics, design-direction |
-| **Knowledge** | 1 | playbook-cn (13 frameworks + China platform rules index) |
+| **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp、content-repurpose、weekly-sop-runner |
+| **基础设施** | 3 | config（Setup Wizard + Share Manager）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
+| **渲染** | 1 | studio（HTML + SVG 进度 + 假设卡 + 决策时间线） |
+| **Overlay（上游封装）** | 11 | coach-yc、research-{interview,icp,competitor}、product-{positioning,pmf,mvp}、copy、launch-strategy、metrics、design-direction |
+| **知识** | 1 | playbook-cn（13 个框架 + 中国平台规则索引） |
 
-Each skill is `skills/<name>/SKILL.md` plus optional `scripts/`, `references/`, `templates/`. Open one and read it — flat Markdown the host's LLM consumes.
+每个 skill 是 `skills/<name>/SKILL.md` 加上可选的 `scripts/`、`references/`、`templates/`、`tests/`。打开一个读读——是宿主 LLM 直接消费的扁平 Markdown。
 
 ---
 
-## How it differs from a "super prompt"
+## 跟一个「超级 prompt」有什么区别
 
-A super prompt is text. Lumi Lab is a workspace.
+超级 prompt 是文本。Lumi Lab 是一个工作区。
 
-| Super prompt | Lumi Lab |
+| 超级 prompt | Lumi Lab |
 |---|---|
-| Stateless. Re-paste every session. | `~/.lumilab/` is the state. |
-| One author's voice. | 21 distinct skills, each with its own discipline. |
-| Output is text dumped to chat. | Output is files: HTML, YAML, CSV, MD. Diffable. Deployable. |
-| "Try this approach." | Atomic hypothesis ledger with supersede history. |
-| Hard to share. | `lumilab deploy` → encrypted public Studio in 30 seconds. |
-| Forgets last week. | PARA three-tier memory in `~/.lumilab/`. |
+| 无状态。每次会话重新粘贴。 | `~/.lumilab/` 就是状态。 |
+| 一个作者的口吻。 | 21 个独立 skill，各有各的纪律。 |
+| 输出是丢进聊天框的文本。 | 输出是文件：HTML、YAML、CSV、MD。可 diff、可部署。 |
+| 「试试这个方法。」 | atomic 假设账本，带 supersede 历史。 |
+| 难分享。 | `lumilab deploy` → 30 秒一个加密的公开 Studio。 |
+| 忘了上周。 | `~/.lumilab/` 里的 PARA 三层记忆。 |
 
 ---
 
-## Documentation
+## 质量评测
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — technical architecture
-- [`docs/SKILLS.md`](docs/SKILLS.md) — 21-skill index with one-line purpose
-- [`CHANGELOG.md`](CHANGELOG.md) — what's in 0.1.0-p0, what's next
+21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**1 个 S + 20 个 A，平均 87.3 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。最高 `lumilab-content-repurpose` 90.33（S 级）。
+
+详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
 
 ---
 
-## Phase 0 status (this release)
+## 文档
 
-✅ Ready:
-- 21 skills with full SKILL.md
-- Studio HTML renderer (editorial aesthetic)
-- Setup Wizard / Share Manager / Design Direction browser UIs
-- Cloudflare deploy + client-side encryption (AES-GCM + PBKDF2 1M)
-- localStorage password cache (no re-prompt on refresh)
-- PARA three-tier memory layout
-- 5 Chinese platform rule-sheets
-- `lumilab` CLI
-- Self-referencing demo venture
+- [`docs/TUTORIAL.zh.md`](docs/TUTORIAL.zh.md) — 完整中文上手指南（三种宿主路径 + 飞书入门）
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 技术架构
+- [`docs/SKILLS.md`](docs/SKILLS.md) — 21 个 skill 索引，一行说明
+- [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md) — SkillLens 评测报告
+- [`CHANGELOG.md`](CHANGELOG.md) — 版本变更
 
-⏳ Phase 1 (Q3 2026):
-- Real keychain encryption for `~/.lumilab/secrets.json`
-- 5 more interactive decision pages
-- XHS Playwright + Web Exa actual integrations
-- Stripe / Resend / PostHog
-- Cross-venture portfolio + MCP knowledge-graph memory
-- Multi-account workspaces
+---
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full manifest.
+## v1.0.0-rc3 状态
+
+✅ 已就绪：
+- 21 个 skill，完整 SKILL.md + agentskills.io v1 frontmatter
+- Studio HTML 渲染引擎（编辑式美学）
+- Setup Wizard / Share Manager / Design Direction 三个浏览器 UI
+- Cloudflare 部署 + 客户端加密（AES-GCM + PBKDF2 1M）
+- localStorage 密码缓存（刷新不重复要密码）
+- PARA 三层记忆布局
+- 5 个中国平台规则表（2025–2026 更新）
+- `lumilab` CLI（含 retro / research-xhs / research-web / secrets）
+- 真 keychain 后端（macOS Keychain / Linux secret-tool）
+- XHS / Exa 真集成代码 + 无 token 时 mock 降级
+- 自指 demo venture
+- SkillLens：21 A，平均 87.3，全部 verified
+
+⏳ rc2 → final 待收尾：
+- 端到端 dogfood 安装真测（需在你的机器上跑）
+- 飞书 e2e demo 录屏（需建飞书 bot）
+- ClawHub 发布（需注册账号）
+- XHS / Exa 真 token 联调
+
+详见 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ---
 
 ## License
 
-Apache 2.0 — see [`LICENSE`](LICENSE).
+Apache 2.0 — 见 [`LICENSE`](LICENSE)。
 
-## Credits
+## 致谢
 
-**Methodology**: YC office hours · Mom Test (Rob Fitzpatrick) · Lean Startup (Eric Ries) · Sean Ellis 40% PMF · April Dunford · Bob Moesta JTBD · Marc Lou · Lenny Rachitsky · Thariq Shihipar (HTML effectiveness)
+**方法论**：YC office hours · Mom Test（Rob Fitzpatrick）· Lean Startup（Eric Ries）· Sean Ellis 40% PMF · April Dunford · Bob Moesta JTBD · Marc Lou · Lenny Rachitsky · Thariq Shihipar（HTML 有效性）
 
-**Upstream skills**: Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · JimLiu/baoyu-skills · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
+**上游 skill**：Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · JimLiu/baoyu-skills · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
 
-**Infrastructure**: Cloudflare Pages · wrangler · Web Crypto API · bun · Fraunces · JetBrains Mono · Geist
+**基础设施**：Cloudflare Pages · wrangler · Web Crypto API · bun · Fraunces · JetBrains Mono · Geist

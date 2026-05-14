@@ -448,3 +448,17 @@ user_input:
 
 决策疲劳判定基于 `decisions.yaml` 7 天内 ≥ 5 条；用户语义"放弃"/"不知道"/"算了"出现 ≥ 2 次自动切 Layer 3；HARD-GATE 提问每次 1 个，用户回答后才进入下一个。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM 直接问**：能给建议但会顺着你说，没有 HARD-GATE 一次一问、不会主动检测决策疲劳、不留会话归档。
+- **YC Startup School / 各类创业课**：单向内容，不针对你的 idea 追问，没有 Layer 3 心理向。
+- **Notion 创业模板**：静态表格，不会反问"证据在哪"。
+- **ChatGPT「创业导师」类 GPTs**：停在 Layer 1 方法论，遇到假设失败 / pivot 纠结时无结构。
+
+Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 + HARD-GATE 提问节奏 + 读 `decisions.yaml` 密度检测决策疲劳 + 每轮归档。
+
+## Moat（复利护城河）
+
+用得越久越准：`coach_session_*.md` 累积成你的思考轨迹，`MEMORY.md` 记住你的历史失败模式，下一个 venture 开局时 coach 能直接引用"你上次在这一步栽过"。这是单次对话型工具给不了的复利。

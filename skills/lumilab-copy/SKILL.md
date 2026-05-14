@@ -419,3 +419,15 @@ VoC 短语库 `voc-bank.yaml` 累计，重跑时复用。
 
 4U 框架（urgent / unique / useful / ultra-specific）至少 3U 才算合格；CTA 动词必须是用户语义（"开始" / "试试" 而非 "立即体验"）。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM 写文案**：会产出 AI slop（赋能 / 打造 / 闭环），不做 voice-of-customer。
+- **文案模板库**：套路化，不针对你的用户语言。
+
+Lumi Lab 的差异：Eugene Schwartz awareness stages + Joanna Wiebe VoC mining + 禁词扫描（赋能 / 打造 / 闭环 / 赛道…直接拒写）。
+
+## Moat（复利护城河）
+
+voc-bank.yaml 累积你用户的真实语言，跑得越久文案越像"用户自己说的话"而不是营销腔。

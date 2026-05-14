@@ -441,3 +441,15 @@ vanity metric（PV / 总注册数无对照）→ 警示并建议替换为 action
 
 cohort 切片至少 W1 / W4 / W8；vanity vs actionable 双列对照；leading vs lagging 必须标注。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「我该看哪些指标」**：容易给 vanity metrics（PV / 总注册数）。
+- **Google Analytics / 各类 dashboard**：给一堆数但不分 leading / lagging、actionable / vanity。
+
+Lumi Lab 的差异：AARRR + North Star + vanity/actionable 双列对照 + cohort 切片规范，vanity metric 直接警示。
+
+## Moat（复利护城河）
+
+metrics.yaml 是累积的事件 schema，schema 版本化。跑得越久，事件定义越稳，跨 venture 的指标可对比。

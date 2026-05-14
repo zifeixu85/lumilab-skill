@@ -359,3 +359,15 @@ assets:
 
 Marc Lou ship fast 原则与 1000 true fans 速度冲突时按 venture 类型分流：B2C 偏 ship fast，B2B 偏 1000 true fans。
 
+## Alternatives
+
+用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
+
+- **通用 LLM「帮我做发布计划」**：给泛泛清单，不分阶段、不懂中国式 launch 阶梯。
+- **Product Hunt launch guide**：只讲 PH，不讲飞书 / 微信小圈子 → 小红书 → 公众号的国内路径。
+
+Lumi Lab 的差异：1000 true fans + Marc Lou ship fast，按 venture 类型（B2C / B2B）分流，含中国式 launch 阶梯。
+
+## Moat（复利护城河）
+
+launch_plan.v<n>.md 留档，跑过几次 launch 后能复盘"哪个阶段我总是跳太快"。
