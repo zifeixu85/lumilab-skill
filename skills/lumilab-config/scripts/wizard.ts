@@ -28,7 +28,7 @@ import { join } from "node:path";
 
 // ─────────────  paths  ─────────────
 
-const LUMI_DIR     = join(homedir(), ".lumilab");
+const LUMI_DIR     = process.env.LUMILAB_HOME ?? join(homedir(), ".lumilab");
 const CONFIG_PATH  = join(LUMI_DIR, "config.json");
 const SECRETS_PATH = join(LUMI_DIR, "secrets.json");
 
@@ -331,24 +331,95 @@ const CSS = `
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── live theme presets (Step 2 re-themes the whole wizard) ── */
+/* editorial — warm paper + serif headings */
+html[data-theme="editorial"] {
+  --color-bg:       oklch(96% 0.022 85);
+  --color-bg-2:     oklch(93% 0.026 85);
+  --color-surface:  oklch(98.5% 0.012 85);
+  --color-ink:      oklch(22% 0.03 60);
+  --color-ink-2:    oklch(38% 0.026 55);
+  --color-mute:     oklch(56% 0.02 60);
+  --color-hairline: oklch(82% 0.022 70);
+  --color-accent:   oklch(45% 0.15 32);
+  --color-accent-2: oklch(93% 0.045 40);
+  --font-sans: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --radius: 2px;
+  --radius-2: 3px;
+}
+/* minimalist — cool near-white + geometric sans + airy */
+html[data-theme="minimalist"] {
+  --color-bg:       oklch(98.5% 0.003 250);
+  --color-bg-2:     oklch(96% 0.004 250);
+  --color-surface:  oklch(99.6% 0.002 250);
+  --color-ink:      oklch(24% 0.008 250);
+  --color-ink-2:    oklch(42% 0.008 250);
+  --color-mute:     oklch(62% 0.008 250);
+  --color-hairline: oklch(90% 0.005 250);
+  --color-accent:   oklch(52% 0.09 250);
+  --color-accent-2: oklch(95% 0.025 250);
+  --font-sans: "Space Grotesk", "Noto Sans SC", ui-sans-serif, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
+  --radius: 0px;
+  --radius-2: 0px;
+}
+/* brutalist — high-contrast acid + mono + hard edges */
+html[data-theme="brutalist"] {
+  --color-bg:       oklch(94% 0.13 96);
+  --color-bg-2:     oklch(89% 0.15 96);
+  --color-surface:  oklch(97% 0.07 96);
+  --color-ink:      oklch(16% 0.02 60);
+  --color-ink-2:    oklch(24% 0.02 60);
+  --color-mute:     oklch(40% 0.03 60);
+  --color-hairline: oklch(16% 0.02 60);
+  --color-accent:   oklch(52% 0.22 28);
+  --color-accent-2: oklch(88% 0.16 96);
+  --font-sans: "Space Mono", "Noto Sans SC", ui-monospace, monospace;
+  --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
+  --radius: 0px;
+  --radius-2: 0px;
+}
+/* soft — low-saturation pastel + rounded + gentle */
+html[data-theme="soft"] {
+  --color-bg:       oklch(96.5% 0.022 30);
+  --color-bg-2:     oklch(94% 0.03 30);
+  --color-surface:  oklch(98.5% 0.014 30);
+  --color-ink:      oklch(34% 0.04 25);
+  --color-ink-2:    oklch(48% 0.04 25);
+  --color-mute:     oklch(64% 0.035 25);
+  --color-hairline: oklch(87% 0.03 28);
+  --color-accent:   oklch(60% 0.11 22);
+  --color-accent-2: oklch(93% 0.05 25);
+  --font-sans: "Space Grotesk", "Noto Sans SC", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --radius: 12px;
+  --radius-2: 16px;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; font-size: 16px; }
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);
   color: var(--color-ink);
   min-height: 100dvh;
-  line-height: 1.45;
-  font-size: 14px;
+  line-height: 1.6;
+  /* 基础字号随视口缩放：小屏 15px，大屏到 17px */
+  font-size: clamp(15px, 0.9rem + 0.25vw, 17px);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* layout */
+/* layout — 大屏加宽，不再死守 760px */
 .shell {
-  max-width: 760px;
+  max-width: clamp(760px, 60vw, 1040px);
   margin: 0 auto;
   padding: var(--space-6) var(--space-6) var(--space-8);
+}
+@media (min-width: 1100px) {
+  .shell { padding: var(--space-8) var(--space-8) var(--space-8); }
 }
 
 /* header bar */
@@ -417,7 +488,7 @@ body {
 }
 .page-h__title {
   font-family: var(--font-sans);
-  font-size: 20px; font-weight: 600;
+  font-size: 24px; font-weight: 600;
   letter-spacing: -0.01em; color: var(--color-ink);
 }
 .page-h__sub {
@@ -428,16 +499,38 @@ body {
 
 /* short intro text on welcome */
 .intro {
-  font-family: var(--font-sans); font-size: 14px;
+  font-family: var(--font-sans); font-size: 15.5px;
   color: var(--color-ink-2); line-height: 1.6;
   max-width: 60ch; margin-bottom: var(--space-4);
 }
 .intro strong { color: var(--color-ink); font-weight: 600; }
 .intro code {
-  font-family: var(--font-mono); font-size: 12px;
-  background: var(--color-bg-2); padding: 1px 4px;
-  border: 1px solid var(--color-hairline); border-radius: 2px;
+  font-family: var(--font-mono); font-size: 13px;
+  background: var(--color-bg-2); padding: 1px 5px;
+  border: 1px solid var(--color-hairline); border-radius: 3px;
+  white-space: normal; overflow-wrap: anywhere; word-break: break-word;
 }
+
+/* "what this step does" intro box */
+.step-intro {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  border: 1px solid var(--color-hairline);
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.step-intro__tag {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-accent); padding-top: 2px;
+  white-space: nowrap;
+}
+.step-intro__text {
+  font-family: var(--font-sans); font-size: 14.5px;
+  color: var(--color-ink-2); line-height: 1.55;
+}
+.step-intro__text strong { color: var(--color-ink); font-weight: 600; }
 
 /* fieldset / sections */
 fieldset {
@@ -492,7 +585,7 @@ textarea, select {
   background: var(--color-surface);
   color: var(--color-ink);
   border: 1px solid var(--color-hairline);
-  border-radius: 0;
+  border-radius: var(--radius);
   width: 100%;
   height: 36px;
   outline: none;
@@ -607,7 +700,7 @@ button {
   background: var(--color-surface);
   color: var(--color-ink);
   border: 1px solid var(--color-hairline);
-  border-radius: 0;
+  border-radius: var(--radius);
   cursor: pointer;
   transition: transform 100ms var(--ease-out), background 120ms, color 120ms, border-color 120ms;
   white-space: nowrap;
@@ -681,6 +774,7 @@ details.qs code {
   font-family: var(--font-mono); font-size: 11px;
   background: var(--color-bg-2); padding: 1px 4px;
   border: 1px solid var(--color-hairline);
+  white-space: nowrap; word-break: keep-all;
 }
 
 /* optional pro tier */
@@ -730,6 +824,53 @@ details.pro[open] > summary::before { content: '− '; }
 }
 .summary__row dd { color: var(--color-ink); }
 
+/* step 6 — tool integration overview (✓/— per tool) */
+.tool-overview { margin-top: var(--space-4); }
+.tool-overview__h {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; color: var(--color-ink-2);
+  margin-bottom: var(--space-2);
+}
+.tool-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: var(--color-hairline);
+  border: 1px solid var(--color-hairline);
+}
+.tool-stat {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  background: var(--color-surface);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans); font-size: 13px;
+}
+.tool-stat__mark {
+  font-family: var(--font-mono); font-weight: 600;
+  flex: 0 0 auto; width: 12px;
+}
+.tool-stat.is-on  .tool-stat__mark { color: var(--color-accent); }
+.tool-stat.is-off .tool-stat__mark { color: var(--color-mute); }
+.tool-stat.is-on  .tool-stat__name { color: var(--color-ink); font-weight: 600; }
+.tool-stat.is-off .tool-stat__name { color: var(--color-mute); }
+.tool-stat__note {
+  font-size: 11px; color: var(--color-mute);
+  margin-left: auto; text-align: right; min-width: 0;
+}
+.tool-overview__note {
+  font-family: var(--font-sans); font-size: 12px;
+  color: var(--color-mute); line-height: 1.6;
+  margin: var(--space-2) 0 0;
+}
+.autosave-note {
+  font-family: var(--font-sans); font-size: 13px; line-height: 1.65;
+  color: var(--color-ink-2);
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-hairline);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+}
+.autosave-note strong { color: var(--color-ink); font-weight: 600; }
+
 /* welcome — flow diagram */
 .flow {
   display: flex; align-items: stretch; flex-wrap: wrap;
@@ -764,24 +905,68 @@ details.pro[open] > summary::before { content: '− '; }
   border-color: var(--color-accent);
 }
 
+/* welcome — section heading */
+.block-h {
+  font-family: var(--font-sans); font-size: 15px; font-weight: 600;
+  color: var(--color-ink); margin: var(--space-6) 0 var(--space-3);
+  padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-hairline);
+}
+
+/* welcome — two deliverables */
+.deliverables {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.deliv {
+  border: 1px solid var(--color-hairline); border-radius: var(--radius);
+  background: var(--color-bg-2); padding: var(--space-4); min-width: 0;
+}
+.deliv__no {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--color-accent); letter-spacing: 0.06em;
+}
+.deliv__title {
+  font-family: var(--font-sans); font-size: 15px; font-weight: 600;
+  color: var(--color-ink); margin: var(--space-2) 0;
+}
+.deliv__desc {
+  font-family: var(--font-sans); font-size: 14.5px; line-height: 1.6;
+  color: var(--color-ink-2); margin: 0;
+}
+
+/* welcome — skill showcase chips */
+.skills-show {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.skill-chip {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--color-ink-2); background: var(--color-bg-2);
+  border: 1px solid var(--color-hairline); border-radius: var(--radius);
+  padding: 4px 10px; white-space: nowrap;
+}
+
 /* welcome — tips list */
 .tips {
-  list-style: none; display: grid; gap: var(--space-2);
+  list-style: none; display: grid; gap: var(--space-3);
   margin-bottom: var(--space-6);
 }
 .tips li {
-  display: grid; grid-template-columns: 18px 1fr; gap: var(--space-2);
-  font-family: var(--font-sans); font-size: 13px;
-  color: var(--color-ink-2); line-height: 1.5;
+  display: flex; align-items: baseline; gap: var(--space-2);
+  font-family: var(--font-sans); font-size: 14.5px;
+  color: var(--color-ink-2); line-height: 1.6;
 }
 .tips li::before {
   content: '›'; font-family: var(--font-mono);
   color: var(--color-accent); font-weight: 600;
+  flex: 0 0 auto;
 }
+.tips li > span { min-width: 0; flex: 1 1 auto; }
 .tips code {
   font-family: var(--font-mono); font-size: 12px;
-  background: var(--color-bg-2); padding: 1px 4px;
-  border: 1px solid var(--color-hairline);
+  background: var(--color-bg-2); padding: 1px 5px;
+  border: 1px solid var(--color-hairline); border-radius: 3px;
+  white-space: normal; overflow-wrap: anywhere; word-break: break-word;
 }
 
 /* design preset cards */
@@ -936,7 +1121,8 @@ details.pro[open] > summary::before { content: '− '; }
   background: var(--color-surface);
   border: 1px solid var(--color-hairline);
   padding: 8px 10px; margin-bottom: var(--space-2);
-  color: var(--color-ink); word-break: break-all;
+  color: var(--color-ink);
+  white-space: nowrap; overflow-x: auto;
 }
 .kickoff__note {
   font-family: var(--font-sans); font-size: 12px;
@@ -977,9 +1163,10 @@ function progressBar(current: number): string {
   return `<nav class="steps" aria-label="配置进度">${cells}</nav>`;
 }
 
-function page(title: string, current: number, body: string, extraScript = ""): string {
+function page(title: string, current: number, body: string, extraScript = "", theme: DesignPreset = ""): string {
+  const themeAttr = theme ? ` data-theme="${theme}"` : "";
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN"${themeAttr}>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1000,6 +1187,9 @@ async function postJSON(url, data) {
   return r.json();
 }
 function go(path) { window.location.href = path; }
+function applyTheme(id) {
+  document.documentElement.setAttribute('data-theme', id);
+}
 function setSeg(rootId, name) {
   const root = document.getElementById(rootId);
   if (!root) return;
@@ -1029,39 +1219,75 @@ function escapeAttr(s: string): string { return escapeHtml(s); }
 
 // ─────────────  step renderers  ─────────────
 
-function renderStep1(_cfg: WizardConfig): string {
+function renderStep1(cfg: WizardConfig): string {
   const body = `
 <section class="page-h">
   <h1 class="page-h__title">欢迎来到 Lumi Lab</h1>
   <span class="page-h__sub">01 / 06</span>
 </section>
 
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text">先花两分钟认识一下 Lumi Lab —— 它是什么、能帮你省掉什么、整个流程长什么样。看完点「开始」往下走。</span>
+</div>
+
 <p class="intro">
-  <strong>Lumi Lab 帮你验证一个 C 端创业想法。</strong>
-  你给一句话 idea，它自动跑市场分析、给出方向建议，
-  再生成一个能测真实购买意愿的 <strong>fake-door 验证页</strong>——
-  在你写一行产品代码之前。
+  <strong>有个创业 idea，但不知道行不行？别急着写代码、别急着做产品。</strong>
+  Lumi Lab 帮你在写第一行代码之前，先把这个 idea 跑成一份<strong>能拿来做判断的东西</strong> ——
+  一份完整的网页版分析报告，加一个能测<strong>真实购买意愿</strong>的验证页。几天时间、几乎零成本，就知道值不值得做。
 </p>
 
 <div class="flow" aria-label="Lumi Lab 工作流">
   <div class="flow__node"><span class="k">输入</span><span class="t">一句话 idea</span></div>
   <span class="flow__arrow">→</span>
-  <div class="flow__node"><span class="k">自动</span><span class="t">市场分析</span></div>
+  <div class="flow__node"><span class="k">自动</span><span class="t">市场 / 竞品 / 人群 / 关键词分析</span></div>
   <span class="flow__arrow">→</span>
-  <div class="flow__node"><span class="k">产物</span><span class="t">HTML 分析报告</span></div>
+  <div class="flow__node accent"><span class="k">产物 ①</span><span class="t">网页版分析报告</span></div>
   <span class="flow__arrow">→</span>
   <div class="flow__node"><span class="k">你来选</span><span class="t">方向建议</span></div>
   <span class="flow__arrow">→</span>
-  <div class="flow__node accent"><span class="k">生成</span><span class="t">fake-door 验证页</span></div>
+  <div class="flow__node accent"><span class="k">产物 ②</span><span class="t">fake-door 验证页</span></div>
   <span class="flow__arrow">→</span>
   <div class="flow__node"><span class="k">上线</span><span class="t">部署验证</span></div>
 </div>
 
+<h2 class="block-h">你会拿到两样东西</h2>
+<div class="deliverables">
+  <article class="deliv">
+    <span class="deliv__no">产物 ①</span>
+    <h3 class="deliv__title">网页版分析报告</h3>
+    <p class="deliv__desc">不是一堆聊天文字 —— 是一份图文并茂的 HTML 报告：市场快照、竞品格局、目标人群、关键词红蓝海、3-5 个可选方向。打开就能看，能存能分享。</p>
+  </article>
+  <article class="deliv">
+    <span class="deliv__no">产物 ②</span>
+    <h3 class="deliv__title">fake-door 验证页</h3>
+    <p class="deliv__desc">一个真能上线的落地页，带「立即购买 / 留邮箱」CTA + 转化追踪 + SEO/GEO。跑几天，回收「有多少人真的想买」这个数字。</p>
+  </article>
+</div>
+
+<h2 class="block-h">背后是一整套 skill 在干活</h2>
+<p class="intro" style="margin-bottom: var(--space-3);">你只给一句话，下面这些 skill 会自动接力 —— 你不用知道它们的名字，但它们都在为你这一个 idea 服务：</p>
+<div class="skills-show">
+  <span class="skill-chip">市场分析</span>
+  <span class="skill-chip">竞品扫描</span>
+  <span class="skill-chip">人群拆解 (ICP)</span>
+  <span class="skill-chip">关键词调研 · 红蓝海</span>
+  <span class="skill-chip">定位 / PMF</span>
+  <span class="skill-chip">文案 (VoC)</span>
+  <span class="skill-chip">设计方向</span>
+  <span class="skill-chip">Landing 生成</span>
+  <span class="skill-chip">SEO / GEO</span>
+  <span class="skill-chip">加密部署</span>
+  <span class="skill-chip">假设账本</span>
+  <span class="skill-chip">周复盘</span>
+</div>
+
 <ul class="tips">
-  <li>默认入口是 <code>lumilab idea "&lt;你的想法&gt;"</code>，一句话就能开跑。</li>
-  <li>全程最多问你 2 次——方向取舍这种该你拍板的事才会停下来。</li>
-  <li>中间产物（分析报告、验证页）会主动渲染成 HTML 推给你看，不用自己翻目录。</li>
-  <li>不需要 LLM key——你的 AI 宿主（Claude Code / OpenClaw / Hermes…）已经自带。</li>
+  <li><span>省掉几个月白做的风险 —— 在投入之前就知道有没有人真的想买。</span></li>
+  <li><span>一句话就能跑：默认入口是 <code>lumilab idea "&lt;你的想法&gt;"</code>，不用懂技术。</span></li>
+  <li><span>产物都是真能用的网页：一份分析报告 + 一个可部署的验证页链接。</span></li>
+  <li><span>全程最多打扰你 2 次 —— 只在方向取舍这种该你拍板的事上停下来。</span></li>
+  <li><span>不需要 LLM key —— 你的 AI 宿主（Claude Code / OpenClaw / Hermes…）已经自带。</span></li>
 </ul>
 
 <p class="intro" style="color: var(--color-mute);">
@@ -1076,7 +1302,7 @@ function renderStep1(_cfg: WizardConfig): string {
   <button class="primary" onclick="go('/.setup/2.html')">开始 →</button>
 </div>
 `;
-  return page("欢迎", 1, body);
+  return page("欢迎", 1, body, "", cfg.default_design_preset);
 }
 
 type PresetMeta = {
@@ -1124,10 +1350,14 @@ function renderStep2(cfg: WizardConfig): string {
   <span class="page-h__sub">02 / 06</span>
 </section>
 
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text">选一个默认界面风格 —— 之后 Lumi Lab 给你生成的验证页、报告都会用这个调性。<strong>选中即时预览，整个向导会立刻变成那个风格</strong>，后面几步也会保持。</span>
+</div>
+
 <p class="intro" style="margin-bottom: var(--space-4);">
-  选一套默认美学——它会成为新 venture 验证页的起点风格。
   下面是 4 套预设的真实迷你预览（字体、配色、按钮都是该风格的样子）。
-  之后每个 venture 都还能单独覆盖。
+  点一下就能让整个页面换成那套风格，亲自感受一下再决定。之后每个 venture 还能单独覆盖。
 </p>
 
 <div class="presets" id="preset-grid">
@@ -1148,11 +1378,14 @@ function renderStep2(cfg: WizardConfig): string {
 </form>
 `;
   const script = `
-function pickPreset(id) {
+async function pickPreset(id) {
   document.getElementById('preset-value').value = id;
   document.querySelectorAll('#preset-grid .preset-card').forEach(c => {
     c.classList.toggle('selected', c.dataset.preset === id);
   });
+  applyTheme(id);
+  try { await postJSON('/api/design-preset', { step: 2, default_design_preset: id }); }
+  catch (err) { /* persist best-effort; submit will retry */ }
 }
 async function submitStep2(e) {
   e.preventDefault();
@@ -1163,7 +1396,7 @@ async function submitStep2(e) {
   return false;
 }
 `;
-  return page("界面风格", 2, body, script);
+  return page("界面风格", 2, body, script, current);
 }
 
 function renderStep3(cfg: WizardConfig): string {
@@ -1173,6 +1406,11 @@ function renderStep3(cfg: WizardConfig): string {
   <h1 class="page-h__title">你是谁</h1>
   <span class="page-h__sub">03 / 06</span>
 </section>
+
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text">留下基本信息 —— Lumi Lab 会据此调整推荐：你在哪、做什么背景、走到哪一步，决定了它默认给你建议哪些平台、用什么口吻。</span>
+</div>
 
 <form id="form-identity" onsubmit="return submitStep3(event)">
   <fieldset>
@@ -1238,7 +1476,7 @@ async function submitStep3(e) {
   return false;
 }
 `;
-  return page("你是谁", 3, body, script);
+  return page("你是谁", 3, body, script, cfg.default_design_preset);
 }
 
 function stageRadio(value: string, label: string, current: string): string {
@@ -1254,6 +1492,11 @@ function renderStep4(cfg: WizardConfig): string {
   <h1 class="page-h__title">偏好设置</h1>
   <span class="page-h__sub">04 / 06</span>
 </section>
+
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text">定一下 Lumi Lab 写东西的默认调性 —— 语言、文风、以及对「AI 味」的容忍度。这决定了它给你的报告和验证页文案读起来像不像人话。</span>
+</div>
 
 <form id="form-prefs" onsubmit="return submitStep4(event)">
   <fieldset>
@@ -1321,7 +1564,7 @@ async function submitStep4(e) {
   return false;
 }
 `;
-  return page("偏好设置", 4, body, script);
+  return page("偏好设置", 4, body, script, cfg.default_design_preset);
 }
 
 function prefRadio(name: string, value: string, label: string, current: string): string {
@@ -1372,10 +1615,14 @@ function renderStep5(cfg: WizardConfig): string {
   <span class="page-h__sub">05 / 06 · 全部可选</span>
 </section>
 
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text"><strong>（可选）接入工具 token</strong> —— 接了就能用真实数据（真实搜索、真实部署链接），不接就用 mock / 宿主 LLM 的知识兜底，不影响核心流程。任何一项都能跳过。</span>
+</div>
+
 <p class="intro" style="margin-bottom: var(--space-4);">
   Lumi Lab 不需要 LLM 密钥——你的 AI 宿主（Claude Code / OpenClaw 等）会自带 LLM。
   这里的 token 用来解锁<strong>部署</strong>、<strong>调研</strong>，以及 Pro 档的<strong>发布</strong>。
-  任何一项都可以跳过。
 </p>
 
 <form id="form-keys" onsubmit="return false">
@@ -1419,17 +1666,18 @@ function renderStep5(cfg: WizardConfig): string {
     })}
     ${tokenField({
       provider: "dataforseo_login",
-      label: "DataForSEO Login",
+      label: "DataForSEO · API login（邮箱）",
       verified: a.has_dataforseo,
       verifiable: false,
-      hint: "关键词调研默认数据源（搜索量 / KD / 红蓝海）。PAYG 充值即用、余额不过期。",
-      quickstart: `<ol><li>到 <a href="https://dataforseo.com/" target="_blank">dataforseo.com</a> 注册</li><li>充值 $50（PAYG）</li><li>API Dashboard 取 login / password</li><li>填两栏 → 验证</li></ol>`,
+      hint: "关键词调研默认数据源（搜索量 / KD / 红蓝海）。这里填 dashboard 的 API Access / API Dashboard 面板里显示的 “API login”——是一个邮箱。",
+      quickstart: `<ol><li>到 <a href="https://dataforseo.com/" target="_blank">dataforseo.com</a> 注册</li><li>充值 $50（PAYG，余额不过期）</li><li>打开 dashboard 的 <strong>API Access / API Dashboard</strong> 面板</li><li>那里有一组 “API CREDENTIALS”：<strong>API login</strong>（一个邮箱）和 <strong>API password</strong>（一串单独生成的密码）</li><li>把这两个值分别填到下面两栏</li></ol>`,
     })}
     ${tokenField({
       provider: "dataforseo_password",
-      label: "DataForSEO Password",
+      label: "DataForSEO · API password（独立生成的，非账户登录密码）",
       verified: a.has_dataforseo,
       verifiable: false,
+      hint: "同一个 API Access / API Dashboard 面板里的 “API password”——是系统生成的一串密码，<strong>不是</strong>你登录 DataForSEO 账户用的密码。",
     })}
     ${tokenField({
       provider: "keywordseverywhere",
@@ -1573,25 +1821,36 @@ async function skipAll() {
   go('/.setup/6.html');
 }
 `;
-  return page("工具集成", 5, body, script);
+  return page("工具集成", 5, body, script, cfg.default_design_preset);
 }
 
 function renderStep6(cfg: WizardConfig): string {
   const d = cfg.deploy;
   const id = cfg.identity;
   const a = cfg.api;
-  const integrations = [
-    a.has_cloudflare ? `cloudflare${a.cloudflare_account ? " (" + a.cloudflare_account + ")" : ""}` : null,
-    a.has_exa ? "exa" : null,
-    a.has_tikhub ? "tikhub" : null,
-    a.has_dataforseo ? "dataforseo" : null,
-    a.has_keywordseverywhere ? "keywordseverywhere" : null,
-    a.has_stripe ? "stripe" : null,
-    a.has_resend ? "resend" : null,
-    a.has_wechat ? "微信公众号" : null,
-    a.has_x ? "x" : null,
-  ].filter(Boolean).join("、") || "（无 · 仅启用基础 skills）";
   const presetLabel = cfg.default_design_preset || "（未选）";
+  // 每个工具一行 ✓/— ，让用户在总览里看到完整配置状态（配了什么、没配什么）
+  const toolList: [string, boolean, string][] = [
+    ["Cloudflare", a.has_cloudflare, a.cloudflare_account ? a.cloudflare_account : "部署验证页"],
+    ["Exa", a.has_exa, "Web 深度搜索"],
+    ["TikHub", a.has_tikhub, "小红书 / 抖音抓取"],
+    ["DataForSEO", a.has_dataforseo, "关键词调研（默认源）"],
+    ["Keywords Everywhere", a.has_keywordseverywhere, "关键词调研（可选源）"],
+    ["Stripe", a.has_stripe, "支付（Pro）"],
+    ["Resend", a.has_resend, "邮件（Pro）"],
+    ["微信公众号", a.has_wechat, "发布（Pro）"],
+    ["X / Twitter", a.has_x, "发布（Pro）"],
+  ];
+  const configuredCount = toolList.filter(([, on]) => on).length;
+  const toolRows = toolList
+    .map(([name, on, note]) =>
+      `<div class="tool-stat ${on ? "is-on" : "is-off"}">
+        <span class="tool-stat__mark">${on ? "✓" : "—"}</span>
+        <span class="tool-stat__name">${escapeHtml(name)}</span>
+        <span class="tool-stat__note">${escapeHtml(note)}</span>
+      </div>`,
+    )
+    .join("");
 
   const body = `
 <section class="page-h">
@@ -1599,8 +1858,13 @@ function renderStep6(cfg: WizardConfig): string {
   <span class="page-h__sub">06 / 06</span>
 </section>
 
+<div class="step-intro">
+  <span class="step-intro__tag">这一步</span>
+  <span class="step-intro__text">最后一步 —— 设好验证页上线时的默认值（密码、可见性），核对一遍总览，然后就能跑你的第一个 idea 了。</span>
+</div>
+
 <p class="intro" style="margin-bottom: var(--space-4);">
-  Lumi 部署 venture studio 时，会把这些默认值预填进去。
+  Lumi 部署验证页时，会把这些默认值预填进去。
   每次 <code>lumilab deploy</code> 时还可以覆盖。
 </p>
 
@@ -1643,21 +1907,34 @@ function renderStep6(cfg: WizardConfig): string {
       <div class="summary__row"><dt>阶段</dt><dd>${escapeHtml(id.stage || "—")}</dd></div>
       <div class="summary__row"><dt>语言</dt><dd>${escapeHtml(cfg.prefs.language)} · ${escapeHtml(cfg.prefs.writing_style)}</dd></div>
       <div class="summary__row"><dt>界面风格</dt><dd>${escapeHtml(presetLabel)}</dd></div>
-      <div class="summary__row"><dt>已集成</dt><dd>${escapeHtml(integrations)}</dd></div>
       <div class="summary__row"><dt>配置路径</dt><dd>~/.lumilab/config.json</dd></div>
       <div class="summary__row"><dt>密钥路径</dt><dd>~/.lumilab/secrets.json (600)</dd></div>
     </dl>
+
+    <div class="tool-overview">
+      <div class="tool-overview__h">工具集成 · 已配 ${configuredCount} / ${toolList.length}</div>
+      <div class="tool-stats">${toolRows}</div>
+      <p class="tool-overview__note">未配的不影响核心流程 —— 对应能力会用 mock 数据 / 宿主 LLM 知识兜底。随时重跑 <code>lumilab config</code> 补上。</p>
+    </div>
+
+    <p class="autosave-note">
+      ✓ 以上每一步在你点「下一步」时就<strong>已经自动保存</strong>到 <code>~/.lumilab/config.json</code> 了 ——
+      <strong>不需要你回去告诉 AI「配好了」</strong>。点下面「保存并完成」后，向导会把一份配置摘要打印到终端，你的 AI 宿主能直接看到。
+    </p>
   </fieldset>
 
   <div class="kickoff">
     <div class="kickoff__h">完成 · 怎么开始</div>
+    <p class="kickoff__note" style="margin-bottom: var(--space-2);">
+      点「保存并完成」后向导自动关闭。回到终端，把你的想法填进这一句就能开跑：
+    </p>
     <div class="kickoff__cmd">lumilab idea "你的一句话想法"</div>
     <p class="kickoff__note" style="margin-bottom: var(--space-3);">
-      或者在你的 AI 宿主里直接说：<strong>用 lumilab-idea-to-landing 帮我跑这个 idea</strong>。
+      或者在你的 AI 宿主里直接说一句：<strong>用 lumilab-idea-to-landing 帮我跑这个 idea</strong>。
     </p>
     <p class="kickoff__note">
-      Lumi Lab 会自动跑市场分析 → 给方向建议 → 生成一个 fake-door 验证页（默认用你刚选的「${escapeHtml(presetLabel)}」风格），
-      中间产物会主动推 HTML 给你看。点「保存并完成」后这个向导会自动关闭。
+      接下来它会<strong>自动跑分析 → 给你方向建议 → 出一个 fake-door 验证页</strong>（默认用你选的「${escapeHtml(presetLabel)}」风格），
+      你只需要在中间选一次方向。中间产物都会主动推 HTML 给你看，不用自己翻目录。
     </p>
   </div>
 
@@ -1683,7 +1960,7 @@ async function submitStep6(e) {
   return false;
 }
 `;
-  return page("部署偏好", 6, body, script);
+  return page("部署偏好", 6, body, script, cfg.default_design_preset);
 }
 
 function renderDone(cfg: WizardConfig): string {
@@ -1712,7 +1989,7 @@ function renderDone(cfg: WizardConfig): string {
   <button class="ghost" onclick="window.close()">关闭窗口</button>
 </div>
 `;
-  return page("完成", 6, body);
+  return page("完成", 6, body, "", cfg.default_design_preset);
 }
 
 // ─────────────  server  ─────────────
@@ -1772,7 +2049,9 @@ async function handleRequest(req: Request): Promise<Response> {
   const cfg = loadConfig();
 
   if (path === "/" || path === "/.setup/") {
-    const next = Math.min(Math.max(cfg.step + 1, 1), 6);
+    // 没引导完 → 永远从第 1 步开始（首次引导体验）；
+    // 已引导完（用户回来改配置）→ 跳到上次停留的步骤。
+    const next = cfg.onboarded ? Math.min(Math.max(cfg.step, 1), 6) : 1;
     return Response.redirect(`/.setup/${next}.html`, 302);
   }
 
@@ -1913,9 +2192,40 @@ async function apiDone(): Promise<Response> {
   cfg.onboarded_at = new Date().toISOString();
   saveConfig(cfg);
   setTimeout(() => {
-    console.log("\n  ✓ setup complete · config written to ~/.lumilab/config.json");
-    console.log("  ✓ secrets written to ~/.lumilab/secrets.json (mode 600)");
-    console.log("  ✓ shutting down wizard server\n");
+    // 打印结构化配置摘要到 stdout —— `lumilab config` 是阻塞调用，
+    // stdio:inherit，所以宿主 agent 退出时能直接看到「配了什么」，
+    // 不需要用户回去手动告诉 AI。
+    const a = cfg.api;
+    const tools = [
+      ["Cloudflare", a.has_cloudflare], ["Exa", a.has_exa], ["TikHub", a.has_tikhub],
+      ["DataForSEO", a.has_dataforseo], ["Keywords Everywhere", a.has_keywordseverywhere],
+      ["Stripe", a.has_stripe], ["Resend", a.has_resend],
+      ["微信公众号", a.has_wechat], ["X", a.has_x],
+    ] as [string, boolean][];
+    const on = tools.filter(([, v]) => v).map(([n]) => n);
+    const off = tools.filter(([, v]) => !v).map(([n]) => n);
+    console.log("\n──────────────────────────────────────────────");
+    console.log("  ✓ Lumi Lab 首次引导完成 · 配置已自动保存");
+    console.log("──────────────────────────────────────────────");
+    console.log(`  界面风格 : ${cfg.default_design_preset || "（未选）"}`);
+    console.log(`  称呼     : ${cfg.identity.name || "—"}`);
+    console.log(`  语言风格 : ${cfg.prefs.language} · ${cfg.prefs.writing_style}`);
+    console.log(`  已配工具 : ${on.length ? on.join("、") : "（无 · 仅基础 skills）"}`);
+    console.log(`  未配工具 : ${off.length ? off.join("、") : "（全部已配）"}`);
+    console.log(`  配置文件 : ~/.lumilab/config.json`);
+    console.log(`  密钥文件 : ~/.lumilab/secrets.json (mode 600)`);
+    console.log("──────────────────────────────────────────────");
+    console.log('  下一步：lumilab idea "你的一句话想法"');
+    console.log("  或在 AI 宿主里说：用 lumilab-idea-to-landing 帮我跑这个 idea");
+    console.log("──────────────────────────────────────────────\n");
+    // 机器可读摘要：宿主 agent 可解析，知道用户配了什么、可以接着干什么
+    console.log("LUMILAB_ONBOARD_DONE " + JSON.stringify({
+      onboarded: true,
+      default_design_preset: cfg.default_design_preset || null,
+      tools_configured: on,
+      tools_unconfigured: off,
+      config_path: "~/.lumilab/config.json",
+    }));
     process.exit(0);
   }, 1500);
   return json({ ok: true });

@@ -102,6 +102,29 @@
 
 ---
 
+## [1.3.1] · 2026-05-14 · 首次引导页打磨（基于截图反馈）
+
+> 用户实测首次引导页后的一轮打磨。
+
+### Fixed
+- **代码块竖排 / 重叠 bug**：`.tips`/`.intro` 里的 `<code>`（如 `lumilab idea "<你的想法>"`）因 grid `1fr` 列 + `white-space: nowrap` 撑爆列宽导致溢出重叠。改 flex 布局 + `<code>` 允许换行（`overflow-wrap: anywhere`）
+- 根路径 `/` 重定向：未引导完的用户现在永远从 Step 1 开始（之前会跳到 `cfg.step+1`）
+- `wizard.ts` 现在读 `LUMILAB_HOME` 环境变量（之前硬编码 `~/.lumilab`）
+
+### Changed
+- **基础字号 + 大屏适配**：body `14px` → `clamp(15px, …, 17px)`；`.shell` 宽度 `760px` → `clamp(760px, 60vw, 1040px)`；正文 / 标题字号上调；行高 1.45 → 1.6
+- **实时换主题**：Step 2 选界面风格时整个向导页面立即 re-theme（4 套完整 OKLCH 主题），并贯穿 Step 1-6
+- **每步加「这一步会做什么」说明框**
+- **Step 1 内容重做**：强调两个产物（网页版分析报告 + fake-door 验证页）、新增 12 个 skill chip「秀肌肉」展示、文案改为痛点+回报开场
+- **Step 6 总览升级**：工具集成从「逗号列表」改为 9 个工具逐个 ✓/— 网格（已配 N/9）；新增「✓ 已自动保存，不需要回去告诉 AI」醒目提示框
+- **DataForSEO 字段说明清晰化**：API login（邮箱）/ API password（独立生成的，非账户登录密码），指引指向 dashboard 的 API CREDENTIALS 面板
+- **`apiDone` 退出时打印结构化配置摘要**到 stdout（含 `LUMILAB_ONBOARD_DONE {json}` 机器可读行）—— `lumilab config` 阻塞返回时宿主 agent 直接看到配了什么，用户无需手动转述
+
+### Changed (versions)
+- `VERSION` 1.3.0 → 1.3.1
+
+---
+
 ## [1.3.0] · 2026-05-14 · 首次引导页 + 关键词调研融入流程
 
 > 两件事：① Setup Wizard 升级成真正的「首次使用引导页」；② 队友新增的 `lumilab-research-keywords` skill 建好脚本并融入主流程。
