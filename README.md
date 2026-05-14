@@ -4,11 +4,11 @@
 
 [English](README.en.md) ｜ 简体中文
 
-**Lumi Lab** 是一套 21 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录，它就能把一个模糊的想法，变成可发布、可验证、决策可追溯的产物——landing page、多平台内容、假设账本、增长 SOP、可部署的 Studio 页。
+**Lumi Lab** 是一套 22 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-[![版本](https://img.shields.io/badge/version-1.0.1-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.1.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-22-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
@@ -45,17 +45,27 @@ Lumi Lab 把这些答案编码成 21 个自包含的 skill + 一个共享的 `~/
 
 ## 你得到什么
 
-### 一个有三种模式的创始人教练
+### 一句话 idea → landing 页（默认流程）
 
-不是 chatbot——是一个会根据你的状态切换三种模式的教练：
+`lumilab-idea-to-landing` 是默认入口，autoplan 式自动流水线：
 
 ```
-○ 方法论    YC office hours / Mom Test / Lean Canvas / Sean Ellis
-○ 认知陷阱  沉没成本检测 / "证据在哪？" / 决策疲劳
-○ 心理向    从失败假设里恢复 / pivot 还是 persevere
+你：一句话 idea
+ ↓  （最多问你一次可选的补充，能跳过就跳过）
+自动：市场分析 + 竞品扫描 + 人群拆解
+ ↓
+交付：图文并茂的 HTML 分析报告 + 3-5 个具体方向建议
+ ↓  （唯一一次决策：选个方向，或说「你来定」）
+自动：设计 + 文案 + 生成带 SEO/GEO 的 landing 页
+ ↓
+交付：可部署的 landing HTML（一条命令上线验证）
 ```
 
-一次一个问题。拒绝跳步。
+不是陪你聊天、一步步追问——是**帮你判断 + 帮你做**。中间产物全部 HTML 主动推给你看，不静默落盘。
+
+### 一个可选的深度教练
+
+需要被深挖、想把某个具体问题想透时，才用 `lumilab-founder-coach`：方法论 / 认知陷阱 / 心理向三层。**它也不再一次一个问题磨**——先给分析判断，再批量问，一轮 session 最多 2-3 次提问。
 
 ### 一个永不删除的假设账本
 
@@ -175,22 +185,22 @@ lumilab studio lumilab-meta
 
 在浏览器里打开自指 demo venture。
 
-### 你自己的 venture
+### 你自己的 idea（默认流程）
 
 ```bash
-lumilab new "给小红书 KOL 的 AI 内容工厂"
+lumilab idea "给小红书 KOL 的 AI 内容工厂"
 ```
 
-然后在**你的 AI 宿主**里（Claude Code、OpenClaw 等）：
+然后在**你的 AI 宿主**里（Claude Code、OpenClaw、飞书 @bot 等）说一句：
 
-> 「切到 lumilab-founder-coach 第 1 层（方法论）。用 YC office-hours 的 forcing questions，HARD-GATE 节奏，一次一个问题。输出写到 hypotheses.yaml 和 audience.md。」
+> 「用 lumilab-idea-to-landing 帮我把这个 idea 跑完整条流水线」
 
-宿主的 LLM 负责思考；skill 提供结构。
+宿主 LLM 会自动跑：市场分析 → HTML 报告 → 方向选择（问你一次）→ 设计 + landing。产物会主动推给你。
+
+最后一条命令上线验证：
 
 ```bash
-lumilab render          # 重渲 Studio HTML
-lumilab studio          # 查看
-lumilab deploy          # 发布 + 加密 + URL + 密码
+lumilab deploy <venture>   # 发布 + 加密 + URL + 密码，30 秒
 ```
 
 ---
@@ -198,7 +208,8 @@ lumilab deploy          # 发布 + 加密 + URL + 密码
 ## 命令
 
 ```
-lumilab new "<想法>"            启动新 venture
+lumilab idea "<一句话想法>"      ★ 默认入口：idea → 分析 → 方向 → landing
+lumilab new "<想法>"            只建 venture 目录（手动流程）
 lumilab list                    列出所有 venture
 lumilab studio [venture]        浏览器打开 Studio
 lumilab render [venture]        重新渲染 Studio HTML
@@ -226,9 +237,10 @@ lumilab help                          显示帮助
 
 | 层 | 数量 | Skills |
 |---|---|---|
-| **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp、content-repurpose、weekly-sop-runner |
-| **基础设施** | 3 | config（Setup Wizard + Share Manager）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
-| **渲染** | 1 | studio（HTML + SVG 进度 + 假设卡 + 决策时间线） |
+| **Orchestrator（默认入口）** | 1 | **idea-to-landing**（一句话 idea → 分析 → 方向 → landing 全自动流水线） |
+| **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp（含 SEO/GEO）、content-repurpose、weekly-sop-runner |
+| **基础设施** | 3 | config（Setup Wizard + Share Manager + chat-mode）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
+| **渲染** | 1 | studio（Studio HTML + 市场分析报告 HTML） |
 | **Overlay（上游封装）** | 11 | coach-yc、research-{interview,icp,competitor}、product-{positioning,pmf,mvp}、copy、launch-strategy、metrics、design-direction |
 | **知识** | 1 | playbook-cn（13 个框架 + 中国平台规则索引） |
 
@@ -253,7 +265,7 @@ lumilab help                          显示帮助
 
 ## 质量评测
 
-21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 91.6 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器。
+原 21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 91.6 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器。（v1.1.0 新增的 idea-to-landing orchestrator 待下一轮评测。）
 
 详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
 

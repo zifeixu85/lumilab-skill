@@ -3,7 +3,7 @@ name: lumilab-landing-mvp
 description: |
   Production-quality Landing Page generator for venture validation. Generates HTML5 + standalone styles.css with email capture, payment intent CTA (P1), and FAQ. Enforces 6-phase non-skippable pipeline (Research → Content Extraction → Image Catalog → Build → Verify → Deploy-ready). Anti-Slop 17 banned words + 8 banned visual patterns + 6-rule quality gate. Output reflects design_direction.json (preset/dials/palette/typography). Use when user types /lumilab build-assets or /lumilab landing, after design-direction page submitted.
   关键词：landing page / 落地页 / 销售页 / HTML 落地页 / 邮件收集 / CTA / hero / 价值主张 / 转化 / Anti-Slop / awwwards / editorial / brutalist / 暖色 luxury
-version: 1.0.1
+version: 1.1.0
 metadata:
   hermes:
     tags: [landing-page, anti-slop, copywriting]
@@ -28,6 +28,9 @@ metadata:
     - "data/ventures/<name>/landing/v<n>/image_catalog.md"
     - "data/ventures/<name>/landing/v<n>/email_collection_config.md"
     - "data/ventures/<name>/landing/v<n>/anti-slop-checklist.md"
+    - "data/ventures/<name>/landing/v<n>/sitemap.xml"
+    - "data/ventures/<name>/landing/v<n>/robots.txt"
+    - "data/ventures/<name>/landing/v<n>/llms.txt"
     - "data/ventures/<name>/studio/preview/landing.html (Studio 预览版)"
   reads:
     - "data/ventures/<name>/design_direction.json (必读 - 风格)"
@@ -197,7 +200,7 @@ Phase 6: Deploy-ready    - 输出最终产物 + 给出本地预览 link
 ❌ emoji 在 markup/alt text
 ```
 
-## 6 条质量自检 Gate（Phase 5 必跑）
+## 7 条质量自检 Gate（Phase 5 必跑）
 
 ```
 1. ✅ 不用 Inter/Roboto/Arial
@@ -206,9 +209,131 @@ Phase 6: Deploy-ready    - 输出最终产物 + 给出本地预览 link
 4. ✅ 用 CSS custom properties (--color-* / --space-*)
 5. ✅ 至少一个非 hover 的 @keyframes
 6. ✅ 鲜明美学 POV（editorial / brutalist / swiss / minimal-luxury 至少一个）
+7. ✅ SEO+GEO gate：<title> ≤ 60 字符、有 <meta name="description">、≥1 个 application/ld+json
+      JSON-LD、FAQ section 存在、所有 <img> 带 alt、sitemap.xml / robots.txt / llms.txt 都生成
 ```
 
 **全部通过才能进 Phase 6**。否则回 Phase 4 改。
+
+## SEO + GEO（Phase 5.5，HTML 生成时必做）
+
+Landing page 生成出来还得被人和 AI 找到。Phase 4 写 HTML 时就要把下面这些一并写进去，Phase 5 校验。
+
+### SEO（传统搜索引擎）
+
+- `<title>` ≤ 60 字符，含核心关键词，别堆砌
+- `<meta name="description">` 控制在 150–160 字符，一句话说清页面价值
+- Open Graph 全套：`og:title` `og:description` `og:image` `og:url` `og:type` `og:locale`（`zh_CN`）
+- Twitter Card：`twitter:card`（`summary_large_image`）`twitter:title` `twitter:description` `twitter:image`
+- `<link rel="canonical">` 指向页面正式 URL
+- 语义化 heading 层级：全页只有一个 `<h1>`，`<h2>`/`<h3>` 逻辑嵌套，不跳级
+- `<html lang="zh-CN">`
+- 所有 `<img>` 的 `alt` 必填，描述图片内容（不放 emoji、不堆关键词）
+- `sitemap.xml` + `robots.txt` 一并生成到 landing 输出目录
+- 性能即 SEO：内联首屏关键 CSS、图片带 `loading="lazy"`/`width`/`height`、字体 `font-display: swap`
+
+### GEO（生成式引擎优化 — 让 AI 搜索引擎能抓取并引用）
+
+GEO 是 2024–2025 新兴的优化方向。核心：AI 搜索引擎（ChatGPT search / Perplexity / Claude / 文心一言等）抓取页面后，需要能**清晰提取实体、事实、结构化答案**来引用。要点：
+
+- **JSON-LD 结构化数据**：内联 `<script type="application/ld+json">`，按页面性质选 schema.org 类型——`Organization`（venture 主体）/ `Product` 或 `SoftwareApplication`（产品）/ `FAQPage`（FAQ）/ `BreadcrumbList`（导航层级）
+- **FAQ 区块**：landing 必含一个真实的 FAQ section（5–8 问），同时渲染为可见 HTML + `FAQPage` JSON-LD——AI 引擎最爱引用 FAQ
+- **明确的实体声明**：第一屏就用一句话清楚说明「这是什么、给谁、解决什么」，别让 AI 引擎自己推断
+- **事实密度**：写具体数字、具体场景、具体对比，不是形容词堆砌——AI 引擎引用具体事实，不引用「很棒的体验」
+- **可提取的结构**：用 `<dl>` 定义列表、清晰的小标题、要点列表——让 AI 容易切片
+- **`llms.txt`**：在 landing 输出目录生成一个 `llms.txt`（新兴标准，类似 robots.txt 但写给 LLM 看），列出页面核心事实摘要
+- **作者/可信度信号**：`<meta name="author">`、发布/更新日期（`article:published_time` 或可见日期）、真实联系方式
+
+### Worked example（虚构 venture：「碳记」个人碳足迹追踪 app）
+
+`<head>` 块：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>碳记 — 上班族的个人碳足迹追踪 app</title>
+  <meta name="description" content="碳记帮上班族记录通勤、外卖、网购的碳排放，每周给一份可执行的减排建议。已有 3,200 名用户，平均 6 周减少 18% 个人碳足迹。">
+  <meta name="author" content="碳记团队">
+  <link rel="canonical" href="https://tanji.app/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:url" content="https://tanji.app/">
+  <meta property="og:title" content="碳记 — 上班族的个人碳足迹追踪 app">
+  <meta property="og:description" content="记录通勤、外卖、网购的碳排放，每周一份可执行的减排建议。">
+  <meta property="og:image" content="https://tanji.app/og-cover.webp">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="碳记 — 上班族的个人碳足迹追踪 app">
+  <meta name="twitter:description" content="记录通勤、外卖、网购的碳排放，每周一份可执行的减排建议。">
+  <meta name="twitter:image" content="https://tanji.app/og-cover.webp">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+```
+
+FAQPage JSON-LD（可见 FAQ section 之外，再内联一份）：
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "碳记怎么计算碳排放？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "碳记用中国生态环境部发布的排放因子，把你录入的通勤距离、外卖订单、网购包裹换算成 CO₂ 当量，数据来源公开可查。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "需要手动记录吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "通勤可以连地图 app 自动同步，外卖和网购支持账单截图识别，平均每天手动操作不到 1 分钟。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "碳记收费吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "基础记录和周报永久免费，高级版每月 18 元，含年度报告和减排目标拆解。"
+      }
+    }
+  ]
+}
+</script>
+```
+
+`llms.txt`（放 landing 输出目录根）：
+
+```text
+# 碳记 (tanji.app)
+
+> 碳记是一款面向中国上班族的个人碳足迹追踪 app，记录通勤、外卖、网购三类高频日常消费的碳排放，每周生成一份可执行的减排建议。
+
+## 核心事实
+- 产品类型：移动端 app（iOS / Android）
+- 目标用户：一二线城市 22–40 岁上班族
+- 解决的问题：想减碳但不知道自己排了多少、从哪减
+- 数据来源：中国生态环境部公开排放因子
+- 用户规模：3,200 名注册用户（2026-05）
+- 实测效果：平均 6 周减少 18% 个人碳足迹
+- 定价：基础版免费；高级版 18 元/月
+- 联系方式：hello@tanji.app
+
+## 关键页面
+- 首页：https://tanji.app/
+- 定价：https://tanji.app/#pricing
+- FAQ：https://tanji.app/#faq
+```
 
 ## Image Catalog（Phase 3，先于 HTML 生成）
 
@@ -263,7 +388,7 @@ Phase 1：接 Resend / Loops 真发邮件。
 
 ## 输出文件清单
 
-产物字段：`index.html`（语义化 HTML5）、`styles.css`（CSS custom properties + @keyframes）、`copy.md`（文案源）、`image_catalog.md`（图片清单：file / size / alt / source / purpose 字段）、`email_collection_config.md`、`anti-slop-checklist.md`（≥6 行勾选项）。由 `scripts/validate-output.ts` 强制校验。
+产物字段：`index.html`（语义化 HTML5）、`styles.css`（CSS custom properties + @keyframes）、`copy.md`（文案源）、`image_catalog.md`（图片清单：file / size / alt / source / purpose 字段）、`email_collection_config.md`、`anti-slop-checklist.md`（≥6 行勾选项）、`sitemap.xml`、`robots.txt`、`llms.txt`（SEO+GEO 产物）。由 `scripts/validate-output.ts` 强制校验。
 
 每次完成写到递增版本目录 `landing/v<n>/`（上一版保留，便于 A/B 对比）：
 
@@ -275,7 +400,10 @@ data/ventures/<name>/
 │   ├── copy.md                   ← 所有文案的源（便于改）
 │   ├── image_catalog.md          ← 图片清单（Phase 3 产物）
 │   ├── email_collection_config.md
-│   └── anti-slop-checklist.md    ← 6 条质量 gate 自检结果
+│   ├── anti-slop-checklist.md    ← 6 条质量 gate 自检结果
+│   ├── sitemap.xml               ← SEO（Phase 5.5 产物）
+│   ├── robots.txt                ← SEO（Phase 5.5 产物）
+│   └── llms.txt                  ← GEO（Phase 5.5 产物，给 AI 搜索引擎看）
 └── studio/preview/
     └── landing.html              ← Studio 内嵌预览（带 self-check 段）
 ```
@@ -390,7 +518,7 @@ user_input:
 
 ## Output validation
 
-`scripts/validate-output.ts` 取最新 `landing/v<n>/`，确定性校验 `index.html` + `styles.css` + `anti-slop-checklist.md`（≥6 行勾选项），并跑 6 条质量 gate：无 Inter/Roboto/Arial、无紫色 hero 渐变、非「居中 H1 + 3 列卡片」、用 CSS custom properties、≥1 个 `@keyframes`、语义化 HTML5 标签齐全；外加 `#000`/`#fff` 抽检。
+`scripts/validate-output.ts` 取最新 `landing/v<n>/`，确定性校验 `index.html` + `styles.css` + `anti-slop-checklist.md`（≥6 行勾选项），并跑 7 条质量 gate：无 Inter/Roboto/Arial、无紫色 hero 渐变、非「居中 H1 + 3 列卡片」、用 CSS custom properties、≥1 个 `@keyframes`、语义化 HTML5 标签齐全、SEO+GEO（`<title>` / `<meta name="description">` / ≥1 个 `application/ld+json` / FAQ section / 所有 `<img>` 带 alt / `sitemap.xml` + `robots.txt` + `llms.txt` 存在）；外加 `#000`/`#fff` 抽检。
 
 ```bash
 bun run skills/lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
@@ -410,7 +538,7 @@ Phase 5 必跑；exit 0 才能进 Phase 6 Deploy-ready。
 
 ## Outputs
 
-`data/ventures/<slug>/landing/v<n>/index.html` · `styles.css` · `copy.md` · `image_catalog.md` · `email_collection_config.md` · `anti-slop-checklist.md`
+`data/ventures/<slug>/landing/v<n>/index.html` · `styles.css` · `copy.md` · `image_catalog.md` · `email_collection_config.md` · `anti-slop-checklist.md` · `sitemap.xml` · `robots.txt` · `llms.txt`
 
 ## Example
 
@@ -456,6 +584,7 @@ Lumi Lab 的差异：6 阶段流水线 + 强制 Anti-Slop 自检（禁 Inter / #
 
 ## Changelog
 
+- 1.0.2：新增 SEO + GEO 章节（Phase 5.5）——传统搜索引擎（title / meta / OG / Twitter Card / canonical / sitemap.xml / robots.txt）+ 生成式引擎优化（JSON-LD 结构化数据、FAQPage、实体声明、事实密度、llms.txt、可信度信号），含完整 `<head>` / FAQPage JSON-LD / llms.txt worked example；质量 gate 从 6 条扩到 7 条（加 SEO+GEO gate）；validate-output.ts 扩展校验 `<title>` / meta description / JSON-LD / FAQ section / sitemap.xml / robots.txt / llms.txt；输出清单加 sitemap.xml / robots.txt / llms.txt。
 - 1.0.0-rc1：6 阶段不可跳步流水线 + Anti-Slop 三层规则 + 6 条质量 gate；新增 validate-output.ts（确定性跑 6 条 gate）、分支决策表、依赖成本列、package.json；统一产物路径为 landing/v<n>/。
 
 ## 环境自检（首次运行前）
@@ -469,3 +598,12 @@ export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
 ```
 
 宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。
+
+## 主动交付（不要静默落盘）
+
+这个 skill 产出的任何**用户该看的东西**，都要主动交付给用户 —— 不能写完文件就完事。
+
+- **优先 HTML 图文并茂**：分析报告、landing、Studio、周复盘等用户要「看」的产物，渲染成 HTML，本地自动开浏览器，chat 环境（`LUMILAB_CHANNEL != local`）作为**文件附件**发给用户。
+- **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `data/ventures/` 目录。
+- **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
+- **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。

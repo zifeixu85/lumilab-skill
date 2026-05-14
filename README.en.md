@@ -4,11 +4,11 @@
 
 English ｜ [简体中文](README.md)
 
-**Lumi Lab** is a 21-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Drop it into your AI host's skills directory and it turns a fuzzy idea into shippable, testable, decision-traceable artifacts — landing page, multi-platform content, hypothesis ledger, growth SOP, deployable Studio page.
+**Lumi Lab** is a 22-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
 
-[![Version](https://img.shields.io/badge/version-1.0.1-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-21-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-22-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
@@ -44,17 +44,13 @@ Lumi Lab encodes the answers as 21 self-contained skills + a shared `~/.lumilab/
 
 ## What you get
 
-### A Founder Coach with three modes
+### One-sentence idea → landing page (the default flow)
 
-Not a chatbot — a coach that picks one of three modes based on your state:
+`lumilab-idea-to-landing` is the default entry — an autoplan-style autonomous pipeline: idea in → market analysis + competitor scan + audience breakdown → an illustrated HTML report with 3-5 concrete direction proposals → you pick one (the only decision gate) → auto design + copy + a landing page with SEO/GEO → deployable HTML out. It does not interrogate you step by step — it does the judgment and the work. Intermediate artifacts are pushed to you as HTML, never silently dropped to disk.
 
-```
-○ Methodology   YC office hours / Mom Test / Lean Canvas / Sean Ellis
-○ Cognitive     sunk-cost detection / "where's the evidence?" / decision fatigue
-○ Psychological recovery from failed hypotheses / pivot vs. persevere
-```
+### An optional deep coach
 
-One question at a time. Refuses to skip ahead.
+`lumilab-founder-coach` — for when you explicitly want to be pushed deep on a specific problem. Three layers (methodology / cognitive traps / psychological). It no longer drills one question at a time — it analyzes first, then batches questions, max 2-3 prompts per session.
 
 ### A Hypothesis Ledger that never deletes
 

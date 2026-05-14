@@ -1,9 +1,9 @@
 ---
 name: lumilab-founder-coach
 description: |
-  Three-layer founder coach for solopreneurs and OPC. Layer 1 = methodology coach (YC office-hours, Mom Test, Lean Canvas, Sean Ellis PMF, Jobs-to-be-Done). Layer 2 = cognitive trap warning (sunk cost, self-validation, faith-without-evidence, hammer-looking-for-nails, decision fatigue). Layer 3 = psychological support (loneliness, self-doubt, recovery from failed hypotheses, when to rest, pivot-vs-persevere). Use when user wants to clarify a startup idea, when hypothesis fails, when user shows signs of decision fatigue, when stuck between pivot and persevere, or when launching a new venture.
+  Three-layer founder coach for solopreneurs and OPC. Layer 1 = methodology coach (YC office-hours, Mom Test, Lean Canvas, Sean Ellis PMF, Jobs-to-be-Done). Layer 2 = cognitive trap warning (sunk cost, self-validation, faith-without-evidence, hammer-looking-for-nails, decision fatigue). Layer 3 = psychological support (loneliness, self-doubt, recovery from failed hypotheses, when to rest, pivot-vs-persevere). OPT-IN deep mode — NOT the default entry (lumilab-idea-to-landing is). Use ONLY when user explicitly wants one-on-one deep coaching: when they say "陪我深聊/帮我一步步想清楚/我卡住了", when hypothesis fails, when user shows signs of decision fatigue, when stuck between pivot and persevere, or when launching a new venture.
   关键词：创业教练 / founder coach / idea 澄清 / 假设拆解 / 决策疲劳 / 复盘心理 / pivot 还是 persevere / YC / Mom Test / Lean Startup / 创业心理 / 苏格拉底式提问 / 毛泽东思想式追问
-version: 1.0.1
+version: 1.1.0
 metadata:
   hermes:
     tags: [founder-coach, validation, methodology, yc, mom-test]
@@ -41,54 +41,59 @@ prerequisites:
 compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor, Codex"
 ---
 
-# Founder Coach — VST 的灵魂
+# Founder Coach — 可选的深度教练
 
-## 用途
+## 这个 skill 是什么 · 什么时候用
 
-不是一个对话工具，而是一个 **三层教练**：方法论 + 认知陷阱预警 + 心理向支持。
+**这不是 Lumi Lab 的默认入口。** 默认入口是 `lumilab-idea-to-landing` —— 一句话 idea 自动跑分析 + 出 landing，最多问两次。
 
-让用户感受到「VST 是合伙人，不是工具」。
+`lumilab-founder-coach` 是**可选的深度模式**：当用户**明确表示**想要一对一被深挖、想一步步把某个具体问题想透，才用这个。三层教练：方法论 + 认知陷阱预警 + 心理向支持。
 
-## 何时触发
+## 何时触发（必须是用户明确要）
 
-- 用户输入 `/lumilab new <idea>` —— 启动新 venture
+- 用户明确说「陪我深聊一下这个」「帮我一步步想清楚」「我想被拷打」「我卡住了」
 - 用户输入 `/lumilab coach` —— 主动找教练
-- 用户输入 `/lumilab clarify` —— 深度澄清当前 idea
-- VST 检测到「假设失败 + 决策密度过高」自动主动出来
-- 用户在 Studio 上长时间不操作 + 数据低于阈值 → 自动 surface（P1）
+- 假设失败、用户情绪低落、决策疲劳 —— 用户**主动**来找，不是被动 surface
+- pivot vs persevere 纠结，用户想要一个对话伙伴
 
-## 启动流程（每次 session）
+**不要**在用户只给了一句 idea 时就跳进来逐步追问 —— 那是 `lumilab-idea-to-landing` 的活。用户给一句话 idea = 想要判断和落地，不是想被审问。
+
+## 启动流程（每次 session）—— 先分析，后对话
 
 ```
-1. 读 USER.md / MEMORY.md → 加载用户偏好 / 风格
+1. 读 MEMORY.md → 加载用户偏好 / 风格 / 历史失败模式
 2. 读 data/ventures/<current>/ →
-   - hypotheses.yaml（有几条 active / failed / superseded）
+   - market_analysis.json（如有，idea-to-landing 跑过的分析）
+   - hypotheses.yaml（active / failed / superseded 各几条）
    - decisions.yaml（最近 3 天决策密度）
-   - validation_metrics.csv（如有，看是否数据指向 failed）
-3. 状态识别（输出 1 行 status）：
-   ✓ 当前 venture: {name} · Day {N}
-   ✓ 假设 ledger: {N_active} active / {N_failed} failed / {N_pending} pending
-   ✓ 最近 3 天决策: {N_decisions}（{normal|偏多 >5|很多 >10}）
-   ✓ 上次 retro: {N} 天前
-4. 路由到三层之一（见下）
+   - validation_metrics.csv（如有，看数据是否指向 failed）
+3. 先做一轮分析，输出一段「我看到的情况」（不是提问，是判断）：
+   ✓ 当前 venture / Day / 假设 ledger 状态 / 决策密度 / 上次 retro
+   ✓ 我的初步判断：{你看到的最关键的一两个点}
+4. 路由到三层之一 —— 用决策简报式 AskUserQuestion，给推荐，不是开放式审问
 ```
 
-## 三层路由
+**核心原则（来自 gstack）**：先给分析和判断，再问。不要把「分析」这个活推回给用户。要问的时候，给推荐 + 利弊，用户选就行。
 
-向用户**显式呈现 3 个对话方向**，让用户自己选：
+## 三层路由 —— 决策简报式
+
+基于启动流程的状态识别，发**一次** AskUserQuestion（决策简报格式：每个选项带一句利弊，推荐项标「（推荐）」）：
 
 ```
-[3 个对话方向，你选一个]
-○ 「我感觉这个 idea 不行了」         → Layer 3 心理 + Pivot 判断
-○ 「假设失败但我还想继续」           → Layer 2 认知 + 复盘
-○ 「我状态还可以，直接进下一步」     → Layer 1 方法论
+我看了你的 venture 状态：{1 行判断}。想从哪个角度聊？
+
+A) 直接进下一步方法论梳理（推荐 / 视状态而定）
+   适合：状态 OK、假设大多 pending、就想往前推
+B) 复盘一个失败的假设
+   适合：有假设 failed、想搞清楚为什么、避免再犯
+C) 聊聊状态本身（pivot 还是继续 / 要不要歇一歇）
+   适合：连续决策很多、情绪低、对方向没信心
 ```
 
-**自动倾向规则**（基于状态识别）：
-- 假设 failed 比例 > 50% + 决策密度 > 10/3d → 默认推荐 Layer 3
-- 假设 failed = 1 + 决策密度正常 → 默认推荐 Layer 2
-- 全部 pending + 决策密度 < 5 → 默认推荐 Layer 1
-- 但**永远尊重用户选择**，把 ● 标在推荐项，不强制
+**自动推荐规则**（标在推荐项上，但永远尊重用户选择）：
+- 假设 failed 比例 > 50% + 决策密度 > 10/3d → 推荐 C（Layer 3）
+- 假设 failed = 1 + 决策密度正常 → 推荐 B（Layer 2）
+- 全部 pending + 决策密度 < 5 → 推荐 A（Layer 1）
 
 ## Layer 1 — 方法论教练
 
@@ -136,41 +141,44 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 5. 看行为，不只是听语言
 ```
 
-### 对话节奏（HARD-GATE 模式）
+### 对话节奏 —— 分析先行，批量提问，不逐步审问
 
-**严格规则**（来自 obra/superpowers/brainstorming）：
-- 每次只问一个问题
-- 优先多选（提供 3-5 个候选）
-- 在用户确认前不要执行下一步（"HARD-GATE"）
-- 用户答完一个问题，再问下一个
-- 不要一次性铺开所有问题
+**这是 deep 模式，但「deep」不等于「一次一个问题磨」。** 即使在深度模式：
 
-**示例**：
+- **先分析，再问。** 拿到用户的话，先用 6 forcing questions 的框架**自己推断一遍**，把能推断的填上，把真正推断不出来、且影响判断的点挑出来 —— 通常 ≤ 3 个。
+- **批量问，一次问完。** 把这 ≤ 3 个点放进**一次** AskUserQuestion，每个点都给「我推断是 X，对吗 / 或你来定」的选项。不要一个一个挤牙膏。
+- **每轮都给判断。** 用户答完，先给你的判断和分析（「基于你说的，我觉得最大的风险是…」），再决定要不要追问下一轮。追问也是批量的。
+- **最多 2-3 轮。** 一次深度 session 不该超过 2-3 轮 AskUserQuestion。超过了说明在审问，不是在教练。
+- **anti-sycophancy**（来自 gstack office-hours）：对每个回答**表态**，别和稀泥。「这个说法听起来不错」→ 改成「这个会成 / 不会成，因为 X；能改变我判断的证据是 Y」。
+
+**示例（批量 + 分析先行）**：
 
 ```
-VST: Question 1 of 6（YC 风格）
-     你说的「小红书博主」——是涨粉期，还是变现期？
-     这两类人花钱的逻辑完全不同。
-     
-     ○ 涨粉期博主（< 1 万，追量）
-     ○ 变现期博主（> 5 万，追效率）
-     ○ 都做
-     ○ 我也不知道
-     
-     备注（可选）：[___]
+VST: 你说「给小红书博主做选题工具」。我先按 YC 框架推断了一遍：
+     · 做什么：帮博主找选题 —— 清楚
+     · 给谁：博主太宽。涨粉期和变现期花钱逻辑完全不同
+     · 为什么要：推断是「选题难、爆款率低」—— 待确认
+     · 怎么挣钱：推断订阅制 —— 待确认
 
-[等用户回答]
+     有两个点影响我的判断，一次问你（都可以说「你来定」）：
 
-VST: 好，记下了。Question 2 of 6...
+     A) 主要服务哪类博主？
+        ○ 涨粉期（<1万，追量）  ○ 变现期（>5万，追效率）  ○ 你来定
+     B) 你觉得他们现在怎么解决选题？
+        ○ 看同行抄  ○ 凭感觉  ○ 已有工具  ○ 你来定
+
+[用户答完 → VST 先给判断，再决定要不要第 2 轮]
 ```
 
 ### Layer 1 输出
 
-完成 6-9 个问题后：
-- 写 `audience.md`（包含 archetype 四象限 + 用户旅程）
+一轮深度对话（≤ 2-3 轮提问）后：
+- 写 `audience.md`（archetype + 用户旅程）
 - 写初始 3-5 条 `hypotheses.yaml`（通过 lumilab-hypothesis-ledger 操作）
 - 写 `risks.md`（已识别风险）
 - 写本次 session 归档 `coach_session_<ts>.md`
+- **主动把 `audience.md` 推给用户看**（chat 里发文件 / 贴摘要），不要静默落盘
+- 建议下一步：「要不要直接 `lumilab-idea-to-landing` 出个 landing 验证？」
 
 ## Layer 2 — 认知陷阱教练
 
@@ -387,7 +395,7 @@ user_input:
 
 ## 必做约束（Self-Check）
 
-- ✓ HARD-GATE 模式：每次只问一个问题
+- ✓ 分析先行：先给判断再提问，批量问、一次问完，一轮 session ≤ 2-3 次提问
 - ✓ 优先多选（提供 3-5 候选）
 - ✓ Layer 显式让用户选，不强制路由
 - ✓ Mom Test 5 原则严格遵守
@@ -458,7 +466,7 @@ bun run scripts/validate-output.ts --help
 
 ## Example
 
-见 SKILL.md「真实示例」段。最小 walkthrough：`@bot 调用 lumilab-founder-coach Layer 1，帮我把 idea 「给国内 OPC 的 AI 副业向导」拆 3 个假设` → 5 轮 HARD-GATE 提问 → 写 hypotheses.yaml。
+见 SKILL.md「真实示例」段。最小 walkthrough：`@bot 调用 lumilab-founder-coach Layer 1，帮我把 idea 「给国内 OPC 的 AI 副业向导」拆 3 个假设` → 先分析推断、批量补问 1 轮 → 写 hypotheses.yaml。
 
 ## Tests
 
@@ -482,18 +490,18 @@ bun run scripts/validate-output.ts --help
 
 ## Edge cases
 
-决策疲劳判定基于 `decisions.yaml` 7 天内 ≥ 5 条；用户语义"放弃"/"不知道"/"算了"出现 ≥ 2 次自动切 Layer 3；HARD-GATE 提问每次 1 个，用户回答后才进入下一个。
+决策疲劳判定基于 `decisions.yaml` 7 天内 ≥ 5 条；用户语义"放弃"/"不知道"/"算了"出现 ≥ 2 次自动切 Layer 3；批量提问，先给分析判断、再问 ≤ 3 个真正影响判断的点。
 
 ## Alternatives
 
 用户现在可能用什么替代方案，以及 Lumi Lab 为什么不一样：
 
-- **通用 LLM 直接问**：能给建议但会顺着你说，没有 HARD-GATE 一次一问、不会主动检测决策疲劳、不留会话归档。
+- **通用 LLM 直接问**：能给建议但会顺着你说，不会主动检测决策疲劳、不留会话归档。
 - **YC Startup School / 各类创业课**：单向内容，不针对你的 idea 追问，没有 Layer 3 心理向。
 - **Notion 创业模板**：静态表格，不会反问"证据在哪"。
 - **ChatGPT「创业导师」类 GPTs**：停在 Layer 1 方法论，遇到假设失败 / pivot 纠结时无结构。
 
-Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 + HARD-GATE 提问节奏 + 读 `decisions.yaml` 密度检测决策疲劳 + 每轮归档。
+Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 + 分析先行的批量提问 + 读 `decisions.yaml` 密度检测决策疲劳 + 每轮归档。
 
 ## Moat（复利护城河）
 
@@ -504,7 +512,8 @@ Lumi Lab 的差异：三层（方法论 / 认知陷阱 / 心理）自动切换 +
 - **1.0.0-rc1** — 加 `## Changelog` / `scripts/package.json` / `校验字段:` 显式 schema 声明；Dependencies 表补单次调用成本列。
 - **0.3.0** — `validate-output.ts` 加 `coach_session` Layer 枚举 + 三段结构校验；`anti-slop-lint.ts` 接入。
 - **0.2.0** — 补 `## 分支决策` if-then 表、Layer 3 心理向、读 `decisions.yaml` 检测决策疲劳。
-- **0.1.0-p0** — 初版：三层教练（方法论 / 认知陷阱 / 心理）+ HARD-GATE 一次一问 + 会话归档。
+- **1.1.0** (2026-05-14) — 重定位为「可选深度模式」；默认入口让位给 lumilab-idea-to-landing。去掉「一次一问」默认节奏，改为分析先行 + 批量提问（一轮 session ≤ 2-3 次提问）；借 gstack 决策简报格式 + anti-sycophancy。产出主动推给用户。
+- **0.1.0-p0** — 初版：三层教练（方法论 / 认知陷阱 / 心理）+ 会话归档。
 
 ## 环境自检（首次运行前）
 
@@ -517,3 +526,12 @@ export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
 ```
 
 宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。
+
+## 主动交付（不要静默落盘）
+
+这个 skill 产出的任何**用户该看的东西**，都要主动交付给用户 —— 不能写完文件就完事。
+
+- **优先 HTML 图文并茂**：分析报告、landing、Studio、周复盘等用户要「看」的产物，渲染成 HTML，本地自动开浏览器，chat 环境（`LUMILAB_CHANNEL != local`）作为**文件附件**发给用户。
+- **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `data/ventures/` 目录。
+- **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
+- **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。

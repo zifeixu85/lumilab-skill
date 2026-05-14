@@ -38,6 +38,22 @@ function getCurrentVenture(): string | undefined {
 
 // ensureLumilabHome moved below (with mode 0o700)
 
+async function cmdIdea(idea: string) {
+  if (!idea) {
+    console.error('用法：lumilab idea "<一句话想法>"');
+    process.exit(1);
+  }
+  // 默认入口：调 idea-to-landing orchestrator 的 init，剩下交给宿主 LLM 按 SKILL.md 跑流水线
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-idea-to-landing', 'scripts', 'orchestrate.ts'), 'init', idea], {
+    stdio: 'inherit',
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_WORKSPACE: WORKSPACE },
+  });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+  console.log('\n  venture 已建。接下来在你的 AI 宿主里说一句即可：');
+  console.log('    「用 lumilab-idea-to-landing 帮我把这个 idea 跑完整条流水线」');
+  console.log('  宿主 LLM 会自动跑：分析 → HTML 报告 → 方向选择 → landing。全程最多问你 2 次。');
+}
+
 async function cmdNew(idea: string) {
   if (!idea) {
     console.error('用法：lumilab new "<idea>"');
@@ -220,7 +236,8 @@ function help() {
 Lumi Lab — Lumi Lab CLI
 
 Usage:
-  lumilab new "<idea>"               启动新 venture
+  lumilab idea "<一句话想法>"        ★ 默认入口：一句话 idea → 自动分析 → 方向 → landing
+  lumilab new "<idea>"               只建 venture 目录（手动流程）
   lumilab list                       列出所有 venture
   lumilab studio [venture]           浏览器打开 Studio
   lumilab render [venture]           重新渲染 Studio HTML
@@ -249,6 +266,7 @@ function ensureLumilabHome() {
 const [, , cmd, ...args] = process.argv;
 
 switch (cmd) {
+  case 'idea': await cmdIdea(args.join(' ')); break;
   case 'new': await cmdNew(args.join(' ')); break;
   case 'list': await cmdList(); break;
   case 'render': await cmdRender(args[0]); break;

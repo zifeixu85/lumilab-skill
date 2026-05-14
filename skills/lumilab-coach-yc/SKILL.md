@@ -3,7 +3,7 @@ name: lumilab-coach-yc
 description: |
   YC office-hours 6 forcing questions + Paul Graham heuristics + Lean Startup loop. 把一个模糊 idea 逼成一句话 + 一群人 + 一个钩子 + 一个验证动作。Use when 用户说"我有个 idea"、"我想做个 SaaS"、"帮我看看这个产品方向"，或在 founder-coach Layer 1 路由到方法论教练时被调用。
   关键词：coach-yc / YC application / Paul Graham / 6 forcing questions / schlep blindness / default alive / make something people want / 一句话产品定位 / 创业 idea 澄清
-version: 1.0.1
+version: 1.1.0
 metadata:
   hermes:
     tags: [yc, office-hours, paul-graham, forcing-questions]
@@ -434,3 +434,12 @@ export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
 ```
 
 宿主 agent（Claude Code / OpenClaw / Hermes）能跑 shell，应在首次调用前自动执行上面这段。纯方法论用法（不跑脚本、只读 SKILL.md 做对话）不需要 bun。
+
+## 主动交付（不要静默落盘）
+
+这个 skill 产出的任何**用户该看的东西**，都要主动交付给用户 —— 不能写完文件就完事。
+
+- **优先 HTML 图文并茂**：分析报告、landing、Studio、周复盘等用户要「看」的产物，渲染成 HTML，本地自动开浏览器，chat 环境（`LUMILAB_CHANNEL != local`）作为**文件附件**发给用户。
+- **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `data/ventures/` 目录。
+- **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
+- **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。

@@ -14,20 +14,23 @@
  *   <venture-dir>/landing/v<n>/styles.css
  *   <venture-dir>/landing/v<n>/anti-slop-checklist.md  (6 checklist rows)
  *
- * 6-rule gate on index.html + styles.css:
+ * 7-rule gate on index.html + styles.css:
  *   1 no Inter/Roboto/Arial
  *   2 no purple hero gradient
  *   3 not centered-H1 + 3-col cards (must use grid/split layout)
  *   4 uses CSS custom properties (--color-* / --space-*)
  *   5 >= 1 non-hover @keyframes
  *   6 semantic HTML5 (<header>/<main>/<section>/<footer>)
+ *   7 SEO+GEO: <title> <= 60 chars, <meta name="description">, >= 1
+ *     application/ld+json, an FAQ section, all <img> have alt, and
+ *     sitemap.xml / robots.txt / llms.txt exist in the build dir
  */
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log("Usage: bun run scripts/validate-output.ts <venture-dir>");
-  console.log("Validates landing/v<n>/ build + runs the 6-rule quality gate.");
+  console.log("Validates landing/v<n>/ build + runs the 7-rule quality gate.");
   process.exit(0);
 }
 
@@ -86,6 +89,26 @@ if (existsSync(htmlPath) && existsSync(cssPath)) {
   }
   const bannedHex = /#000\b|#fff\b/i; // forbidden; OKLCH required instead
   if (bannedHex.test(both)) issues.push("anti-slop: forbidden hex color (OKLCH required)");
+
+  // gate7: SEO + GEO
+  const titleMatch = html.match(/<title>([\s\S]*?)<\/title>/i);
+  if (!titleMatch) {
+    issues.push("gate7: missing <title>");
+  } else if (titleMatch[1].trim().length > 60) {
+    issues.push(`gate7: <title> exceeds 60 chars (found ${titleMatch[1].trim().length})`);
+  }
+  if (!/<meta\s+name=["']description["']/i.test(html))
+    issues.push('gate7: missing <meta name="description">');
+  if (!/<script[^>]*type=["']application\/ld\+json["']/i.test(html))
+    issues.push("gate7: no JSON-LD (application/ld+json) block");
+  if (!/id=["']faq["']|<h\d[^>]*>\s*FAQ/i.test(html))
+    issues.push("gate7: no FAQ section found");
+  const imgTags = html.match(/<img\b[^>]*>/gi) ?? [];
+  if (imgTags.some((t) => !/\balt\s*=/i.test(t)))
+    issues.push("gate7: some <img> tags missing alt attribute");
+  for (const f of ["sitemap.xml", "robots.txt", "llms.txt"]) {
+    if (!existsSync(join(vdir, f))) issues.push(`gate7: ${f} missing in build dir`);
+  }
 }
 
 if (issues.length === 0) {

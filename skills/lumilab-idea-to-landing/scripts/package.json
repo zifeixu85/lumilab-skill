@@ -1,0 +1,6 @@
+{
+  "name": "lumilab-idea-to-landing-scripts",
+  "private": true,
+  "type": "module",
+  "engines": { "bun": ">=1.0" }
+}

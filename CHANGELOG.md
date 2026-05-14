@@ -102,6 +102,50 @@
 
 ---
 
+## [1.1.0] · 2026-05-14 · 产品方向纠偏 — 一句话 idea → landing 自动流水线
+
+> **基于 Hermes 实测反馈的方向纠偏。** 旧的 `founder-coach` 逐步追问交互被否决——用户要的是「帮我判断 + 帮我做」的轻量自动流水线，不是「陪我聊」。借鉴 [gstack](https://github.com/garrytan/gstack) 的 autoplan 编排 + 决策简报式提问 + boil-the-lake 原则。
+
+### Added
+
+**新 orchestrator skill `lumilab-idea-to-landing`（默认入口）**
+- autoplan 式自动流水线，5 个 phase：极简 intake → 自主分析 → HTML 报告 → 方向选择门 → 自动生成 landing
+- 全程**最多问用户 2 次**：1 次可选 intake（能跳过）+ 1 次方向选择
+- `scripts/orchestrate.ts`：建 venture + token 检测（决定真 API vs 宿主 LLM 知识）+ 进度跟踪
+- `scripts/validate-output.ts`：校验 `market_analysis.json` schema
+- 无 TikHub/Exa token 时用宿主 LLM 知识做分析，**不停下来让用户去配**（轻量优先）
+
+**市场分析报告 HTML 渲染器** `lumilab-studio/scripts/market-report.ts`
+- 图文并茂：市场快照 + 竞品对比表 + 人群卡 + 3-5 个方向卡（推荐项高亮）
+- 编辑式 OKLCH 美学，响应式（飞书移动端可读），grain 纹理 + 入场动画
+- 主动交付：本地开浏览器 / chat 发文件附件
+
+**`lumilab-landing-mvp` 加 SEO + GEO**
+- SEO：title/meta/OG/Twitter Card/canonical/sitemap.xml/robots.txt + 性能优化
+- GEO（生成式引擎优化）：JSON-LD 结构化数据、FAQ section + FAQPage schema、`llms.txt`、实体声明、事实密度——让 ChatGPT search / Perplexity 等 AI 搜索引擎能抓取并引用
+- 新增第 7 条质量 gate（SEO+GEO gate），`validate-output.ts` 扩展校验
+
+**`## 主动交付` 段加到全部 22 个 SKILL.md**
+- 明确指令：用户该看的产物必须主动交付（HTML 优先 / chat 发附件 / 贴文字摘要），不静默落盘
+
+**CLI**：`lumilab idea "<一句话>"` 默认入口
+
+### Changed
+
+**`lumilab-founder-coach` 重定位为「可选深度模式」**
+- 不再是默认入口（让位给 idea-to-landing）
+- 去掉「HARD-GATE 一次一个问题」默认节奏 → 改为**分析先行 + 批量提问**：先用框架自己推断一遍，只问 ≤ 3 个真正影响判断的点，一次问完，一轮 session ≤ 2-3 次提问
+- 借 gstack 决策简报式 AskUserQuestion + anti-sycophancy（对每个回答表态，不和稀泥）
+- 产出主动推给用户
+
+- `VERSION` 1.0.1 → 1.1.0；manifest.json 22 skills + `default_entry: lumilab-idea-to-landing`
+- README 中英双版重写「你得到什么」「命令」「盒子里有什么」反映新流程
+
+### 为什么改
+Hermes 实测反馈：旧 coach 逐步追问效果差。用户不知道 idea 行不行、市场竞争如何——不需要被一步步梳理，需要系统**先分析、给方向建议**。频繁提问 = 把产品该干的活推回给用户。北极星：一句 idea → 自动跑完 → 输出能验证想法的 landing 页。
+
+---
+
 ## [1.0.1] · 2026-05-14 · bun 自动安装
 
 > 把 `bun` 从「需要用户手动准备的前提」变成「自动处理」。`/skills install` 后整条链路不再需要任何手动环境准备。
