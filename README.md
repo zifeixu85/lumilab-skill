@@ -6,9 +6,9 @@
 
 **Lumi Lab** 是一套 22 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-[![版本](https://img.shields.io/badge/version-1.2.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.3.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-22-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-23-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
@@ -171,13 +171,15 @@ openclaw channels login --channel feishu
 
 Hermes 会 quarantine → `skills_guard` 静态扫描 → 写入 `~/.hermes/skills/lumilab/`。之后 `@bot 帮我用 lumilab 走一遍这个 idea` 即可调用。
 
-### 配置（一次性，2 分钟）
+### 首次引导（一次性，2 分钟）
 
 ```bash
 lumilab config
 ```
 
-打开一个 5 步浏览器 wizard。选你想要的工具 token。**全部可跳过**——基础 skill（coach、假设账本、内容）不需要任何外部 token 也能用。
+打开一个 **6 步首次引导页**：产品玩法引导 → 选界面风格 → 身份 → 偏好 → 工具 token → 完成。工具 token **全部可跳过**——基础 skill 不需要任何外部 token。
+
+飞书等 chat 环境：让宿主 agent 跑 `wizard.ts --chat-onboard`，文本版走一遍同样的引导。
 
 ### 试试 demo
 
@@ -244,8 +246,10 @@ lumilab help                          显示帮助
 | **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp（含 SEO/GEO）、content-repurpose、weekly-sop-runner |
 | **基础设施** | 3 | config（Setup Wizard + Share Manager + chat-mode）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
 | **渲染** | 1 | studio（Studio HTML + 市场分析报告 HTML） |
-| **Overlay（上游封装）** | 11 | coach-yc、research-{interview,icp,competitor}、product-{positioning,pmf,mvp}、copy、launch-strategy、metrics、design-direction |
+| **Overlay（上游封装）** | 12 | coach-yc、research-{interview,icp,competitor,keywords}、product-{positioning,pmf,mvp}、copy、launch-strategy、metrics、design-direction |
 | **知识** | 1 | playbook-cn（13 个框架 + 中国平台规则索引） |
+
+> `research-keywords` 是定量搜索需求验证（DataForSEO / Keywords Everywhere 查搜索量、KD、红蓝海），和 `research-platforms` 的定性痛点互补。`idea-to-landing` Phase 1 会自动跑它。
 
 每个 skill 是 `skills/<name>/SKILL.md` 加上可选的 `scripts/`、`references/`、`templates/`、`tests/`。打开一个读读——是宿主 LLM 直接消费的扁平 Markdown。
 

@@ -71,6 +71,25 @@ interface Direction {
   risk: string;
   recommended?: boolean;
 }
+interface KeywordBlueOcean {
+  keyword: string;
+  volume?: number;
+  difficulty?: number;
+  trend?: string;
+}
+interface KeywordRedOcean {
+  keyword: string;
+  volume?: number;
+  difficulty?: number;
+  differentiation?: string;
+}
+interface KeywordsBlock {
+  source?: string;
+  summary?: string;
+  blue_ocean?: KeywordBlueOcean[];
+  red_ocean?: KeywordRedOcean[];
+  landscape_file?: string;
+}
 interface MarketAnalysis {
   idea: string;
   generated_at: string;
@@ -78,6 +97,7 @@ interface MarketAnalysis {
   market: MarketBlock;
   competitors: Competitor[];
   audience: AudienceSegment[];
+  keywords?: KeywordsBlock;
   directions: Direction[];
 }
 
@@ -247,7 +267,59 @@ function renderAudience(audience: AudienceSegment[]): string {
   </section>`;
 }
 
-function renderDirections(directions: Direction[]): string {
+function hasKeywords(kw: KeywordsBlock | undefined): boolean {
+  return !!kw && (!!kw.summary || !!kw.blue_ocean?.length || !!kw.red_ocean?.length);
+}
+
+function renderKeywords(kw: KeywordsBlock | undefined): string {
+  if (!hasKeywords(kw)) return '';
+  kw = kw as KeywordsBlock;
+  const blue = (kw.blue_ocean ?? [])
+    .map(
+      (k) => `
+      <tr>
+        <td class="kw-term">${esc(k.keyword)}</td>
+        <td>${k.volume != null ? esc(String(k.volume)) : '—'}</td>
+        <td>${k.difficulty != null ? esc(String(k.difficulty)) : '—'}</td>
+        <td>${k.trend ? esc(k.trend) : '—'}</td>
+      </tr>`,
+    )
+    .join('');
+  const red = (kw.red_ocean ?? [])
+    .map(
+      (k) => `
+      <tr>
+        <td class="kw-term">${esc(k.keyword)}</td>
+        <td>${k.volume != null ? esc(String(k.volume)) : '—'}</td>
+        <td>${k.difficulty != null ? esc(String(k.difficulty)) : '—'}</td>
+        <td>${k.differentiation ? esc(k.differentiation) : '—'}</td>
+      </tr>`,
+    )
+    .join('');
+  const blueTable = blue
+    ? `<h3 class="kw-sub kw-sub--blue">🔵 蓝海方向</h3>
+       <table class="kw-table"><thead><tr><th>关键词</th><th>月搜索量</th><th>KD</th><th>趋势</th></tr></thead><tbody>${blue}</tbody></table>`
+    : '';
+  const redTable = red
+    ? `<h3 class="kw-sub kw-sub--red">🔴 红海方向（需差异化）</h3>
+       <table class="kw-table"><thead><tr><th>关键词</th><th>月搜索量</th><th>KD</th><th>差异化切口</th></tr></thead><tbody>${red}</tbody></table>`
+    : '';
+  const src = kw.source ? `<span class="kw-source">数据源 · ${esc(kw.source)}</span>` : '';
+  return `
+  <section class="section" style="--s:4">
+    <div class="section__head">
+      <span class="section__no">Nº 04</span>
+      <h2 class="section__title">搜索需求 · 红蓝海</h2>
+      ${src}
+    </div>
+    ${kw.summary ? `<p class="kw-summary">${esc(kw.summary)}</p>` : ''}
+    ${blueTable}
+    ${redTable}
+  </section>`;
+}
+
+function renderDirections(directions: Direction[], no: number): string {
+  const noStr = `Nº ${String(no).padStart(2, '0')}`;
   const cards = directions
     .map((dir, i) => {
       const rec = dir.recommended === true;
@@ -278,9 +350,9 @@ function renderDirections(directions: Direction[]): string {
     .join('');
 
   return `
-  <section class="section section--directions" style="--s:4">
+  <section class="section section--directions" style="--s:${no}">
     <div class="section__head">
-      <span class="section__no">Nº 04</span>
+      <span class="section__no">${noStr}</span>
       <h2 class="section__title">方向建议</h2>
       <p class="section__hint">每个方向都有编号，回到对话里告诉系统你选哪个。</p>
     </div>
@@ -615,6 +687,55 @@ body::before {
   border-top: 1px solid var(--hairline);
   border-bottom: 1px solid var(--hairline);
 }
+.kw-source {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--mute);
+  margin-left: auto;
+}
+.kw-summary {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0 0 22px;
+}
+.kw-sub {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 22px 0 10px;
+}
+.kw-sub--blue { color: oklch(52% 0.13 245); }
+.kw-sub--red  { color: oklch(52% 0.17 25); }
+.kw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.kw-table th {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-align: left;
+  color: var(--mute);
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+.kw-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-2);
+  vertical-align: top;
+}
+.kw-table .kw-term {
+  font-family: var(--mono);
+  color: var(--ink);
+  font-weight: 500;
+}
 .dir-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -735,7 +856,8 @@ body::before {
   ${renderMarket(data.market)}
   ${renderCompetitors(data.competitors)}
   ${renderAudience(data.audience)}
-  ${renderDirections(data.directions)}
+  ${renderKeywords(data.keywords)}
+  ${renderDirections(data.directions, hasKeywords(data.keywords) ? 5 : 4)}
 
   <footer class="footer">
     <p class="footer__hint">回到对话选一个方向，或说你自己的想法。</p>

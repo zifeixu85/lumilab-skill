@@ -3,7 +3,7 @@ name: lumilab-studio
 description: |
   HTML rendering engine + interactive decision pages for venture Studio. Renders MD/YAML data layer into spatial HTML (Thariq "values reading" pattern). Generates index.html with SVG progress diagram, decisions/* interactive pages (clarify, design-direction, retro, manage), and preview/* asset previews. Supports dual mode (file:// static read + localhost:7777 interactive). Auto re-renders on data change. Use when the user types /lumilab studio, when any data/ventures/ file changes and the dashboard needs re-rendering, or when an interactive decision page (config / manage / retro) must open.
   关键词：studio / 作战室 / 项目网页 / html dashboard / svg progress / 交互页 / 渲染引擎 / dual mode / file 协议 / localhost / 数据驱动渲染
-version: 1.2.0
+version: 1.3.0
 metadata:
   hermes:
     tags: [studio, html, editorial, progress, venture-journal]

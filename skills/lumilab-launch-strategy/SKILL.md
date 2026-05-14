@@ -3,7 +3,7 @@ name: lumilab-launch-strategy
 description: |
   Cold-start playbook for OPC/独立开发者. Kevin Kelly 1000 true fans + Marc Lou ship-fast bundling + Product Hunt launch + Lenny Rachitsky cold-start. Lumi-Lab Chinese ladder: 飞书/微信小圈子 → 小红书 → 公众号 → 播客 → PH/HN. Use when the user is ready to launch a venture, needs a 4-8 week cold-start plan, or wants a weekly launch calendar with quantified success criteria.
   关键词：launch / 冷启动 / Product Hunt / 1000 true fans / ship fast / Lenny Rachitsky / 小红书冷启动
-version: 1.2.0
+version: 1.3.0
 metadata:
   hermes:
     tags: [launch, 1000-true-fans, product-hunt, cold-start, marc-lou]

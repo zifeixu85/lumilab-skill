@@ -36,6 +36,30 @@ function getCurrentVenture(): string | undefined {
   return ventures[ventures.length - 1]; // simplistic: last created
 }
 
+// First-run detection: config.json missing OR no `onboarded: true`.
+function isOnboarded(): boolean {
+  const configPath = join(LUMILAB_HOME, 'config.json');
+  if (!existsSync(configPath)) return false;
+  try {
+    return JSON.parse(readFileSync(configPath, 'utf-8')).onboarded === true;
+  } catch {
+    return false;
+  }
+}
+
+// Prompt first-run users to onboard before real work. Returns false if we should stop.
+function checkFirstRun(): void {
+  if (isOnboarded()) return;
+  console.log('──────────────────────────────────────────────');
+  console.log('  👋 看起来这是你第一次用 Lumi Lab。');
+  console.log('  建议先跑一次首次引导（选界面风格 / 看产品玩法 / 配工具 token）：');
+  console.log('      lumilab config');
+  console.log('  飞书等 chat 环境：让宿主 agent 跑 wizard.ts --chat-onboard');
+  console.log('  （不想现在配也行，下面会继续执行你的命令。）');
+  console.log('──────────────────────────────────────────────');
+  console.log();
+}
+
 // ensureLumilabHome moved below (with mode 0o700)
 
 async function cmdIdea(idea: string) {
@@ -43,6 +67,7 @@ async function cmdIdea(idea: string) {
     console.error('用法：lumilab idea "<一句话想法>"');
     process.exit(1);
   }
+  checkFirstRun();
   // 默认入口：调 idea-to-landing orchestrator 的 init，剩下交给宿主 LLM 按 SKILL.md 跑流水线
   const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-idea-to-landing', 'scripts', 'orchestrate.ts'), 'init', idea], {
     stdio: 'inherit',

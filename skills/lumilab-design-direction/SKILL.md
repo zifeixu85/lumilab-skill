@@ -3,7 +3,7 @@ name: lumilab-design-direction
 description: |
   Design direction picker for venture validation — 4 aesthetic presets (editorial / minimalist / brutalist / soft) + 3 dials (variance / motion / density, 0-100) + brand palette, with iframe live preview. Outputs design_direction.json that landing-mvp / studio / copy all inherit for visual consistency. Lumi-Lab Anti-Slop enforced: OKLCH only, no Inter/Roboto, no purple-gradient. Use when user types /lumilab design-direction, or asks to pick a visual style / aesthetic / color palette / typography before building landing or studio pages.
   关键词：设计方向 / 美学 / 配色 / 字体 / 视觉风格 / 旋钮 / 实时预览 / design direction / aesthetic / color palette / typography / visual style / editorial / minimalist / brutalist / soft / VST overlay
-version: 1.2.0
+version: 1.3.0
 metadata:
   hermes:
     tags: [design-direction, aesthetic, dials, live-preview, interactive-card]

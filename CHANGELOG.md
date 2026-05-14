@@ -102,6 +102,42 @@
 
 ---
 
+## [1.3.0] · 2026-05-14 · 首次引导页 + 关键词调研融入流程
+
+> 两件事：① Setup Wizard 升级成真正的「首次使用引导页」；② 队友新增的 `lumilab-research-keywords` skill 建好脚本并融入主流程。
+
+### Added
+
+**`lumilab-config` 升级成 6 步首次引导页**
+- Step 1 欢迎 → 真正的产品引导（idea→验证页流程图 + 使用提示）
+- Step 2 **新增「界面风格」**：4 套美学样本可视化选，存为 `default_design_preset`，新 venture 的验证页用它当基准
+- Step 6 完成步 → 「怎么开始」+ 写 `onboarded: true`
+- **首次自动检测**：`config.json` 无 `onboarded:true` 时，`lumilab idea` 等命令会提示先跑引导
+- **chat 版引导**：`wizard.ts --chat-onboard` / `--chat-onboard-preset` / `--chat-onboard-done` —— 飞书等 chat 环境文本走一遍同样的引导
+
+**`lumilab-research-keywords`（队友新增 skill，本次建好并融入）**
+- 定量搜索需求验证：把 idea 关键词反查 Google 搜索量 / CPC / KD / 12 月趋势 / 长尾扩展，标红蓝海
+- 建好全套 `scripts/`：`research.ts` 主入口 + DataForSEO / Keywords Everywhere provider adapter + `scoring.ts` 红蓝海评分 + `serp-probe.ts` + `validate-output.ts` + `anti-slop-lint.ts`
+- 无 token 自动 mock fallback（同 research-platforms 模式）
+- SKILL.md 标准化到 v1 格式（补齐 Dependencies / Output validation / 主动交付 等 14 个标准段）
+
+**融入 idea-to-landing 主流程**
+- Phase 1 从「三路分析」扩成「四路分析」：市场 / 竞品 / 人群 / **搜索需求**
+- `market_analysis.json` 加可选 `keywords` 段（source / summary / blue_ocean / red_ocean）
+- `market-report.ts` 加「Nº 04 搜索需求 · 红蓝海」HTML 区块（蓝海 / 红海表格），向后兼容（无 keywords 时不渲染、方向建议回到 Nº 04）
+
+**onboarding 收集关键词调研 token**
+- wizard.ts Step 5 加 DataForSEO（login + password 两栏）+ Keywords Everywhere token 卡片
+- `keywordseverywhere` 加入 chat-mode `--chat-set` 单 token provider；DataForSEO 走 `lumilab secrets set DATAFORSEO_LOGIN/PASSWORD`
+- `verifyKeywordsEverywhere` 真实 API verify（打 `/v1/get_credits`）
+
+### Changed
+- `VERSION` 1.2.0 → 1.3.0；manifest 23 skills；22 SKILL.md frontmatter → 1.3.0
+- CLI 加首次运行检测；`idea-to-landing` Phase 4.1 优先读 `default_design_preset`
+- README 中英双版：skill 数 22→23、6 步引导页、research-keywords
+
+---
+
 ## [1.2.0] · 2026-05-14 · 产品定义收敛 — C 端 idea 验证工具 + EXECUTION CONTRACT
 
 > **基于第二次 Hermes 实测的纠偏。** v1.1.0 的 idea-to-landing 在实测中跑偏了：agent 把 SKILL.md 当「思考建议」读，分析全堆 chat 成大段文字、没生成 HTML、没跑到 landing、结尾还在问「回复一句：继续」。同时 user 收敛了产品定义——Lumi Lab 是 **C 端创业 idea 的快速验证工具**，最终产物是测购买意愿的 **fake-door 验证页**，不是营销页。

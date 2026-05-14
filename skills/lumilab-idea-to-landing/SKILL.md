@@ -3,7 +3,7 @@ name: lumilab-idea-to-landing
 description: |
   One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Use when the user gives a startup idea, says "帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast.
   关键词：idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 方向建议 / landing 生成 / SEO / GEO / orchestrator / 自动流水线 / idea to landing / 想法落地 / 轻量验证
-version: 1.2.0
+version: 1.3.0
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:
@@ -132,10 +132,10 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 ### 1.1 判断数据源
 
 `orchestrate.ts init` 已经报了 token 状态：
-- 有 `TIKHUB_API_KEY` / `EXA_API_KEY` → 走真实 API
+- 有 `TIKHUB_API_KEY` / `EXA_API_KEY` / DataForSEO / Keywords Everywhere → 走真实 API
 - 没有 → 用**宿主 LLM 自己的知识**做分析（宿主提供 LLM，这是它该干的）。不要因为没 token 就停下来让用户去配 —— 那违背「轻量」。
 
-### 1.2 三路分析
+### 1.2 四路分析
 
 **市场（market）**
 - 有 Exa token：`bun run ../lumilab-research-platforms/scripts/web_exa.ts "<idea 相关查询>" --venture <slug>`
@@ -149,6 +149,13 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 **人群（audience）**
 - 调 `lumilab-research-icp` 的方法论：拒绝「所有人」，收窄到 2-3 个具体细分人群
 - 每个人群记 `segment` + `jtbd`（什么场景下挣扎）+ `where_they_are`（在哪找到他们）+ `willingness`（付费意愿信号）
+
+**搜索需求（keywords）—— 定量验证**
+- 调 `lumilab-research-keywords`：把 idea 的产品关键词反查 Google 搜索需求（搜索量 / KD / 趋势 / 红蓝海）
+  - 有 DataForSEO / Keywords Everywhere token：`bun run ../lumilab-research-keywords/scripts/research.ts --seed="<idea 关键词>" --venture <slug>`
+  - 无 token：`--mock`，或宿主 LLM 基于自身知识给定性的搜索需求判断（哪些方向像蓝海、哪些像红海）
+- 这是和「市场/竞品/人群」互补的**定量**维度：竞品/人群回答「用户在抱怨什么」，关键词回答「有多少人在主动搜、竞争多激烈」
+- 产出 `keyword_landscape.md` + `keyword_metrics.csv`，并把红蓝海 top 关键词摘要进 `market_analysis.json` 的 `keywords` 段
 
 **方向建议（directions）—— 最重要**
 - 基于上面三路分析，生成 **3-5 个具体方向**
@@ -224,7 +231,8 @@ B) <方向2 title>
 ### 4.1 自动定设计方向
 
 不要为了设计去开浏览器、不要问用户。基于方向的调性，**自动**定一套 design direction（preset + 配色 + 字体），写 `design_direction.json`：
-- 调 `lumilab-design-direction` 的方法论自动选，**不走**它的浏览器 UI
+- **先读全局默认风格**：`~/.lumilab/config.json` 的 `default_design_preset`（用户首次引导时选的）。有就用它作为基准。
+- 没有全局默认，或方向调性明显更适合别的 preset → 调 `lumilab-design-direction` 的方法论自动选，**不走**它的浏览器 UI
 - 4 个 preset（editorial / minimalist / brutalist / soft）按 idea 调性自动挑
 
 ### 4.2 生成 fake-door 验证页
@@ -326,11 +334,20 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
   "audience": [
     { "segment": "细分人群", "jtbd": "什么场景下挣扎", "where_they_are": "在哪找到", "willingness": "付费意愿信号" }
   ],
+  "keywords": {
+    "source": "dataforseo | keywordseverywhere | host-llm-knowledge | mock",
+    "summary": "1-2 句：这个 idea 的搜索需求整体处于什么位置",
+    "blue_ocean": [ { "keyword": "...", "volume": 1300, "difficulty": 18, "trend": "↗ +22%" } ],
+    "red_ocean":  [ { "keyword": "...", "volume": 40500, "difficulty": 76, "differentiation": "建议的差异化切口" } ],
+    "landscape_file": "research/keyword_landscape.md"
+  },
   "directions": [
     { "id": "d1", "title": "方向名", "angle": "定位切口", "segment": "针对人群", "why_it_works": "为什么可能成", "risk": "最大风险", "recommended": true }
   ]
 }
 ```
+
+> `keywords` 段可选 —— 完全没有任何调研 token 且宿主 LLM 也没把握时可省略；但有 token 或能给定性判断时应填，让方向建议有定量支撑。
 
 ## Output validation
 
@@ -342,6 +359,7 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
 - `market.summary` 非空，`market.trends` ≥ 2 条
 - `competitors` ≥ 3 个，每个有 name/what_they_do/gap/type；type ∈ {direct, alternative, status-quo}；至少 1 个 status-quo 或 alternative
 - `audience` ≥ 2 个，每个有 segment/jtbd/where_they_are/willingness
+- `keywords`（可选）：若存在，需有 `source` + `summary`；`blue_ocean` / `red_ocean` 为数组
 - `directions` 3-5 个，每个有 id/title/angle/segment/why_it_works/risk；**恰好 1 个** recommended=true
 
 ## Dependencies

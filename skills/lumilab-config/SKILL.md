@@ -3,7 +3,7 @@ name: lumilab-config
 description: |
   Setup Wizard + Share Manager + Secrets storage for the Lumi Lab skills bundle.
 
-  Browser-based 5-step wizard for first-time setup: user identity / preferences / tool tokens (Cloudflare for deploy, Exa for search, TikHub/Stripe/Resend/WeChat/X as optional integrations) / default deploy password.
+  Browser-based 6-step first-run onboarding page: user identity / preferences / tool tokens (Cloudflare for deploy, Exa for search, TikHub/Stripe/Resend/WeChat/X as optional integrations) / default deploy password.
 
   Browser-based Share Manager to view/copy/rotate/delete deployed venture Studios.
 
@@ -12,7 +12,7 @@ description: |
   Use when user types /lumilab config, /lumilab manage, or on first /lumilab init.
 
   关键词：setup wizard / config / 配置 / tool token / cloudflare / exa / share management / 分享管理 / secrets / 密钥管理 / venture 密码
-version: 1.2.0
+version: 1.3.0
 status: P0-ready
 metadata:
   hermes:
@@ -54,25 +54,32 @@ Three jobs. **None of them ask for an LLM API key** — Lumi Lab runs inside an 
 - User runs `lumilab manage` → Share Manager
 - Any Skill needs a tool token (e.g. `lumilab deploy` reads Cloudflare token) → silently decrypt & read, no UI
 
-## Setup Wizard — 5 steps
+## Setup Wizard — 6 步首次引导页
+
+`lumilab config` 是 **首次使用引导页**。第一次用 Lumi Lab 时（`~/.lumilab/config.json` 不存在或没有 `onboarded: true`）应跑一遍。
 
 ```
-Step 1/5  Welcome — explain Lumi Lab is a skills bundle running inside your AI host
-Step 2/5  Identity — name, location, background, current venture stage
-Step 3/5  Preferences — language, writing style, AI-trace tolerance
-Step 4/5  Tool integrations (all optional, pick what you need)
+Step 1/6  欢迎 — 产品引导：Lumi Lab 是什么 + idea→验证页流程图 + 4 条使用提示
+Step 2/6  界面风格 — 4 套美学样本可视化选（editorial / minimalist / brutalist / soft）
+          → 存为 default_design_preset，新 venture 的验证页用它当基准
+Step 3/6  Identity — name, location, background, current venture stage
+Step 4/6  Preferences — language, writing style, AI-trace tolerance
+Step 5/6  Tool integrations (all optional, pick what you need)
           ── Deploy ──
             ☐ Cloudflare API Token (enables `lumilab deploy`)
           ── Research ──
             ☐ Exa.ai (Web deep search)
             ☐ TikHub (Xiaohongshu API, no-login)
+            ☐ DataForSEO Login + Password (关键词调研默认数据源)
+            ☐ Keywords Everywhere key (关键词调研可选数据源)
           ── Pro tier ──
             ☐ Stripe / Resend / WeChat MP / X (Twitter)
-Step 5/5  Deploy preferences
+Step 6/6  Deploy preferences + 完成 · 怎么开始
           Default share password (6-digit numeric): [______]   ← "house password"
-          ☑ Pre-fill this password on every /lumilab deploy
-          ○ Default private  ○ Default public
+          完成 → 写 onboarded: true，给出 `lumilab idea "<想法>"` 开始指引
 ```
+
+每个工具 token 卡片带 4 步快速指引（去哪注册 / 取 key）+ Verify 按钮（打真实 API）。**全部可跳过** —— 基础 skill 不需要任何 token。
 
 **Never asks for an LLM API key.** That belongs to the host AI environment.
 
@@ -105,7 +112,7 @@ When the user clicks `[Setup →]` next to Cloudflare:
 └──────────────────────────────────────────────────────┘
 ```
 
-Same pattern for Exa / TikHub / Stripe / Resend / WeChat / X. Each card has a 4-step quickstart and a Verify button that hits the real API.
+Same pattern for Exa / TikHub / DataForSEO / Keywords Everywhere / Stripe / Resend / WeChat / X. Each card has a 4-step quickstart and a Verify button that hits the real API. DataForSEO 是 login + password 两栏（关键词调研默认数据源），首次使用时验证。
 
 ## Share Manager
 
@@ -158,9 +165,10 @@ Failures return specific codes: `E_401 token invalid`, `E_403 missing scope`, `E
 
 ```
 skills/lumilab-config/scripts/
-├── wizard.ts          ← /lumilab config → 5-step Wizard
+├── wizard.ts          ← /lumilab config → 6 步首次引导页 + chat-mode 子命令
+├── keychain.ts        ← macOS Keychain / Linux secret-tool / plaintext fallback
 ├── manage.ts          ← /lumilab manage → Share Manager
-└── secrets.ts         ← cross-platform keychain / secret-service / cred-manager
+└── anti-slop-lint.ts  ← 文案检查器
 ```
 
 ## Cross-runtime user-input protocol
@@ -205,21 +213,25 @@ user_input:
 
 ## Chat-only mode (LUMILAB_CHANNEL != local) — 已实装
 
-飞书 / Telegram / Slack 等 chat 环境没有浏览器。`wizard.ts` 自动检测 `LUMILAB_CHANNEL`，提供 **3 个 agent-friendly 子命令**（每个输出确定性 JSON，host LLM 解析后回复用户）：
+飞书 / Telegram / Slack 等 chat 环境没有浏览器。`wizard.ts` 自动检测 `LUMILAB_CHANNEL`，提供 **agent-friendly 子命令**（每个输出确定性 JSON，host LLM 解析后回复用户）：
 
 ```bash
-# 1. 列出可配置 provider + 设置指引
-bun run scripts/wizard.ts --chat-prompts
+# 首次引导（产品介绍 + 风格选择 + token 指引，一次性输出完整脚本）
+bun run scripts/wizard.ts --chat-onboard
+bun run scripts/wizard.ts --chat-onboard-preset <editorial|minimalist|brutalist|soft>
+bun run scripts/wizard.ts --chat-onboard-done   # 标记 onboarded，不再每次提示
 
-# 2. 看当前配置状态（不回显 token 值）
-bun run scripts/wizard.ts --chat-status
-
-# 3. 配置一个 token：verify 真实 API → 写 keychain → 更新 config flag
-bun run scripts/wizard.ts --chat-set <provider> <token>
-bun run scripts/wizard.ts --chat-set exa -          # token 从 stdin 读，不进进程列表
+# token 配置
+bun run scripts/wizard.ts --chat-prompts        # 列出可配置 provider + 设置指引
+bun run scripts/wizard.ts --chat-status         # 看当前配置（不回显 token 值）
+bun run scripts/wizard.ts --chat-set <provider> <token>   # verify 真实 API → 写 keychain → 更新 config flag
+bun run scripts/wizard.ts --chat-set exa -      # token 从 stdin 读，不进进程列表
 ```
 
-支持的 provider：`cloudflare` / `exa` / `tikhub` / `stripe` / `resend`。
+**单 token provider**：`cloudflare` / `exa` / `tikhub` / `keywordseverywhere` / `stripe` / `resend`。
+**DataForSEO 是 login + password 两段**，chat 环境直接用 keychain：`lumilab secrets set DATAFORSEO_LOGIN <x>` + `lumilab secrets set DATAFORSEO_PASSWORD <y>`。
+
+**首次引导飞书流程**（host LLM 编排）：用户第一次用 → agent 调 `--chat-onboard` 拿到引导脚本 → 跟用户讲产品 + 让选风格（`--chat-onboard-preset`）+ 按需配 token（`--chat-set`）→ 调 `--chat-onboard-done` 收尾。
 
 **典型飞书对话流程**（host LLM 编排）：
 

@@ -17,6 +17,7 @@
  *                        type ∈ {direct, alternative, status-quo}；
  *                        至少 1 个 alternative 或 status-quo
  *   audience             >= 2 个；每个 segment/jtbd/where_they_are/willingness
+ *   keywords             可选；若存在需有 source + summary，blue_ocean/red_ocean 为数组
  *   directions           3-5 个；每个 id/title/angle/segment/why_it_works/risk；
  *                        恰好 1 个 recommended=true
  */
@@ -96,6 +97,21 @@ if (!Array.isArray(audience) || audience.length < 2) {
     if (!str(o.where_they_are)) issues.push(`audience[${i}].where_they_are missing`);
     if (!str(o.willingness)) issues.push(`audience[${i}].willingness missing`);
   });
+}
+
+// keywords is OPTIONAL — only validate shape if present
+const keywords = data.keywords as Record<string, unknown> | undefined;
+if (keywords !== undefined) {
+  if (typeof keywords !== "object" || keywords === null) {
+    issues.push("keywords must be an object when present");
+  } else {
+    if (!str(keywords.source)) issues.push("keywords.source must be non-empty when keywords present");
+    if (!str(keywords.summary)) issues.push("keywords.summary must be non-empty when keywords present");
+    if (keywords.blue_ocean !== undefined && !Array.isArray(keywords.blue_ocean))
+      issues.push("keywords.blue_ocean must be an array");
+    if (keywords.red_ocean !== undefined && !Array.isArray(keywords.red_ocean))
+      issues.push("keywords.red_ocean must be an array");
+  }
 }
 
 const directions = data.directions;
