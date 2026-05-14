@@ -2200,6 +2200,13 @@ async function apiDone(): Promise<Response> {
   cfg.onboarded = true;
   cfg.onboarded_at = new Date().toISOString();
   saveConfig(cfg);
+  // 写时更新：配置变了 → 顺手 re-render home dashboard（best-effort，失败不影响）。
+  try {
+    const homeScript = join(import.meta.dir, "..", "..", "lumilab-home", "scripts", "home.ts");
+    if (existsSync(homeScript)) {
+      Bun.spawnSync(["bun", "run", homeScript, "render"], { stdout: "ignore", stderr: "ignore" });
+    }
+  } catch { /* best-effort */ }
   setTimeout(() => {
     // 打印结构化配置摘要到 stdout —— `lumilab config` 是阻塞调用，
     // stdio:inherit，所以宿主 agent 退出时能直接看到「配了什么」，

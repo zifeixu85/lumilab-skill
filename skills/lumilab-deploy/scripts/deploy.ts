@@ -253,7 +253,19 @@ async function deploy(opts: DeployOptions) {
     writeFileSync(secretsPath, JSON.stringify(secrets, null, 2));
   }
 
-  // Step 7: Output
+  // Step 7: 写时更新 —— 部署状态变了，re-render home + 这个 venture 的 studio（best-effort）。
+  try {
+    const homeScript = join(__dirname, '..', '..', 'lumilab-home', 'scripts', 'home.ts');
+    if (existsSync(homeScript)) {
+      spawnSync('bun', ['run', homeScript, 'render'], { stdio: 'ignore' });
+    }
+    const renderScript = join(__dirname, '..', '..', 'lumilab-studio', 'scripts', 'render.ts');
+    if (existsSync(renderScript)) {
+      spawnSync('bun', ['run', renderScript, ventureDir], { stdio: 'ignore' });
+    }
+  } catch { /* best-effort */ }
+
+  // Step 8: Output
   console.log(`\n  📋 Summary:`);
   console.log(`     URL:      ${url}`);
   if (!isPublic && password) {

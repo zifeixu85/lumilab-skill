@@ -4,9 +4,11 @@
 
 [English](README.en.md) ｜ 简体中文
 
-**Lumi Lab** 是一套 22 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
+**Lumi Lab** 是一套 24 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-[![版本](https://img.shields.io/badge/version-1.4.2-orange)](CHANGELOG.md)
+🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
+
+[![版本](https://img.shields.io/badge/version-1.5.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-24-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)

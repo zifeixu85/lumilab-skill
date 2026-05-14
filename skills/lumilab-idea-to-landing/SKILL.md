@@ -228,12 +228,22 @@ B) <方向2 title>
 
 用选定的方向，生成一个 **fake-door 验证页** —— 它不是营销页，是验证仪器，工作是测量购买意愿。
 
-### 4.1 自动定设计方向
+### 4.1 自动定设计方向 —— 由 idea 驱动，不是套用户选的预设
 
-不要为了设计去开浏览器、不要问用户。基于方向的调性，**自动**定一套 design direction（preset + 配色 + 字体），写 `design_direction.json`：
-- **先读全局默认风格**：`~/.lumilab/config.json` 的 `default_design_preset`（用户首次引导时选的）。有就用它作为基准。
-- 没有全局默认，或方向调性明显更适合别的 preset → 调 `lumilab-design-direction` 的方法论自动选，**不走**它的浏览器 UI
-- 4 个 preset（editorial / minimalist / brutalist / soft）按 idea 调性自动挑
+不要为了设计去开浏览器、不要问用户。**关键原则：设计风格由这个 idea 本身决定，不是直接套用户首次引导时选的全局预设。**
+
+按这个顺序定 design direction（写 `design_direction.json`）：
+
+1. **看 idea 的产品特征 + 人群特征推导风格**（主依据）：
+   - 产品调性：工具型 / 内容型 / 社交型 / 高客单价 / 快消 / B 端感 / 潮流向…
+   - 人群特征：年龄层、审美偏好、所在平台（小红书人群 ≠ V2EX 人群 ≠ 宝妈人群）、对「设计感」的敏感度
+   - 把这两点映射到一套**具体的** design direction：preset 倾向 + 配色（OKLCH）+ 字体 + 3 个旋钮（variance / motion / density）
+   - 调 `lumilab-design-direction` 的方法论来做这个映射，**不走**它的浏览器 UI
+   - 例：「给宝妈的育儿记录 app」→ soft preset、低饱和暖色、圆角、克制动效；「给开发者的 CLI 工具」→ minimalist/brutalist、高对比、等宽字体、近零动效
+2. **全局默认预设只作兜底**：`~/.lumilab/config.json` 的 `default_design_preset` —— 仅当 idea 特征**不足以**判断风格时，才退回用它。它是「用户的口味基线」，不是「每个 idea 都套同一个」。
+3. 把推导依据写进 `design_direction.json` 的 `rationale` 字段（一句话：为什么这个 idea 适合这个风格）。
+
+**反例**：用户首次引导选了 brutalist，于是所有 idea 的 landing 都做成 brutalist —— 错。面向宝妈的产品不该是 brutalist，哪怕用户口味基线是 brutalist。idea 特征优先。
 
 ### 4.2 生成 fake-door 验证页
 
@@ -475,3 +485,16 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 - **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `~/.lumilab/data/ventures/` 目录。
 - **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
 - **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。
+
+## 写时更新（产物变了就刷新 home / studio）
+
+Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新的 —— 没有常驻进程做实时同步，所以**谁改了数据，谁负责顺手刷新**。
+
+这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
+
+1. 重渲这个 venture 的 Studio：`bun run ../lumilab-studio/scripts/render.ts ~/.lumilab/data/ventures/<slug>`
+2. 重渲 home dashboard：`bun run ../lumilab-home/scripts/home.ts render`
+
+这样用户回到 home 或 Studio 就能立刻看到这一步的产物，不用手动说「刷新」。如果只是读、没写 venture 数据，不用刷新。
+
+CLI 入口（`lumilab idea` / `config` / `deploy`）已经内置了写时更新；**对话式调用时由你（宿主 agent）负责补这两步**。

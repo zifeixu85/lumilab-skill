@@ -212,3 +212,16 @@ export PATH="$HOME/.bun/bin:$PATH"
 ## Changelog
 
 - **1.4.0** (2026-05-14) — 新建。Lumi Lab 的门面 / 入口 skill —— 解决「装完不知道从哪开始」「首次没引导」「没有 home/dashboard」三个缺口。
+
+## 写时更新（产物变了就刷新 home / studio）
+
+Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新的 —— 没有常驻进程做实时同步，所以**谁改了数据，谁负责顺手刷新**。
+
+这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
+
+1. 重渲这个 venture 的 Studio：`bun run ../lumilab-studio/scripts/render.ts ~/.lumilab/data/ventures/<slug>`
+2. 重渲 home dashboard：`bun run ../lumilab-home/scripts/home.ts render`
+
+这样用户回到 home 或 Studio 就能立刻看到这一步的产物，不用手动说「刷新」。如果只是读、没写 venture 数据，不用刷新。
+
+CLI 入口（`lumilab idea` / `config` / `deploy`）已经内置了写时更新；**对话式调用时由你（宿主 agent）负责补这两步**。

@@ -19,8 +19,12 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { join, resolve } from 'path';
+import { homedir } from 'os';
 // @ts-ignore
 import * as yaml from 'js-yaml';
+
+// ── Lumi Lab home root (~/.lumilab) ──
+const LUMILAB_HOME = process.env.LUMILAB_HOME || join(homedir(), '.lumilab');
 
 interface Evidence {
   source: string;
@@ -116,6 +120,37 @@ function extractField(brief: string, label: string): string {
   const re = new RegExp(`\\*\\*${label}\\*\\*:?\\s*([^\\n]+)`, 'i');
   const m = brief.match(re);
   return m ? m[1].trim() : '';
+}
+
+// ── Artifact detection (relative-link aware) ──
+// Returns the highest landing/v<N> dir number, or 0 if only landing/index.html, or -1 if none.
+function detectLandingVersions(ventureDir: string): { versions: number[]; flat: boolean } {
+  const landingDir = join(ventureDir, 'landing');
+  const versions: number[] = [];
+  let flat = false;
+  if (existsSync(landingDir)) {
+    try {
+      for (const e of readdirSync(landingDir)) {
+        const m = e.match(/^v(\d+)$/);
+        if (m && existsSync(join(landingDir, e, 'index.html'))) versions.push(parseInt(m[1], 10));
+      }
+    } catch { /* ignore */ }
+    if (existsSync(join(landingDir, 'index.html'))) flat = true;
+  }
+  versions.sort((a, b) => a - b);
+  return { versions, flat };
+}
+
+interface ShareEntry {
+  venture: string;
+  url: string;
+  preview_url?: string;
+  status?: string;
+}
+function findShare(slug: string): ShareEntry | null {
+  const shares = readJson<{ shares?: ShareEntry[] }>(join(LUMILAB_HOME, 'shares.json'));
+  if (!shares?.shares) return null;
+  return shares.shares.find((s) => s.venture === slug) ?? null;
 }
 
 function confidenceLabel(c: string): string {
@@ -270,14 +305,27 @@ function detectStages(ventureDir: string) {
   const has = (p: string) => existsSync(join(ventureDir, p)) && readText(join(ventureDir, p)).trim().length > 0;
   const dir = (p: string) => dirHasFiles(join(ventureDir, p));
 
+  const hasRetroYaml = (() => {
+    const rd = join(ventureDir, 'research');
+    if (!existsSync(rd)) return false;
+    try { return readdirSync(rd).some((f) => /^retro-.*\.ya?ml$/.test(f)); } catch { return false; }
+  })();
+  const hasLanding = (() => {
+    const ld = join(ventureDir, 'landing');
+    if (!existsSync(ld)) return false;
+    if (existsSync(join(ld, 'index.html'))) return true;
+    try { return readdirSync(ld).some((e) => /^v\d+$/.test(e) && existsSync(join(ld, e, 'index.html'))); }
+    catch { return false; }
+  })();
+
   return {
     overview: true,
     idea:     has('project_brief.md') || has('audience.md') || has('hypotheses.yaml'),
-    research: dir('research') || has('painpoints.md') || has('competitors.md') || has('market_research.md'),
+    research: has(join('reports', 'market-report.html')) || has('market_analysis.json') || dir('research') || has('painpoints.md') || has('competitors.md') || has('market_research.md'),
     product:  has('product_definition.md') || has('mvp_scope.md') || has('pricing.md'),
-    build:    has('design_direction.json') || dir('content') || dir('deploy'),
-    launch:   has('growth_sop.md') || has('content_calendar.md') || has('validation_metrics.md'),
-    retro:    has('review_report.md') || dir('retro'),
+    build:    hasLanding || has('design_direction.json') || dir('content') || dir('deploy'),
+    launch:   dir('deploy') || has('growth_sop.md') || has('content_calendar.md') || has('validation_metrics.md'),
+    retro:    hasRetroYaml || has('review_report.md') || dir('retro'),
   };
 }
 
@@ -289,8 +337,28 @@ function render(ventureDir: string): string {
   const reviewReport = readText(join(ventureDir, 'review_report.md'));
   const hypotheses = readYaml<Hypothesis[]>(join(ventureDir, 'hypotheses.yaml')) ?? [];
   const decisions = readYaml<Decision[]>(join(ventureDir, 'decisions.yaml')) ?? [];
-  const designDirection = readJson(join(ventureDir, 'design_direction.json'));
+  const designDirection = readJson<any>(join(ventureDir, 'design_direction.json'));
   const accent = designDirection?.palette?.accent ?? 'oklch(42% 0.16 28)';
+
+  // ── Real pipeline artifacts ──
+  const marketAnalysis = readJson<any>(join(ventureDir, 'market_analysis.json'));
+  const hasMarketReport = existsSync(join(ventureDir, 'reports', 'market-report.html'));
+  const { versions: landingVersions, flat: landingFlat } = detectLandingVersions(ventureDir);
+  const share = findShare(ventureName);
+  // retro YAML: research/retro-*.yaml
+  let retroData: any = null;
+  const researchDir = join(ventureDir, 'research');
+  if (existsSync(researchDir)) {
+    try {
+      const retroFiles = readdirSync(researchDir)
+        .filter((f) => /^retro-.*\.ya?ml$/.test(f))
+        .sort();
+      if (retroFiles.length) {
+        retroData = readYaml<any>(join(researchDir, retroFiles[retroFiles.length - 1]));
+      }
+    } catch { /* ignore */ }
+  }
+  const renderedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
 
   const stageStatus = detectStages(ventureDir);
   const stagesDone = STAGES.filter((s) => stageStatus[s] && s !== 'overview');
@@ -369,14 +437,25 @@ function render(ventureDir: string): string {
       </li>`;
   }).join('');
 
-  // ── Empty-state component ──
-  const emptyState = (stageLabel: string, skillHint: string) => `
+  // ── Pending-state component ──
+  // Frame: pipeline hasn't reached this step (not "go run a skill yourself").
+  const pendingState = (stageLabel: string, skillHint: string) => `
     <div class="empty-card">
-      <div class="empty-card__title">还没有「${esc(stageLabel)}」内容</div>
-      <div class="empty-card__hint">下一步：在你的 AI 宿主里运行 skill</div>
-      <div class="empty-card__skill"><code>${esc(skillHint)}</code></div>
-      <button class="btn-ghost" data-copy-prompt="${esc(skillHint)}">复制提示词</button>
+      <div class="empty-card__title">「${esc(stageLabel)}」还没有内容</div>
+      <div class="empty-card__hint">待 <code>idea-to-landing</code> 流水线推进到这一步会自动生成。</div>
+      <div class="empty-card__fallback">手动兜底（一般不需要）：在 AI 宿主里跑 <code>${esc(skillHint)}</code></div>
     </div>`;
+
+  // ── Artifact card: a real link to a generated file ──
+  const artifactCard = (icon: string, title: string, href: string, sub?: string) => `
+    <a class="artifact-card" href="${esc(href)}">
+      <span class="artifact-card__icon">${icon}</span>
+      <span class="artifact-card__text">
+        <span class="artifact-card__title">${esc(title)}</span>
+        ${sub ? `<span class="artifact-card__sub">${esc(sub)}</span>` : ''}
+      </span>
+      <span class="artifact-card__arrow">→</span>
+    </a>`;
 
   // ── KPI grid for overview ──
   const kpiGrid = `
@@ -392,7 +471,7 @@ function render(ventureDir: string): string {
     const done = stageStatus[s];
     const cur = s === currentStage;
     const cls = done ? 'is-done' : cur ? 'is-current' : 'is-pending';
-    return `<div class="prog-cell ${cls}"><span class="prog-roman">${['I','II','III','IV','V','VI'][i]}</span><span class="prog-label">${esc(STAGE_LABELS[s])}</span></div>`;
+    return `<a class="prog-cell ${cls}" data-stage="${s}" role="button" tabindex="0" title="查看「${esc(STAGE_LABELS[s])}」"><span class="prog-roman">${['I','II','III','IV','V','VI'][i]}</span><span class="prog-label">${esc(STAGE_LABELS[s])}</span></a>`;
   }).join('');
 
   // ── Recent decisions (overview) ──
@@ -452,70 +531,213 @@ function render(ventureDir: string): string {
         : `<ul class="rows" id="hypotheses-rows">${hypothesesList}</ul>`}
     </section>`;
 
+  // ── 调研 stage ──
+  const researchSummary = marketAnalysis?.market?.summary ?? '';
+  const competitorCount = Array.isArray(marketAnalysis?.competitors) ? marketAnalysis.competitors.length : 0;
+  const audienceCount = Array.isArray(marketAnalysis?.audience) ? marketAnalysis.audience.length : 0;
+  const directionCount = Array.isArray(marketAnalysis?.directions) ? marketAnalysis.directions.length : 0;
+  const hasResearchArtifact = hasMarketReport || !!marketAnalysis;
   const stageResearch = `
     <section class="stage" data-stage="research" hidden>
-      ${stageStatus.research
-        ? `<p class="empty">研究内容已存在，但当前面板还未实现可视化。</p>`
-        : emptyState(STAGE_LABELS.research, STAGE_SKILL_HINT.research)}
+      ${hasResearchArtifact ? `
+        ${hasMarketReport ? `
+          <header class="section__head">
+            <h2 class="section__title">市场分析</h2>
+            <span class="section__count">reports/market-report.html</span>
+          </header>
+          ${artifactCard('📊', '打开市场分析报告', '../reports/market-report.html', '完整的市场 / 竞品 / 受众 / 方向分析')}
+        ` : ''}
+        ${marketAnalysis ? `
+          <header class="section__head" style="margin-top:20px;">
+            <h2 class="section__title">分析摘要</h2>
+            <span class="section__count">market_analysis.json</span>
+          </header>
+          <div class="md-card">
+            ${researchSummary ? `<p style="line-height:1.65;margin-bottom:14px;">${esc(researchSummary)}</p>` : ''}
+            <dl class="panel-meta-list" style="grid-template-columns:96px 1fr;">
+              <dt>竞品</dt><dd>${competitorCount} 个</dd>
+              <dt>受众分层</dt><dd>${audienceCount} 个</dd>
+              <dt>方向候选</dt><dd>${directionCount} 个</dd>
+            </dl>
+          </div>
+        ` : ''}
+      ` : pendingState(STAGE_LABELS.research, STAGE_SKILL_HINT.research)}
     </section>`;
 
+  // ── 产品 stage ──
+  const directions: any[] = Array.isArray(marketAnalysis?.directions) ? marketAnalysis.directions : [];
+  // chosen direction: a decision whose type/related references a direction, or text mentions "方向"
+  const directionDecision = decisions
+    .slice()
+    .reverse()
+    .find((d) =>
+      /方向|direction/i.test(d.decision) ||
+      (Array.isArray(d.related) && d.related.some((r) => /^d\d+$/.test(r)))
+    );
+  const chosenDirId =
+    directionDecision?.related?.find((r) => /^d\d+$/.test(r)) ?? null;
+  const chosenDir = chosenDirId ? directions.find((d) => d.id === chosenDirId) : null;
+  const directionsList = directions
+    .map((d) => {
+      const isChosen = chosenDir ? d.id === chosenDir.id : !!d.recommended;
+      return `
+        <li class="dir-row ${isChosen ? 'is-chosen' : ''}">
+          <span class="dir-row__mark">${isChosen ? '◆' : '◇'}</span>
+          <span class="dir-row__body">
+            <span class="dir-row__title">${esc(d.title ?? d.id)}${isChosen ? ' <span class="dir-row__badge">已选 / 推荐</span>' : ''}</span>
+            ${d.angle ? `<span class="dir-row__angle">${esc(d.angle)}</span>` : ''}
+            ${d.why_it_works ? `<span class="dir-row__why">${esc(d.why_it_works)}</span>` : ''}
+          </span>
+        </li>`;
+    })
+    .join('');
+  const hasProductArtifact = productDef.trim() || directions.length > 0 || !!directionDecision;
   const stageProduct = `
     <section class="stage" data-stage="product" hidden>
-      ${productDef.trim()
-        ? `<header class="section__head">
+      ${hasProductArtifact ? `
+        ${directionDecision ? `
+          <header class="section__head">
+            <h2 class="section__title">已选方向</h2>
+            <span class="section__count">decisions.yaml</span>
+          </header>
+          <div class="md-card">
+            <p style="font-size:15px;font-weight:500;color:var(--ink);line-height:1.5;">${esc(directionDecision.decision)}</p>
+            ${directionDecision.rationale ? `<p style="margin-top:8px;color:var(--ink-2);line-height:1.6;">${esc(directionDecision.rationale)}</p>` : ''}
+          </div>
+        ` : ''}
+        ${directions.length > 0 ? `
+          <header class="section__head" style="margin-top:20px;">
+            <h2 class="section__title">方向候选</h2>
+            <span class="section__count">${directions.length} 个 · market_analysis.json</span>
+          </header>
+          <ul class="dir-list">${directionsList}</ul>
+        ` : ''}
+        ${productDef.trim() ? `
+          <header class="section__head" style="margin-top:20px;">
             <h2 class="section__title">产品定义</h2>
             <span class="section__count">product_definition.md</span>
           </header>
-          <article class="md-card md-content">${renderMarkdown(productDef)}</article>`
-        : emptyState(STAGE_LABELS.product, STAGE_SKILL_HINT.product)}
+          <article class="md-card md-content">${renderMarkdown(productDef)}</article>
+        ` : ''}
+      ` : pendingState(STAGE_LABELS.product, STAGE_SKILL_HINT.product)}
     </section>`;
 
+  // ── 构建 stage ──
+  // primary landing link: highest v<N>, else flat landing/index.html
+  const topVersion = landingVersions.length ? landingVersions[landingVersions.length - 1] : null;
+  const primaryLandingHref =
+    topVersion != null ? `../landing/v${topVersion}/index.html`
+    : landingFlat ? '../landing/index.html'
+    : null;
+  const primaryLandingLabel =
+    topVersion != null ? `打开 Landing 验证页 (v${topVersion})` : '打开 Landing 验证页';
+  const landingVersionList = landingVersions
+    .map((n) => `<li class="ver-row"><a href="../landing/v${n}/index.html">v${n}</a>${n === topVersion ? '<span class="ver-row__latest">最新</span>' : ''}</li>`)
+    .join('');
+  const hasBuildArtifact = !!primaryLandingHref || !!designDirection;
   const stageBuild = `
     <section class="stage" data-stage="build" hidden>
-      ${designDirection ? `
-        <header class="section__head">
-          <h2 class="section__title">设计方向</h2>
-          <span class="section__count">design_direction.json</span>
-        </header>
-        <div class="design-card">
-          <dl class="design-meta">
-            <dt>预设</dt><dd>${esc(designDirection.preset ?? '—')}</dd>
-            <dt>方差</dt><dd>${esc(designDirection.dials?.variance ?? '—')}</dd>
-            <dt>动效</dt><dd>${esc(designDirection.dials?.motion ?? '—')}</dd>
-            <dt>密度</dt><dd>${esc(designDirection.dials?.density ?? '—')}</dd>
-          </dl>
-          <div class="palette-row">
-            ${designDirection.palette ? Object.entries(designDirection.palette).map(([k, v]) =>
-              `<div class="swatch"><span class="swatch-chip" style="background:${esc(String(v))}"></span><span class="swatch-name">${esc(k)}</span><code class="swatch-val">${esc(String(v))}</code></div>`
-            ).join('') : ''}
+      ${hasBuildArtifact ? `
+        ${primaryLandingHref ? `
+          <header class="section__head">
+            <h2 class="section__title">Landing 验证页</h2>
+            <span class="section__count">landing/</span>
+          </header>
+          ${artifactCard('🌐', primaryLandingLabel, primaryLandingHref, '真实购买意愿验证页（fake-door）')}
+          ${landingVersions.length > 1 ? `<ul class="ver-list">${landingVersionList}</ul>` : ''}
+        ` : ''}
+        ${designDirection ? `
+          <header class="section__head" style="margin-top:20px;">
+            <h2 class="section__title">设计方向</h2>
+            <span class="section__count">${esc(designDirection.preset ?? '—')} preset · design_direction.json</span>
+          </header>
+          <div class="design-card">
+            <dl class="design-meta">
+              <dt>预设</dt><dd>${esc(designDirection.preset ?? '—')}</dd>
+              <dt>方差</dt><dd>${esc(designDirection.dials?.variance ?? '—')}</dd>
+              <dt>动效</dt><dd>${esc(designDirection.dials?.motion ?? '—')}</dd>
+              <dt>密度</dt><dd>${esc(designDirection.dials?.density ?? '—')}</dd>
+            </dl>
+            <div class="palette-row">
+              ${designDirection.palette ? Object.entries(designDirection.palette).map(([k, v]) =>
+                typeof v === 'string' && /^oklch|^#|^rgb/.test(v)
+                  ? `<div class="swatch"><span class="swatch-chip" style="background:${esc(String(v))}"></span><span class="swatch-name">${esc(k)}</span><code class="swatch-val">${esc(String(v))}</code></div>`
+                  : ''
+              ).join('') : ''}
+            </div>
           </div>
-        </div>
-      ` : emptyState(STAGE_LABELS.build, STAGE_SKILL_HINT.build)}
+        ` : ''}
+      ` : pendingState(STAGE_LABELS.build, STAGE_SKILL_HINT.build)}
     </section>`;
 
+  // ── 启动 stage ──
+  const hasAnyLanding = !!primaryLandingHref;
   const stageLaunch = `
     <section class="stage" data-stage="launch" hidden>
-      ${stageStatus.launch
-        ? `<p class="empty">启动资产已存在，但当前面板还未实现可视化。</p>`
-        : emptyState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
+      ${share ? `
+        <header class="section__head">
+          <h2 class="section__title">已上线</h2>
+          <span class="section__count">shares.json</span>
+        </header>
+        ${artifactCard('🚀', '打开线上验证页', share.url, share.url)}
+        <div class="md-card" style="margin-top:14px;">
+          <p style="line-height:1.65;">验证数据：跑几天后把 <strong>UV</strong> / <strong>CTA 点击率</strong> / <strong>邮箱率</strong> 填进 <code>lumilab retro</code>。</p>
+        </div>
+      ` : hasAnyLanding ? `
+        <div class="empty-card">
+          <div class="empty-card__title">Landing 已生成，还没部署</div>
+          <div class="empty-card__hint">可部署上线开始收集验证数据。</div>
+          <div class="empty-card__skill"><code>lumilab deploy ${esc(ventureName)}</code></div>
+        </div>
+      ` : pendingState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
     </section>`;
 
+  // ── 复盘 stage ──
+  const retroBucket = (label: string, cls: string, items: any): string => {
+    const arr = Array.isArray(items) ? items : items ? [items] : [];
+    if (!arr.length) return '';
+    return `
+      <div class="retro-bucket retro-bucket--${cls}">
+        <div class="retro-bucket__label">${esc(label)}</div>
+        <ul class="retro-bucket__list">
+          ${arr.map((it) => `<li>${esc(typeof it === 'string' ? it : (it?.text ?? it?.note ?? JSON.stringify(it)))}</li>`).join('')}
+        </ul>
+      </div>`;
+  };
+  const retroBuckets = retroData
+    ? [
+        retroBucket('做得强', 'strong', retroData.strong ?? retroData.strengths),
+        retroBucket('中等', 'mid', retroData.mid ?? retroData.medium),
+        retroBucket('偏弱', 'weak', retroData.weak ?? retroData.weaknesses),
+        retroBucket('已迭代', 'iterated', retroData.iterated ?? retroData.iteration),
+      ].join('')
+    : '';
+  const hasRetroArtifact = !!retroData || reviewReport.trim() || decisions.length > 0;
   const stageRetro = `
     <section class="stage" data-stage="retro" hidden>
-      ${reviewReport.trim()
-        ? `<header class="section__head">
-            <h2 class="section__title">复盘报告</h2>
-            <span class="section__count">review_report.md</span>
-          </header>
-          <article class="md-card md-content">${renderMarkdown(reviewReport)}</article>`
-        : ''}
-      <header class="section__head" style="margin-top:20px;">
-        <h2 class="section__title">完整决策时间线</h2>
-        <span class="section__count">共 ${decisions.length} 条</span>
-      </header>
-      ${decisions.length === 0
-        ? emptyState(STAGE_LABELS.retro, STAGE_SKILL_HINT.retro)
-        : `<ul class="rows">${decisionsList}</ul>`}
+      ${retroData ? `
+        <header class="section__head">
+          <h2 class="section__title">复盘</h2>
+          <span class="section__count">research/retro-*.yaml</span>
+        </header>
+        <div class="retro-grid">${retroBuckets}</div>
+      ` : ''}
+      ${reviewReport.trim() ? `
+        <header class="section__head" style="margin-top:20px;">
+          <h2 class="section__title">复盘报告</h2>
+          <span class="section__count">review_report.md</span>
+        </header>
+        <article class="md-card md-content">${renderMarkdown(reviewReport)}</article>
+      ` : ''}
+      ${hasRetroArtifact ? `
+        <header class="section__head" style="margin-top:20px;">
+          <h2 class="section__title">完整决策时间线</h2>
+          <span class="section__count">共 ${decisions.length} 条</span>
+        </header>
+        ${decisions.length === 0
+          ? `<p class="empty">尚无决策。</p>`
+          : `<ul class="rows">${decisionsList}</ul>`}
+      ` : pendingState(STAGE_LABELS.retro, STAGE_SKILL_HINT.retro)}
     </section>`;
 
   return `<!DOCTYPE html>
@@ -1390,6 +1612,201 @@ kbd {
   border-top: 1px solid var(--hairline);
 }
 
+/* ───── Refresh bar (数据更新于) ───── */
+.refresh-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 5px 28px;
+  background: var(--ash-soft);
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--mute);
+  letter-spacing: 0.02em;
+}
+.refresh-bar__time { color: var(--ink-2); }
+.refresh-bar__sep { color: var(--hairline-strong); }
+.refresh-bar code {
+  font-family: var(--mono);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  padding: 1px 5px;
+  color: var(--ink-2);
+}
+
+/* ───── Deploy panel ───── */
+.deploy-panel {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--top-h) + 4px);
+  z-index: 20;
+  width: 380px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: 0 8px 28px oklch(20% 0.02 60 / 0.16), 0 0 0 1px var(--hairline);
+  padding: 16px 18px;
+}
+.deploy-panel[hidden] { display: none; }
+.deploy-panel__title { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.deploy-panel__note { font-size: 12px; color: var(--mute); margin-bottom: 12px; }
+.deploy-panel__row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.deploy-panel__way {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  color: var(--mute); background: var(--surface-2);
+  padding: 3px 7px; border-radius: var(--r-sm); flex-shrink: 0; margin-top: 1px;
+}
+.deploy-panel__code {
+  font-family: var(--mono); font-size: 11.5px;
+  color: var(--accent); background: var(--accent-soft);
+  padding: 4px 9px; border-radius: var(--r-sm);
+  cursor: copy; word-break: break-word; line-height: 1.45;
+  transition: background 140ms var(--ease);
+}
+.deploy-panel__code:hover { background: var(--accent-tint); }
+[data-copy] { cursor: copy; position: relative; }
+[data-copy].copied::after {
+  content: '已复制 ✓';
+  position: absolute; left: 0; top: -22px;
+  font-family: var(--sans); font-size: 10.5px;
+  background: var(--ink); color: var(--surface);
+  padding: 2px 7px; border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+
+/* ───── Nav hint (新建 venture) ───── */
+.nav-hint {
+  font-size: 11.5px;
+  color: var(--mute);
+  line-height: 1.5;
+  padding: 6px 12px 4px;
+}
+.nav-hint[hidden] { display: none; }
+.nav-hint code {
+  display: inline-block;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--accent); background: var(--accent-soft);
+  padding: 2px 6px; border-radius: var(--r-sm);
+  margin-top: 4px; cursor: copy;
+}
+
+/* ───── Breadcrumb home link ───── */
+.crumb-home {
+  color: var(--accent);
+  transition: color 140ms var(--ease);
+}
+.crumb-home:hover { color: var(--ink); }
+
+/* ───── Prog cells clickable ───── */
+.prog-cell { cursor: pointer; transition: background 140ms var(--ease), box-shadow 140ms var(--ease); }
+.prog-cell:hover { background: oklch(94% 0.016 80); }
+.prog-cell.is-selected { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.prog-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ───── Artifact card (real link to generated file) ───── */
+.artifact-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 160ms var(--ease), transform 160ms var(--ease);
+  border-left: 3px solid var(--accent);
+}
+.artifact-card:hover {
+  box-shadow: 0 4px 14px oklch(20% 0.02 60 / 0.1), 0 0 0 1px var(--hairline-strong);
+  transform: translateY(-1px);
+}
+.artifact-card__icon { font-size: 22px; flex-shrink: 0; }
+.artifact-card__text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.artifact-card__title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.artifact-card__sub { font-size: 12px; color: var(--mute); }
+.artifact-card__arrow {
+  font-family: var(--mono); font-size: 16px; color: var(--accent);
+  flex-shrink: 0; transition: transform 160ms var(--ease);
+}
+.artifact-card:hover .artifact-card__arrow { transform: translateX(3px); }
+
+.empty-card__fallback {
+  font-size: 11.5px; color: var(--mute-2); margin-top: 10px; line-height: 1.5;
+}
+.empty-card__fallback code, .empty-card__hint code {
+  font-family: var(--mono); font-size: 0.92em;
+  background: var(--surface-2); padding: 1px 5px; border-radius: var(--r-sm);
+  color: var(--ink-2);
+}
+
+/* ───── Direction list (产品 stage) ───── */
+.dir-list { display: flex; flex-direction: column; gap: 8px; }
+.dir-row {
+  display: flex; gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+}
+.dir-row.is-chosen {
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+.dir-row__mark { font-size: 14px; color: var(--mute-2); flex-shrink: 0; line-height: 1.6; }
+.dir-row.is-chosen .dir-row__mark { color: var(--accent); }
+.dir-row__body { display: flex; flex-direction: column; gap: 4px; }
+.dir-row__title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dir-row__badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  color: var(--accent); background: var(--surface);
+  padding: 1px 6px; border-radius: 999px; margin-left: 4px;
+}
+.dir-row__angle { font-size: 12px; color: var(--ink-2); }
+.dir-row__why { font-size: 12px; color: var(--mute); line-height: 1.55; }
+
+/* ───── Landing version list (构建 stage) ───── */
+.ver-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.ver-row {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 3px 8px;
+}
+.ver-row a { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+.ver-row a:hover { color: var(--accent); }
+.ver-row__latest {
+  font-family: var(--mono); font-size: 9.5px;
+  color: var(--moss); background: oklch(94% 0.05 145);
+  padding: 1px 5px; border-radius: 999px;
+}
+
+/* ───── Retro buckets (复盘 stage) ───── */
+.retro-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (max-width: 900px) { .retro-grid { grid-template-columns: 1fr; } }
+.retro-bucket {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+  border-left: 3px solid var(--hairline-strong);
+}
+.retro-bucket--strong { border-left-color: var(--moss); background: var(--moss-soft); }
+.retro-bucket--mid { border-left-color: var(--ochre); background: var(--ochre-soft); }
+.retro-bucket--weak { border-left-color: var(--mute-2); }
+.retro-bucket--iterated { border-left-color: var(--accent); background: var(--accent-soft); }
+.retro-bucket__label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em;
+  font-weight: 600; color: var(--mute); margin-bottom: 8px;
+}
+.retro-bucket__list { display: flex; flex-direction: column; gap: 6px; }
+.retro-bucket__list li {
+  font-size: 13px; line-height: 1.55; color: var(--ink-2);
+  padding-left: 12px; position: relative;
+}
+.retro-bucket__list li::before {
+  content: '·'; position: absolute; left: 2px; color: var(--mute-2);
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .shell { grid-template-columns: var(--nav-w) var(--resizer-w) 1fr 0 0; }
@@ -1427,10 +1844,34 @@ kbd {
     <span>迭代 ${esc(iteration)}</span>
   </div>
   <div class="topbar__actions">
-    <button class="btn-ghost">分享</button>
-    <button class="btn-primary">部署</button>
+    ${share
+      ? `<a class="btn-primary" href="${esc(share.url)}" target="_blank" rel="noopener">已上线 ↗</a>`
+      : `<button class="btn-primary" id="deploy-toggle" aria-expanded="false">部署</button>`}
   </div>
 </header>
+
+<!-- 数据更新于 bar -->
+<div class="refresh-bar">
+  <span class="refresh-bar__time">数据更新于 ${esc(renderedAt)}</span>
+  <span class="refresh-bar__sep">·</span>
+  <span class="refresh-bar__hint">要刷新？跟 AI 说「重新渲染这个 venture」，或 CLI 跑 <code>lumilab render ${esc(ventureName)}</code></span>
+</div>
+
+${share ? '' : `
+<!-- 部署面板（静态页无法直接部署，给出可复制命令） -->
+<div class="deploy-panel" id="deploy-panel" hidden>
+  <div class="deploy-panel__title">部署这个 venture 的 Landing 验证页</div>
+  <div class="deploy-panel__note">静态页跑不了部署。用下面任一方式触发：</div>
+  <div class="deploy-panel__row">
+    <span class="deploy-panel__way">CLI</span>
+    <code class="deploy-panel__code" data-copy="lumilab deploy ${esc(ventureName)}">lumilab deploy ${esc(ventureName)}</code>
+  </div>
+  <div class="deploy-panel__row">
+    <span class="deploy-panel__way">AI 宿主</span>
+    <code class="deploy-panel__code" data-copy="用 lumilab-deploy 把 ${esc(ventureName)} 的 landing 验证页部署上线">用 lumilab-deploy 把 ${esc(ventureName)} 的 landing 验证页部署上线</code>
+  </div>
+</div>
+`}
 
 <div class="shell" id="shell">
 
@@ -1442,14 +1883,20 @@ kbd {
     ${navStages}
     <div class="nav-divider"></div>
     <div class="nav-section-label">其他</div>
-    <a class="nav-item--minor">全部 ventures</a>
-    <a class="nav-item--minor">+ 新建 venture</a>
+    <a class="nav-item--minor" href="../../../_home/home.html">← 回首页 / 全部 ventures</a>
+    <a class="nav-item--minor" id="new-venture-toggle" role="button" tabindex="0">+ 新建 venture</a>
+    <div class="nav-hint" id="new-venture-hint" hidden>
+      在你的 AI 宿主里说一句你的新想法，或 CLI 跑
+      <code data-copy="lumilab idea &quot;&lt;想法&gt;&quot;">lumilab idea "&lt;想法&gt;"</code>
+    </div>
   </nav>
 
   <div class="resizer resizer--left" id="resizer-left" data-resizer="nav" role="separator" aria-orientation="vertical" aria-label="调整左侧导航宽度"></div>
 
   <main class="main" id="main">
     <div class="main__breadcrumb">
+      <a class="crumb-home" href="../../../_home/home.html">← 回首页</a>
+      <span class="crumb-sep">/</span>
       <span>${esc(ventureName)}</span>
       <span class="crumb-sep">/</span>
       <span class="crumb-current" id="crumb-current">${esc(STAGE_LABELS.overview)}</span>
@@ -1651,9 +2098,13 @@ function openPanel(target, id) {
 }
 
 // ── Stage switching (no scroll, no hash) ──
+// Keeps left-nav AND middle prog-cells visually in sync.
 function switchStage(stage) {
   document.querySelectorAll('.nav-stage').forEach(el => {
     el.setAttribute('data-active', el.dataset.stage === stage ? 'true' : 'false');
+  });
+  document.querySelectorAll('.prog-cell').forEach(el => {
+    el.classList.toggle('is-selected', el.dataset.stage === stage);
   });
   document.querySelectorAll('.stage').forEach(el => {
     el.hidden = el.dataset.stage !== stage;
@@ -1670,10 +2121,41 @@ openPanel('overview');
 
 // Delegated click
 document.addEventListener('click', (e) => {
-  // Stage nav
-  const navStage = e.target.closest('.nav-stage');
-  if (navStage && navStage.dataset.stage) {
-    switchStage(navStage.dataset.stage);
+  // Stage nav (left rail) OR middle progress cells — same behavior
+  const stageEl = e.target.closest('.nav-stage, .prog-cell');
+  if (stageEl && stageEl.dataset.stage) {
+    e.preventDefault();
+    switchStage(stageEl.dataset.stage);
+    return;
+  }
+  // Deploy panel toggle
+  const deployToggle = e.target.closest('#deploy-toggle');
+  if (deployToggle) {
+    const dp = document.getElementById('deploy-panel');
+    if (dp) {
+      const open = dp.hidden;
+      dp.hidden = !open;
+      deployToggle.setAttribute('aria-expanded', String(open));
+    }
+    return;
+  }
+  // New-venture hint toggle
+  const nvToggle = e.target.closest('#new-venture-toggle');
+  if (nvToggle) {
+    const h = document.getElementById('new-venture-hint');
+    if (h) h.hidden = !h.hidden;
+    return;
+  }
+  // Copy-to-clipboard code chip
+  const copyEl = e.target.closest('[data-copy]');
+  if (copyEl) {
+    const txt = copyEl.dataset.copy;
+    if (navigator.clipboard && txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        copyEl.classList.add('copied');
+        setTimeout(() => copyEl.classList.remove('copied'), 1400);
+      });
+    }
     return;
   }
   // Row click → update panel only (no scroll)
@@ -1695,19 +2177,15 @@ document.addEventListener('click', (e) => {
     group.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
     return;
   }
-  // Copy prompt
-  const copyBtn = e.target.closest('[data-copy-prompt]');
-  if (copyBtn) {
-    const skill = copyBtn.dataset.copyPrompt;
-    const prompt = \`在我的 lumilab venture 工作目录里运行 \${skill} skill\`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(prompt).then(() => {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = '已复制 ✓';
-        setTimeout(() => { copyBtn.textContent = orig; }, 1400);
-      });
-    }
-    return;
+});
+
+// Keyboard activation for role=button stage cells / toggles
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target;
+  if (t && t.matches && t.matches('.prog-cell, #new-venture-toggle')) {
+    e.preventDefault();
+    t.click();
   }
 });
 

@@ -101,6 +101,9 @@ function cmdInit(idea: string) {
   const hasExa = hasToken("EXA_API_KEY");
   const source = hasTikhub || hasExa ? "real-api" : "host-llm-knowledge";
 
+  // 写时更新：新建 venture 后顺手 re-render home，让首页立刻能看到这个 venture。
+  rerenderHome();
+
   console.log(JSON.stringify({
     ok: true,
     slug,
@@ -113,6 +116,15 @@ function cmdInit(idea: string) {
       ? "Phase 1 走真实 API（TikHub/Exa）"
       : "Phase 1 用宿主 LLM 知识分析（无 token，不阻塞）",
   }, null, 2));
+}
+
+// 写时更新：best-effort 重渲 home dashboard。失败不影响主流程。
+function rerenderHome(): void {
+  try {
+    const homeScript = join(import.meta.dir, "..", "..", "lumilab-home", "scripts", "home.ts");
+    if (!existsSync(homeScript)) return;
+    Bun.spawnSync(["bun", "run", homeScript, "render"], { stdout: "ignore", stderr: "ignore" });
+  } catch { /* best-effort */ }
 }
 
 function cmdStatus(ventureDir: string) {

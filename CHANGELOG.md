@@ -102,6 +102,25 @@
 
 ---
 
+## [1.5.0] · 2026-05-15 · home ↔ Studio 打通 + 写时更新 + idea 驱动设计
+
+> 用户本地实测的一批问题（导航断裂、阶段产物脱节、首页不更新、设计套预设）一次性修掉。
+
+### Added
+- **写时更新机制**：home dashboard 和 venture Studio 没有常驻进程，改为「谁写数据谁顺手刷新」。24 个 SKILL.md 全部加 `## 写时更新` 段，指导宿主 agent 写完 venture 数据后重渲 `studio/render.ts` + `home.ts render`；CLI 入口（`idea` / `config` / `deploy`）已内置
+- **idea 驱动设计方向**：landing 的视觉风格由 idea 的产品特征 + 人群特征推导，不再直接套用户首次引导选的全局预设。全局 `default_design_preset` 降级为兜底；`design_direction.json` 新增 `rationale` 字段
+
+### Fixed
+- **home ↔ Studio 导航打通**：首页 venture 区改为可点击卡片列表（进度条 / 状态 / 更新时间 / 「已上线」徽标），点进对应 Studio；Studio 左侧导航与中间阶段进度都可点击且同步；「全部 ventures」「回首页」是真链接，「新建 venture」给出可复制指令
+- **Studio 阶段内容接上真实产物**：调研→市场报告 HTML，产品→`decisions.yaml` 选定方向，构建→`landing/v<N>/`，启动→`shares.json` 上线 URL，复盘→retro YAML。缺产物的阶段提示「待流水线推进」而不是「去手动跑某个 skill」
+- **Studio 部署按钮失效**：删掉无效的 `<button>部署</button>`，改为已上线则显示链接、未上线则给可复制的 `lumilab deploy <slug>` 指令 + AI 宿主一句话引导
+- **配置 / 部署后首页不更新**：`wizard.ts` 存配置后、`deploy.ts` 部署后、`orchestrate.ts init` 建 venture 后，都 best-effort 重渲 home（部署额外重渲 studio）
+
+### Changed
+- `VERSION` 1.4.2 → 1.5.0；manifest / README / 根 SKILL.md 同步到 1.5.0
+
+---
+
 ## [1.4.2] · 2026-05-15 · 修复部署两个 bug
 
 > 用户本地实测发现。

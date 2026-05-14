@@ -52,6 +52,18 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 - **Anti-Slop**：产物被 landing-mvp / content-repurpose 消费前必扫（见 IMPLEMENTATION_PLAN §6）
 - **平台约束**：涉及 5 平台时必读 memory/resources/platform-rules/<platform>.md
 
+## 风格由 idea 驱动（被 idea-to-landing 调用时的核心原则）
+
+当 `lumilab-idea-to-landing` 在 Phase 4 自动调用本 skill 时，**设计风格必须由这个 idea 的产品特征 + 人群特征推导**，不是直接套用户首次引导选的全局预设：
+
+1. **主依据 = idea 特征**：产品调性（工具/内容/社交/高客单价/快消/B 端/潮流）+ 人群（年龄、审美、所在平台、对设计感的敏感度）→ 映射到具体 preset 倾向 + OKLCH 配色 + 字体 + 3 旋钮。
+   - 「给宝妈的育儿记录 app」→ soft、低饱和暖色、圆角、克制动效
+   - 「给开发者的 CLI 工具」→ minimalist/brutalist、高对比、等宽字体、近零动效
+2. **全局 `default_design_preset` 只作兜底** —— 仅当 idea 特征不足以判断时才退回它。它是用户口味基线，不是「每个 idea 都套同一个」。
+3. 把推导依据写进 `design_direction.json` 的 `rationale` 字段（一句话）。
+
+用户**显式**调 `/lumilab design-direction`（不是被流水线调）时，仍走浏览器 4 选 1 + 旋钮的交互页 —— 那是用户主动定制。
+
 ## Phase 1 深度 overlay
 
 - 重写关键 references/
@@ -199,3 +211,16 @@ export PATH="$HOME/.bun/bin:$PATH"   # 当前 shell 立即可用
 - **.md / .yaml 产物**：在 chat 里贴一段**纯文字摘要** + 告诉用户文件路径；用户要细节再发完整文件。不要假设用户会自己去翻 `data/ventures/` 目录。
 - **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
 - **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。
+
+## 写时更新（产物变了就刷新 home / studio）
+
+Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新的 —— 没有常驻进程做实时同步，所以**谁改了数据，谁负责顺手刷新**。
+
+这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
+
+1. 重渲这个 venture 的 Studio：`bun run ../lumilab-studio/scripts/render.ts ~/.lumilab/data/ventures/<slug>`
+2. 重渲 home dashboard：`bun run ../lumilab-home/scripts/home.ts render`
+
+这样用户回到 home 或 Studio 就能立刻看到这一步的产物，不用手动说「刷新」。如果只是读、没写 venture 数据，不用刷新。
+
+CLI 入口（`lumilab idea` / `config` / `deploy`）已经内置了写时更新；**对话式调用时由你（宿主 agent）负责补这两步**。

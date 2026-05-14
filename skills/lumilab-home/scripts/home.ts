@@ -57,6 +57,7 @@ interface PhaseMap {
   '2-report': boolean;
   '3-direction': boolean;
   '4-landing': boolean;
+  '5-retro': boolean;
 }
 interface VentureStatus {
   slug: string;
@@ -64,6 +65,7 @@ interface VentureStatus {
   phases: PhaseMap;
   progress: string;
   updated_at: string;
+  deployed: boolean;
 }
 interface HomeStatus {
   onboarded: boolean;
@@ -92,6 +94,19 @@ function readConfig(): { config: RawConfig | null; has_config: boolean } {
   } catch {
     // 损坏：has_config=true 但视为未 onboarded
     return { config: null, has_config: true };
+  }
+}
+
+// ── shares.json 读取（部署状态，损坏不崩）──
+function readDeployedSlugs(): Set<string> {
+  const p = join(lumilabHome(), 'shares.json');
+  if (!existsSync(p)) return new Set();
+  try {
+    const parsed = JSON.parse(readFileSync(p, 'utf-8')) as { shares?: { venture?: string }[] };
+    const list = Array.isArray(parsed?.shares) ? parsed.shares : [];
+    return new Set(list.map((s) => s?.venture).filter((v): v is string => typeof v === 'string'));
+  } catch {
+    return new Set();
   }
 }
 
@@ -135,7 +150,7 @@ function newestMtime(dir: string): string {
   return newest > 0 ? new Date(newest).toISOString() : new Date().toISOString();
 }
 
-function scanVenture(ventureDir: string, slug: string): VentureStatus {
+function scanVenture(ventureDir: string, slug: string, deployedSlugs: Set<string>): VentureStatus {
   const has = (rel: string) => existsSync(join(ventureDir, rel));
   let landingHasSubdir = false;
   if (has('landing')) {
@@ -159,20 +174,24 @@ function scanVenture(ventureDir: string, slug: string): VentureStatus {
       directionDecided = false;
     }
   }
+  const retroDone =
+    has('reports/retro.html') || has('retro.md') || has('reports/weekly-retro.html');
   const phases: PhaseMap = {
     '0-intake': has('project_brief.md'),
     '1-analysis': has('market_analysis.json'),
     '2-report': has('reports/market-report.html'),
     '3-direction': directionDecided,
     '4-landing': landingHasSubdir,
+    '5-retro': retroDone,
   };
   const done = Object.values(phases).filter(Boolean).length;
   return {
     slug,
     idea: has('project_brief.md') ? extractIdea(join(ventureDir, 'project_brief.md')) : '(无 project_brief)',
     phases,
-    progress: `${done}/5`,
+    progress: `${done}/6`,
     updated_at: newestMtime(ventureDir),
+    deployed: deployedSlugs.has(slug),
   };
 }
 
@@ -185,6 +204,7 @@ function scanVentures(): VentureStatus[] {
   } catch {
     return [];
   }
+  const deployedSlugs = readDeployedSlugs();
   const out: VentureStatus[] = [];
   for (const e of entries) {
     if (e.startsWith('.')) continue;
@@ -194,7 +214,7 @@ function scanVentures(): VentureStatus[] {
     } catch {
       continue;
     }
-    out.push(scanVenture(dir, e));
+    out.push(scanVenture(dir, e, deployedSlugs));
   }
   // 按最近活动排序
   out.sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
@@ -202,20 +222,47 @@ function scanVentures(): VentureStatus[] {
 }
 
 // ── 下一步建议 ──
-function nextSuggestion(onboarded: boolean, ventures: VentureStatus[]): string {
-  if (!onboarded) return '还没走首次引导 —— 说一句「lumilab config」开始配置（工具 token 都能跳过）';
-  if (ventures.length === 0) return '还没有 venture —— 说一句你的想法就能开始第一个验证';
-  // 找一个最值得推进的 venture
+// 返回一条主建议；render 时如果指向某个 venture 会把卡片链接拼上去。
+interface NextHint {
+  text: string;
+  slug: string | null;
+}
+function nextHint(onboarded: boolean, ventures: VentureStatus[]): NextHint {
+  if (!onboarded)
+    return { text: '还没走首次引导 —— 说一句「lumilab config」开始配置（工具 token 都能跳过）', slug: null };
+  if (ventures.length === 0)
+    return { text: '还没有 venture —— 在 AI 宿主里说一句你的想法就能开始第一个验证', slug: null };
   const stuckAtAnalysis = ventures.find((v) => v.phases['1-analysis'] && !v.phases['3-direction']);
   if (stuckAtAnalysis)
-    return `「${stuckAtAnalysis.slug}」分析做完了，回对话里选个方向往下走`;
-  const readyToDeploy = ventures.find((v) => v.phases['4-landing']);
+    return {
+      text: `「${stuckAtAnalysis.slug}」分析做完了 —— 点开它的卡片去 Studio 选方向`,
+      slug: stuckAtAnalysis.slug,
+    };
+  const readyToDeploy = ventures.find((v) => v.phases['4-landing'] && !v.deployed);
   if (readyToDeploy)
-    return `「${readyToDeploy.slug}」的 landing 好了，可以说「lumilab deploy」上线`;
+    return {
+      text: `「${readyToDeploy.slug}」的 landing 好了 —— 说「lumilab deploy」上线`,
+      slug: readyToDeploy.slug,
+    };
   const noAnalysis = ventures.find((v) => v.phases['0-intake'] && !v.phases['1-analysis']);
   if (noAnalysis)
-    return `「${noAnalysis.slug}」还停在 intake，跑一遍自主市场分析`;
-  return `继续推进「${ventures[0].slug}」，或说一句新想法开第二个 venture`;
+    return {
+      text: `「${noAnalysis.slug}」还停在 intake —— 跑一遍自主市场分析`,
+      slug: noAnalysis.slug,
+    };
+  const deployedNoRetro = ventures.find((v) => v.deployed && !v.phases['5-retro']);
+  if (deployedNoRetro)
+    return {
+      text: `「${deployedNoRetro.slug}」已上线 —— 收够数据后点开卡片做一次复盘`,
+      slug: deployedNoRetro.slug,
+    };
+  return {
+    text: `继续推进「${ventures[0].slug}」，或说一句新想法开第二个 venture`,
+    slug: ventures[0].slug,
+  };
+}
+function nextSuggestion(onboarded: boolean, ventures: VentureStatus[]): string {
+  return nextHint(onboarded, ventures).text;
 }
 
 // ── status 子命令 ──
@@ -280,12 +327,27 @@ function relativeTime(iso: string): string {
 }
 
 const PHASE_LABELS: { key: keyof PhaseMap; label: string }[] = [
-  { key: '0-intake', label: 'intake' },
-  { key: '1-analysis', label: '分析' },
-  { key: '2-report', label: '报告' },
-  { key: '3-direction', label: '选方向' },
-  { key: '4-landing', label: 'landing' },
+  { key: '0-intake', label: '想法澄清' },
+  { key: '1-analysis', label: '调研' },
+  { key: '2-report', label: '产品' },
+  { key: '3-direction', label: '构建' },
+  { key: '4-landing', label: '启动' },
+  { key: '5-retro', label: '复盘' },
 ];
+
+// venture 状态标签 —— 由完成的 phase + 是否部署推导
+function ventureStatusLabel(v: VentureStatus): { label: string; tone: string } {
+  if (v.phases['5-retro']) return { label: '已复盘', tone: 'retro' };
+  if (v.deployed) return { label: '已部署', tone: 'live' };
+  if (v.phases['4-landing']) return { label: 'landing 就绪', tone: 'ready' };
+  if (v.phases['1-analysis'] && !v.phases['3-direction'])
+    return { label: '待选方向', tone: 'wait' };
+  if (v.phases['0-intake'] && !v.phases['1-analysis'])
+    return { label: '待调研', tone: 'wait' };
+  const done = Object.values(v.phases).filter(Boolean).length;
+  if (done === 0) return { label: '刚建立', tone: 'idle' };
+  return { label: '进行中', tone: 'going' };
+}
 
 // ── HTML 区块渲染 ──
 function renderTools(status: HomeStatus): string {
@@ -328,6 +390,8 @@ function renderPhaseBar(phases: PhaseMap): string {
   return `<div class="phase-bar">${segs}</div>`;
 }
 
+const VENTURE_SHOW_LIMIT = 12;
+
 function renderVentures(status: HomeStatus): string {
   if (status.ventures.length === 0) {
     return `
@@ -338,45 +402,66 @@ function renderVentures(status: HomeStatus): string {
     </div>
     <div class="empty">
       <p class="empty__title">还没有 venture</p>
-      <p class="empty__body">说一句你的想法就能开始第一个 —— 系统会自动跑市场分析、给方向建议、生成一个验证 landing。</p>
+      <p class="empty__body">在 AI 宿主里说一句你的想法就能开始第一个 —— 系统会自动跑市场分析、给方向建议、生成一个验证 landing。</p>
+      <code class="empty__code">lumilab idea "你的想法"</code>
     </div>
   </section>`;
   }
-  const cards = status.ventures
+  const shown = status.ventures.slice(0, VENTURE_SHOW_LIMIT);
+  const cards = shown
     .map((v, i) => {
+      const st = ventureStatusLabel(v);
+      const deployedBadge = v.deployed
+        ? `<span class="venture-badge">🌐 已上线</span>`
+        : '';
+      const href = `../ventures/${encodeURIComponent(v.slug)}/studio/index.html`;
       return `
-      <article class="venture-card" style="--i:${i}">
+      <a class="venture-card" href="${esc(href)}" style="--i:${i}">
         <header class="venture-card__head">
           <span class="venture-slug">${esc(v.slug)}</span>
           <span class="venture-progress">${esc(v.progress)}</span>
         </header>
-        <p class="venture-idea">${esc(truncate(v.idea, 64))}</p>
+        <p class="venture-idea">${esc(truncate(v.idea, 72))}</p>
         ${renderPhaseBar(v.phases)}
         <footer class="venture-card__foot">
+          <span class="venture-status venture-status--${st.tone}">${esc(st.label)}</span>
+          ${deployedBadge}
           <span class="venture-updated">${esc(relativeTime(v.updated_at))}</span>
+          <span class="venture-open">打开 Studio →</span>
         </footer>
-      </article>`;
+      </a>`;
     })
     .join('');
+  const overflow =
+    status.ventures.length > VENTURE_SHOW_LIMIT
+      ? `<p class="venture-overflow">共 ${status.ventures.length} 个，上面是最近活跃的 ${VENTURE_SHOW_LIMIT} 个</p>`
+      : '';
   return `
   <section class="section" style="--s:2">
     <div class="section__head">
       <span class="section__no">Nº 02</span>
       <h2 class="section__title">我的 venture</h2>
-      <p class="section__hint">共 ${status.ventures.length} 个 · 按最近活动排序</p>
+      <p class="section__hint">共 ${status.ventures.length} 个 · 按最近活动排序 · 点卡片进各自的 Studio</p>
     </div>
     <div class="venture-grid">${cards}</div>
+    ${overflow}
   </section>`;
 }
 
 function renderNext(status: HomeStatus): string {
+  const hint = nextHint(status.onboarded, status.ventures);
+  const suggestion = hint.slug
+    ? `<a class="next-suggestion next-suggestion--link" href="../ventures/${esc(
+        encodeURIComponent(hint.slug),
+      )}/studio/index.html">${esc(hint.text)}</a>`
+    : `<p class="next-suggestion">${esc(hint.text)}</p>`;
   return `
   <section class="section section--next" style="--s:3">
     <div class="section__head">
       <span class="section__no">Nº 03</span>
-      <h2 class="section__title">下一步</h2>
+      <h2 class="section__title">下一步建议</h2>
     </div>
-    <p class="next-suggestion">${esc(status.next_suggestion)}</p>
+    ${suggestion}
     <ul class="next-actions">
       <li class="next-action">
         <span class="next-action__key">新 idea</span>
@@ -384,7 +469,7 @@ function renderNext(status: HomeStatus): string {
       </li>
       <li class="next-action">
         <span class="next-action__key">继续 venture</span>
-        <span class="next-action__body">说 venture 名字，接着上次的进度往下走</span>
+        <span class="next-action__body">点上面任意卡片进它的 Studio，接着上次的进度往下走</span>
       </li>
       <li class="next-action">
         <span class="next-action__key">改配置</span>
@@ -511,6 +596,16 @@ body::before {
   color: var(--ink-2);
   margin-bottom: 20px;
 }
+.header__what {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--mute);
+  background: var(--paper-2);
+  border-left: 3px solid var(--hairline-2);
+  padding: 11px 14px;
+  margin-bottom: 18px;
+}
 .header__meta {
   display: flex;
   flex-wrap: wrap;
@@ -520,6 +615,26 @@ body::before {
   font-size: 12px;
   color: var(--mute);
 }
+
+/* ── Freshness bar ── */
+.freshbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 9px clamp(20px, 5vw, 56px) 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--mute-2);
+}
+.freshbar__time { color: var(--mute); font-weight: 600; }
+.freshbar__sep { color: var(--hairline-2); }
+.freshbar__hint { color: var(--mute-2); }
 
 /* ── Section frame ── */
 .section { margin-bottom: 56px; }
@@ -613,7 +728,19 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.venture-card:hover,
+.venture-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px oklch(25% 0.02 60 / 0.12), 0 0 0 1px var(--indigo);
+  outline: none;
+}
+.venture-card:hover .venture-open,
+.venture-card:focus-visible .venture-open { color: var(--indigo); }
 .venture-card__head {
   display: flex;
   align-items: center;
@@ -667,9 +794,45 @@ body::before {
 }
 .phase.is-done .phase__label { color: var(--moss); }
 .venture-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--mute);
+}
+.venture-status {
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.venture-status--retro { color: var(--indigo); background: var(--indigo-soft); }
+.venture-status--live  { color: var(--moss);   background: var(--moss-soft); }
+.venture-status--ready { color: var(--ochre);  background: var(--ochre-soft); }
+.venture-status--wait,
+.venture-status--going { color: var(--accent); background: var(--accent-soft); }
+.venture-status--idle  { color: var(--mute);   background: var(--paper-2); }
+.venture-badge {
+  font-weight: 600;
+  color: var(--moss);
+  background: var(--moss-soft);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.venture-updated { color: var(--mute-2); }
+.venture-open {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--mute-2);
+  transition: color 0.18s ease;
+}
+.venture-overflow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute-2);
+  margin-top: 14px;
+  text-align: center;
 }
 
 /* ── Empty state ── */
@@ -691,7 +854,18 @@ body::before {
   line-height: 1.6;
   color: var(--ink-2);
   max-width: 420px;
-  margin: 0 auto;
+  margin: 0 auto 16px;
+}
+.empty__code {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  padding: 8px 14px;
+  border-radius: 2px;
+  user-select: all;
 }
 
 /* ── Next ── */
@@ -704,6 +878,7 @@ body::before {
   border-bottom: 1px solid var(--hairline);
 }
 .next-suggestion {
+  display: block;
   font-family: var(--serif);
   font-weight: 500;
   font-size: clamp(1.25rem, 1rem + 1.4vw, 1.7rem);
@@ -712,6 +887,16 @@ body::before {
   border-left: 4px solid var(--accent);
   padding-left: 18px;
   margin-bottom: 24px;
+}
+.next-suggestion--link {
+  text-decoration: none;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+.next-suggestion--link:hover,
+.next-suggestion--link:focus-visible {
+  border-left-color: var(--indigo);
+  color: var(--indigo);
+  outline: none;
 }
 .next-actions { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .next-action {
@@ -769,15 +954,21 @@ body::before {
 </style>
 </head>
 <body>
+<div class="freshbar">
+  <span class="freshbar__time">数据更新于 ${formatNow()}</span>
+  <span class="freshbar__sep">·</span>
+  <span class="freshbar__hint">写时更新 —— skill 干完活会自动重渲染。要手动刷新？跟 AI 说「刷新 lumilab home」</span>
+</div>
 <main class="wrap">
   <header class="header">
     <div class="header__kicker">Lumi Lab · Home</div>
     <h1 class="header__title">Lumi Lab</h1>
     <p class="header__tagline">从一句话想法，到一个能测真实购买意愿的验证 landing。</p>
+    <p class="header__what">C 端创业 idea 的快速验证工具：一句话 idea → 自动市场分析 → fake-door 验证页。每个 venture 都有自己的 Studio 作战室，点下面的卡片就能进。</p>
     <div class="header__meta">
-      <span>生成于 ${formatNow()}</span>
       <span>channel · ${esc(status.channel)}</span>
       <span>${status.onboarded ? '已 onboarded' : '未 onboarded'}</span>
+      <span>${status.ventures.length} 个 venture · 已配 ${status.tools_configured.length}/${status.tools_total} 工具</span>
     </div>
   </header>
 
