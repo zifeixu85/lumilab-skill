@@ -6,7 +6,7 @@ English ｜ [简体中文](README.md)
 
 **Lumi Lab** is a 22-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
 
-[![Version](https://img.shields.io/badge/version-1.1.0-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-22-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)

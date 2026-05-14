@@ -6,7 +6,7 @@
 
 **Lumi Lab** 是一套 22 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-[![版本](https://img.shields.io/badge/version-1.1.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.2.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-22-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
@@ -45,9 +45,9 @@ Lumi Lab 把这些答案编码成 21 个自包含的 skill + 一个共享的 `~/
 
 ## 你得到什么
 
-### 一句话 idea → landing 页（默认流程）
+### 一句话 idea → 能测购买意愿的验证页（默认流程）
 
-`lumilab-idea-to-landing` 是默认入口，autoplan 式自动流水线：
+Lumi Lab 是 **C 端创业 idea 的快速验证工具**。`lumilab-idea-to-landing` 是默认入口，autoplan 式自动流水线：
 
 ```
 你：一句话 idea
@@ -56,12 +56,15 @@ Lumi Lab 把这些答案编码成 21 个自包含的 skill + 一个共享的 `~/
  ↓
 交付：图文并茂的 HTML 分析报告 + 3-5 个具体方向建议
  ↓  （唯一一次决策：选个方向，或说「你来定」）
-自动：设计 + 文案 + 生成带 SEO/GEO 的 landing 页
+自动：设计 + 文案 + 生成 fake-door 验证页（带 SEO/GEO）
  ↓
-交付：可部署的 landing HTML（一条命令上线验证）
+交付：可部署的验证页 —— 真实「立即购买/留邮箱」CTA + 转化追踪
+       上线几天，回收「有多少人表达了购买意愿」这个数字
 ```
 
-不是陪你聊天、一步步追问——是**帮你判断 + 帮你做**。中间产物全部 HTML 主动推给你看，不静默落盘。
+最终产出的 landing **不是营销页，是验证仪器**——它的工作是测量需求信号（CTA 点击率、邮箱留资率）。不是陪你聊天、一步步追问，是**帮你判断 + 帮你做出验证工具**。中间产物全部 HTML 主动推给你看，不静默落盘。
+
+社媒验证：`lumilab-content-repurpose --validate` 还能生成专门测意愿的小红书/推特素材。验证跑完，`lumilab retro` 帮你把数字归到强/中/弱信号、判断继续还是 pivot。
 
 ### 一个可选的深度教练
 

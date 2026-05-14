@@ -3,7 +3,7 @@ name: lumilab-hypothesis-ledger
 description: |
   Atomic hypothesis ledger for Lumi Lab. Track startup hypotheses as YAML facts with supersede history, confidence scoring, test methods, and verification counts. Generates HTML diff view when hypothesis evolves. Use when user wants to add/update/supersede/list hypotheses, when Research Agent finds evidence that contradicts a hypothesis, when Review Agent runs weekly retro, or when ven­ture decision needs traceable history.
   关键词：假设 / 假设管理 / hypothesis / ledger / 创业假设 / supersede / 复盘 / 验证 / Mom Test / lean startup / atomic fact
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [hypothesis, atomic-fact, supersede, lean-startup]

@@ -1,9 +1,9 @@
 ---
 name: lumilab-idea-to-landing
 description: |
-  One-sentence idea → autonomous market analysis → direction proposals → designed landing page. The default Lumi Lab entry point. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Use when the user gives a startup idea, says "帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast.
+  One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Use when the user gives a startup idea, says "帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast.
   关键词：idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 方向建议 / landing 生成 / SEO / GEO / orchestrator / 自动流水线 / idea to landing / 想法落地 / 轻量验证
-version: 1.1.0
+version: 1.2.0
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:
@@ -36,23 +36,42 @@ metadata:
 
 # Idea → Landing — Lumi Lab 默认入口
 
+## ⚠️ EXECUTION CONTRACT —— 先读这个，这是硬约束
+
+**这个 SKILL.md 是一条可执行流水线，不是「思考建议」。** 你（宿主 agent）被调用时，必须按 Phase 0→5 一步步执行，跑脚本、写文件、交付产物。下面是不可违反的硬约束：
+
+1. **必须跑脚本。** Phase 里写了 `bun run scripts/...` 的，就真的去跑。不要「假装跑了」或跳过。
+2. **分析写进文件，不堆在 chat 里。** Phase 1 的市场/竞品/人群分析**必须**写进 `market_analysis.json`。**禁止**把分析当成大段文字直接发在对话里 —— 那是这个产品最大的失败模式。
+3. **必须交付 HTML。** Phase 2 的市场报告、Phase 4 的验证页，**必须**生成 HTML 文件并主动交付给用户（本地开浏览器 / chat 发文件附件）。chat 里只能贴**简短摘要**，不能贴全文。
+4. **最多问用户 2 次。** 一次是 Phase 0 的可选 intake（能跳过就跳过），一次是 Phase 3 的方向选择门（用 AskUserQuestion，结构化选项）。**其余 phase 0 提问。**
+5. **过了 Phase 3 决策门，必须一路跑到 Phase 5 产出验证页，中间不准停、不准再问。** 不准说「要不要我继续」「你回复一句继续」。决策门之后就是自动执行。
+6. **结尾不准是开放问题。** Phase 5 结尾给的是**具体路径选项**（部署 / 调方向 / 看其它方向），不是「你想怎么办」这种开放式审问。
+7. **不准在分析阶段回头追问。** Phase 1-2 不准向用户提问。缺信息就推断 —— 推断不出来也先用最合理的假设往下走，在报告里标「（推断）」。
+
+**如果你发现自己在 chat 里写了三段以上的分析文字、或者还没产出任何 HTML 文件就停下来问用户问题 —— 你跑偏了。回到流水线。**
+
 ## 这个 skill 是什么
 
-**一句话 idea 进，能验证想法的 landing 页出。** 中间的市场分析、竞品扫描、人群拆解、方向建议、文案、设计、SEO/GEO —— 全部自动跑完，**只在两个地方停下来跟用户确认**：
+**Lumi Lab 是 C 端创业 idea 的「快速验证」工具。** 这个 skill 是默认入口：
 
-1. 开头**一次**可选的极简补充（用户可以直接跳过）
-2. 中间**一次**方向选择（给用户 3-5 个具体方向 + 推荐，用户选一个 / 说自己的 / 说「你来定」）
+**一句话 idea 进 → 自动市场分析 → 方向建议 → 用户选方向 → 生成「验证工具」（一个能测购买意愿的 fake-door 落地页）。**
 
-其余全自动。**不逐步追问。** 用户要的是「帮我判断 + 帮我做」，不是「陪我聊」。
+注意定位：最终产出的 landing page **不是营销页，是验证仪器**。它的工作是测量一个数字 —— 搜到关键词的人里，有多少人点了「立即购买」、留了邮箱。那个数字就是需求信号。
 
-> 这是 Lumi Lab 的默认流程。如果用户**明确说**想被深度追问、想一步步梳理思路 —— 那才用 `lumilab-founder-coach` 的深度模式。
+整条流水线**只在两个地方**停下来问用户：
+1. Phase 0：**一次**可选的极简补充（能跳过）
+2. Phase 3：**一次**方向选择（3-5 个具体方向 + 推荐，用户选一个 / 说自己的 / 说「你来定」）
+
+其余全自动。用户要的是「帮我判断 + 帮我做出验证工具」，不是「陪我聊」。
+
+> 如果用户**明确说**想被深度追问、想一步步梳理思路 —— 那才转 `lumilab-founder-coach` 深度模式。
 
 ## 何时触发
 
 - 用户给一个创业想法 / 产品点子（哪怕只有一句话）
 - 用户说「帮我看看这个想法行不行」「验证一下」「做个 landing」「我想做个 X」
 - 用户输入 `lumilab idea "<一句话>"`
-- 任何「从 idea 到落地」的诉求
+- 任何「从 idea 到落地 / 验证」的诉求
 
 **不要**因为用户给的 idea「太模糊」就开始一连串追问。模糊是常态 —— 模糊正是这个 skill 要解决的问题。
 
@@ -62,6 +81,15 @@ metadata:
 - **Autoplan 式编排**：自动决策，只在真正的品味分叉点停下来。每个 STOP 点都是一个真实的、用户比你更懂的决策。
 - **决策简报式提问**：要问的时候，给推荐 + 利弊，用户选就行 —— 不是开放式审问。
 - **主动交付**：每个用户该看的产物，都用 HTML 图文并茂呈现并主动推给用户。不要把 .md 静默落盘就完事。
+
+## 反例 —— 这些就是跑偏（实测踩过的坑）
+
+❌ 把市场分析、竞品列表、方向建议**当成大段文字直接发在 chat 里** —— 应该写进 `market_analysis.json` + 渲染成 HTML 报告交付。
+❌ 分析做完了，结尾说「你回复一句：继续，我就帮你收窄定位」 —— 这是开放式审问 + 停在半路。应该用 Phase 3 的 AskUserQuestion 决策门，然后**自动继续**。
+❌ 跑完分析就停，**没有生成任何 HTML、没有跑到验证页** —— 必须一路跑到 Phase 5。
+❌ 在 Phase 1 回头问用户「你的目标用户具体是谁」 —— Phase 1 不准提问，推断。
+❌ 读了 SKILL.md 就开始自由发挥地「咨询式对话」 —— 这是可执行流水线，跑脚本、写文件、交付产物。
+❌ Phase 2/4 只在 chat 里描述「我帮你做了个 landing，它长这样……」却没有真的生成 HTML 文件 —— 必须有真文件并交付。
 
 ---
 
@@ -183,48 +211,74 @@ B) <方向2 title>
 - 用户说「你来定」 → 用推荐的那个
 - 把选择记进 `decisions.yaml`
 
+**用户一选定，立刻进 Phase 4，不要停、不要确认、不要问「要不要我开始做」。** 决策门已经过了，剩下是自动执行。
+
 ---
 
-## Phase 4 · 自动生成 Landing（0 提问）
+## Phase 4 · 自动生成验证工具（0 提问，不准停）
 
-**不问任何问题。** 用选定的方向，自动生成 landing page。
+**过了 Phase 3 决策门，这里开始全自动，一口气跑到 Phase 5。不准问任何问题，不准中途停下来确认。**
 
-### 4.1 设计方向
+用选定的方向，生成一个 **fake-door 验证页** —— 它不是营销页，是验证仪器，工作是测量购买意愿。
 
-不要为了设计去开浏览器问用户。基于方向的调性，**自动**定一套 design direction（preset + 配色 + 字体），写 `design_direction.json`。
-- 调 `lumilab-design-direction` 的方法论自动选，不走它的浏览器 UI
+### 4.1 自动定设计方向
+
+不要为了设计去开浏览器、不要问用户。基于方向的调性，**自动**定一套 design direction（preset + 配色 + 字体），写 `design_direction.json`：
+- 调 `lumilab-design-direction` 的方法论自动选，**不走**它的浏览器 UI
 - 4 个 preset（editorial / minimalist / brutalist / soft）按 idea 调性自动挑
 
-### 4.2 生成 landing
+### 4.2 生成 fake-door 验证页
 
-调 `lumilab-landing-mvp`：
-- 6 阶段流水线
-- **必须**带 SEO + GEO（见 `lumilab-landing-mvp` 的 `## SEO + GEO` 段）：meta/OG/structured data/sitemap/robots.txt/llms.txt + FAQ section + JSON-LD
-- 文案调 `lumilab-copy` 方法论（VoC、awareness stages、禁 slop 词）
-- 过 Anti-Slop + SEO/GEO 质量 gate
+调 `lumilab-landing-mvp`（它已经是 fake-door 验证页生成器，见该 skill 的 `## Fake-door 验证机制` 段）：
+- **必须有真实、显眼的主 CTA**：「立即购买」/「立即预订」/「￥XX 抢先体验」—— 真实价格、真实按钮
+- **点击主 CTA → fake-door modal**：「即将上线，留个邮箱第一时间通知你」+ 邮箱输入。点击 = 意愿信号，留邮箱 = 强意愿信号
+- **内嵌转化追踪 JS**：记录 `cta_click` / `email_submit` 事件
+- **必须带 SEO + GEO**（见 `lumilab-landing-mvp` 的 `## SEO + GEO` 段）—— 被搜到才能验证
+- 文案调 `lumilab-copy` 方法论；过 Anti-Slop + SEO/GEO + fake-door 质量 gate
 
-### 4.3 渲染 + 校验
+### 4.3 校验
 
 ```bash
 bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
 ```
 
+没过 gate 就先补齐，不要交付一个残缺的验证页。
+
 ---
 
-## Phase 5 · 交付
+## Phase 5 · 交付 + 怎么跑这个验证
 
-把成品**主动交付**给用户：
+把验证页**主动交付**给用户，并明确告诉用户**怎么用它做验证、跑完回来报什么数字**：
 
-- **landing HTML**：本地浏览器打开 / 飞书发文件附件
-- 一段纯文字总结：这个 landing 主打什么方向、第一屏说了什么、SEO/GEO 做了什么
-- **下一步选项**（不是提问，是给路径）：
-  ```
-  landing 已生成。接下来你可以：
-  · 直接部署验证：lumilab deploy <slug>（加密 + 密码门 + 公开 URL，30 秒）
-  · 想调方向：告诉我，我重跑 Phase 4
-  · 想看其它方向的 landing：告诉我方向编号
-  ```
-- 如果用户配了 Cloudflare token，可以直接问一次「要现在部署吗？」（决策简报式，A=部署 / B=先不）
+### 5.1 交付验证页
+
+- **landing HTML**：本地浏览器打开 / chat 发文件附件
+- 一段简短摘要（不超过 5 行）：这个验证页主打哪个方向、主 CTA 是什么、怎么测意愿
+
+### 5.2 告诉用户怎么验证（这一步不能省）
+
+```
+这是一个验证页，不是成品。它的工作是测「有没有人愿意买」。
+
+怎么用：
+1. 部署上线：lumilab deploy <slug>（加密可选，公开验证就别加密）
+2. 把链接发到目标人群在的地方（小红书 / 即刻 / 相关社群 / 搜索投放）
+3. 跑 3-7 天，回收三个数字：访问量 UV / 主 CTA 点击率 / 邮箱留资率
+
+跑完回来把数字告诉我，我帮你判断这是强信号还是弱信号、要不要继续。
+（判断基准见验证页生成时附带的 validation_setup.md）
+```
+
+### 5.3 下一步路径（给选项，不是开放问题）
+
+```
+接下来你可以：
+· 现在就部署：说「部署」，我跑 lumilab deploy
+· 想调方向：说方向编号，我重跑 Phase 4
+· 想要社媒验证素材：说「来一份小红书/推特」，我生成测意愿的社媒素材
+```
+
+如果用户配了 Cloudflare token，可以用 AskUserQuestion 直接问一次「要现在部署吗？」（A=部署 / B=先不）—— 这是决策简报式，不算开放问题。
 
 ---
 
@@ -311,19 +365,28 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts data/ventures/<slug>
 - `data/ventures/<slug>/landing/` — 最终 landing page（含 SEO/GEO）
 - `data/ventures/<slug>/decisions.yaml` — 方向选择记录
 
-## Example
+## Example（完整流水线，注意 agent 全程在跑脚本/写文件，不是在 chat 里聊）
 
 ```
 User（飞书）: 我想做一个帮自由职业者管理多个客户项目的工具
-Bot: [orchestrate.ts init] → venture: freelancer-project-hub
+Bot: [跑 orchestrate.ts init] → venture: freelancer-project-hub，token 状态已检测
      [Phase 0.2] idea 已含「做什么+给谁」→ 跳过提问
-     [Phase 1] 无 token → 用宿主 LLM 知识分析市场/竞品/人群 → 写 market_analysis.json
-     [Phase 2] 渲染 market-report.html → 飞书发文件附件 + 文字摘要
+     [Phase 1] 分析市场/竞品/人群 → 写进 market_analysis.json（不在 chat 里堆文字）
+     [跑 validate-output.ts] → 校验通过
+     [Phase 2] 跑 market-report.ts → 生成 market-report.html
+     → 飞书发 HTML 文件附件 + chat 里只贴 5 行摘要
      [Phase 3] AskUserQuestion：3 个方向，推荐「按客户分账的轻量看板」
 User: A
-Bot: [Phase 4] 自动定 design direction → landing-mvp 生成带 SEO/GEO 的 landing
-     [Phase 5] 飞书发 landing HTML 附件 + 总结 + 「要部署吗？」
+Bot: [Phase 4 立刻开始，不问「要不要继续」]
+     自动定 design direction → 跑 landing-mvp 生成 fake-door 验证页
+     （真实「立即购买」CTA + fake-door modal + 转化追踪 JS + SEO/GEO）
+     [跑 validate-output.ts] → 校验通过
+     [Phase 5] 飞书发验证页 HTML 附件 + 5 行摘要
+     + 告诉用户「怎么跑这个验证、回收哪 3 个数字」
+     + 给路径选项（部署 / 调方向 / 要社媒素材）
 ```
+
+**反例对照**：如果 Bot 在 Phase 1 把竞品列表、市场分析、方向建议全部当成大段文字发在 chat 里，然后说「你回复『继续』我就帮你收窄」—— 那就是跑偏了。正确做法是上面那样：分析进 JSON，报告是 HTML 附件，决策门用 AskUserQuestion，选完自动跑到验证页。
 
 ## Tests
 
@@ -383,7 +446,8 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 
 ## Changelog
 
-- **1.1.0** (2026-05-14) — 新建。Lumi Lab 默认入口，autoplan 式 orchestrator。取代「founder-coach 逐步追问」成为主流程。
+- **1.2.0** (2026-05-14) — 加硬性 EXECUTION CONTRACT + 反例清单（修 Hermes 实测「分析堆 chat、不出 HTML、结尾问开放问题」的跑偏）。reframe 为 C 端 idea 验证：Phase 4 产出 fake-door 验证页（测购买意愿），Phase 5 加「怎么跑验证 + 回收数据」。
+- **1.1.0** (2026-05-14) — 新建。Lumi Lab 默认入口，autoplan 式 orchestrator。
 
 ## 主动交付（不要静默落盘）
 

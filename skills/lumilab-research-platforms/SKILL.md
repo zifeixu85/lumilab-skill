@@ -3,7 +3,7 @@ name: lumilab-research-platforms
 description: |
   Dual-channel platform research for venture validation. Channel A = browser automation (Playwright / CDP) for 小红书 (P0), 抖音 / 微博 / 知乎 / B 站 (P1). Channel B = third-party APIs (Exa / Tavily for web; TikHub / 飞瓜 / 新榜 for China). Outputs cross-platform synthesis with pain point density, source URLs, evidence excerpts. Feeds back to hypothesis-ledger as evidence. Use when user types /lumilab research or asks for market/competitor/painpoint data.
   关键词：调研 / research / 市场调研 / 竞品分析 / 小红书搜索 / web search / 双通道 / Playwright / Exa / TikHub / cross-platform / 痛点挖掘
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [xhs, exa, tikhub, research, playwright]

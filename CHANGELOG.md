@@ -102,6 +102,39 @@
 
 ---
 
+## [1.2.0] · 2026-05-14 · 产品定义收敛 — C 端 idea 验证工具 + EXECUTION CONTRACT
+
+> **基于第二次 Hermes 实测的纠偏。** v1.1.0 的 idea-to-landing 在实测中跑偏了：agent 把 SKILL.md 当「思考建议」读，分析全堆 chat 成大段文字、没生成 HTML、没跑到 landing、结尾还在问「回复一句：继续」。同时 user 收敛了产品定义——Lumi Lab 是 **C 端创业 idea 的快速验证工具**，最终产物是测购买意愿的 **fake-door 验证页**，不是营销页。
+
+### Changed
+
+**`lumilab-idea-to-landing` 加硬性 EXECUTION CONTRACT**
+- 顶部加 7 条不可违反的硬约束：必须跑脚本 / 分析写进 JSON 文件不堆 chat / 必须交付 HTML / 最多问 2 次 / 过了决策门一路跑到产出不准停 / 结尾不准开放问题 / 分析阶段不准回头追问
+- 加「反例」段：列出实测踩过的 6 个跑偏模式（分析堆 chat、结尾问「回复继续」、不出 HTML 等）
+- Phase 4 reframe：从「生成 landing」改为「生成 fake-door 验证工具」
+- Phase 5 加「怎么跑这个验证 + 回收哪 3 个数字」
+- Example 改为完整流水线演示 + 反例对照
+
+**`lumilab-landing-mvp` reframe 成 fake-door 验证页生成器**
+- 用途从「营销落地页」改为「验证仪器」——产出是一个数字：多少人表达了购买意愿
+- 新增 `## Fake-door 验证机制`：真实「立即购买/留邮箱」CTA + fake-door modal + 转化追踪 JS（`cta_click`/`email_submit`）+ 诚实边界（不假装能买）
+- 新增 `## 验证指标`：UV / CTA 点击率 / 邮箱留资率 + 判断基准
+- 质量 gate 7 → 8（加 fake-door gate）；validator 扩展校验真实 CTA / modal / 追踪 JS
+
+**`lumilab-content-repurpose` 加验证模式**
+- `--validate` 模式：生成专门测意愿的小红书/推特素材（明确「意愿动作」召唤 + 诚实定位 + 可回收信号设计）
+
+**`lumilab-weekly-sop-runner` 加验证回收用法**
+- 明确 idea 验证闭环最后一环：fake-door / 社媒的数字 → 四桶 → persevere/pivot/re-test 判断
+
+### Why
+第二次 Hermes 实测：分析质量不错但全堆在 chat 里、没产出 HTML、没跑到 landing、结尾又是开放问题。根因是 SKILL.md 不够 imperative。修复 = 硬性 EXECUTION CONTRACT + 反例清单。同时 user 收敛产品定义为「C 端 idea 验证工具」，landing = 验证仪器。
+
+### Changed (versions)
+- `VERSION` 1.1.0 → 1.2.0；manifest + 22 SKILL.md frontmatter → 1.2.0
+
+---
+
 ## [1.1.0] · 2026-05-14 · 产品方向纠偏 — 一句话 idea → landing 自动流水线
 
 > **基于 Hermes 实测反馈的方向纠偏。** 旧的 `founder-coach` 逐步追问交互被否决——用户要的是「帮我判断 + 帮我做」的轻量自动流水线，不是「陪我聊」。借鉴 [gstack](https://github.com/garrytan/gstack) 的 autoplan 编排 + 决策简报式提问 + boil-the-lake 原则。

@@ -3,7 +3,7 @@ name: lumilab-content-repurpose
 description: |
   Multi-platform content repurposing for venture validation. Takes one source content (idea, story, insight) and generates 5 platform-specific versions following each platform's hard constraints. Deep support for 小红书 / 微信公众号 / X. Template-based for 抖音 / 朋友圈 (Phase 0 lighter, Phase 1 enrich). Reads platform rules from memory/resources/platform-rules/. Use when user types /lumilab content or /lumilab build-assets.
   关键词：多平台内容 / 一稿七发 / 跨平台改写 / 内容矩阵 / 小红书 / 公众号 / 抖音 / 朋友圈 / X / 内容工厂 / 自媒体
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [content, xiaohongshu, wechat, douyin, x, repurpose]
@@ -46,6 +46,27 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 把 venture 的核心信息（定位 / 痛点 / 解决方案）改写成 5 个平台的合规内容。
 
 **不是简单翻译/复制粘贴**：每个平台有不同的钩子结构、字数限制、视觉规则、违禁词。
+
+**两种模式：**
+- **传播模式**（默认）：venture 已经在跑，要持续产出内容。
+- **验证模式**（`--validate`）：venture 还在验证阶段，内容的工作不是「传播」，是**测量意愿** —— 见下面「## 验证模式」。
+
+## 验证模式（社媒验证素材）
+
+当用户在用 `lumilab-idea-to-landing` 验证一个 idea，除了 fake-door landing，还可以用社媒测意愿。这个模式生成的小红书 / 推特素材，**目的是产生可计数的意愿信号**，不是涨粉。
+
+每篇验证素材必须包含：
+1. **一个明确的「意愿动作」召唤** —— 不是「点赞收藏」，是能体现购买意愿的动作：
+   - 「想要的扣 1」/「需要的评论区 +1」/「我做出来你会买吗，会的话评论『要』」
+   - 「留邮箱我第一时间通知你」（引导到 landing 或私信）
+   - 「转发给一个需要的朋友」
+2. **诚实定位**：说清楚「还在验证 / 还没做出来 / 想看看有多少人需要」—— 不假装产品已存在。诚实反而是强钩子（「我在考虑做一个 X，先问问大家」）。
+3. **可回收的信号设计**：发之前就想清楚「跑完我数什么」——评论里的「要」数、私信数、邮箱数、转发数。
+4. **目标人群在的平台**：从 `market_analysis.json` 的 `audience[].where_they_are` 选平台，不要 5 个平台全发。
+
+输出 `data/ventures/<slug>/content/validation/<platform>.md`，每篇带一段 `## 怎么回收` 说明跑完数什么。
+
+判断基准（经验值，需结合自身粉丝量调整）：一条几百赞的笔记，评论区 ≥ 30 个明确「要」≈ 中信号；有人主动私信问「怎么买 / 什么时候上」≈ 强信号。这些数字回收到 `lumilab-weekly-sop-runner` 的周复盘四桶。
 
 ## 流程
 

@@ -14,7 +14,7 @@
  *   <venture-dir>/landing/v<n>/styles.css
  *   <venture-dir>/landing/v<n>/anti-slop-checklist.md  (6 checklist rows)
  *
- * 7-rule gate on index.html + styles.css:
+ * 8-rule gate on index.html + styles.css:
  *   1 no Inter/Roboto/Arial
  *   2 no purple hero gradient
  *   3 not centered-H1 + 3-col cards (must use grid/split layout)
@@ -24,13 +24,17 @@
  *   7 SEO+GEO: <title> <= 60 chars, <meta name="description">, >= 1
  *     application/ld+json, an FAQ section, all <img> have alt, and
  *     sitemap.xml / robots.txt / llms.txt exist in the build dir
+ *   8 fake-door: a real buy-style primary CTA (text matches
+ *     立即购买|立即预订|抢先体验|预订), a fake-door modal, inline tracking JS
+ *     containing the cta_click + email_submit event strings, and the modal
+ *     copy stays honest (no 立即支付 / 下单成功 fake-transaction wording)
  */
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log("Usage: bun run scripts/validate-output.ts <venture-dir>");
-  console.log("Validates landing/v<n>/ build + runs the 7-rule quality gate.");
+  console.log("Validates landing/v<n>/ build + runs the 8-rule quality gate.");
   process.exit(0);
 }
 
@@ -109,6 +113,18 @@ if (existsSync(htmlPath) && existsSync(cssPath)) {
   for (const f of ["sitemap.xml", "robots.txt", "llms.txt"]) {
     if (!existsSync(join(vdir, f))) issues.push(`gate7: ${f} missing in build dir`);
   }
+
+  // gate8: fake-door validation mechanism
+  const buyCtaText = /立即购买|立即预订|抢先体验|预订/;
+  if (!buyCtaText.test(html))
+    issues.push("gate8: no real buy-style primary CTA (need 立即购买|立即预订|抢先体验|预订)");
+  const hasModal = /id=["']fakedoor["']/.test(html) || /class=["'][^"']*fakedoor/.test(html);
+  if (!hasModal) issues.push("gate8: no fake-door modal found (expected id/class 'fakedoor')");
+  if (!html.includes("cta_click") || !html.includes("email_submit"))
+    issues.push("gate8: tracking JS missing cta_click / email_submit events");
+  const fakeTransaction = /立即支付|下单成功|支付成功|购买成功/;
+  if (fakeTransaction.test(html))
+    issues.push("gate8: modal copy not honest (fake-transaction wording detected)");
 }
 
 if (issues.length === 0) {

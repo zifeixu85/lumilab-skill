@@ -3,7 +3,7 @@ name: lumilab-weekly-sop-runner
 description: |
   7-day standard operating procedure (SOP) generator for venture validation experiments. Generates Day 0-7 blueprint with self-contained cold-start brief per day, content publishing calendar, data collection table, decision thresholds. Registers paperclip routines (P0 structure only, P1 enables actual cron). Use when user types /lumilab launch or /lumilab sop, after content is generated.
   关键词：7 天 SOP / 增长实验 / launch plan / 冷启动 / cron / blueprint / 发布日历 / 数据回收 / 决策阈值 / paperclip routines / OKR / Pirate metrics
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [sop, growth, 7-day, retro]
@@ -283,6 +283,24 @@ created_at: 2026-05-14T...
 ```
 
 后续 `coach` / `hypothesis-ledger` 可读这份 YAML 做 supersede 判断。
+
+## 验证回收用法（idea 验证闭环的最后一环）
+
+用户用 `lumilab-idea-to-landing` 生成了 fake-door 验证页 / 用 `lumilab-content-repurpose --validate` 生成了社媒验证素材，跑了几天之后，**把数字拿回来填进四桶**，这个 skill 帮他判断强弱信号、决定继续还是 pivot。
+
+回收什么数字 → 填哪个桶：
+
+| 验证手段 | 回收的数字 | 怎么归桶 |
+|---|---|---|
+| Fake-door landing | UV / 主 CTA 点击率 / 邮箱留资率 | 点击率 > 8% 或邮箱率 > 3% → 强信号；有量但低于基准 → 中信号；几乎没人点 → 弱信号 |
+| 社媒验证素材 | 评论区「要」数 / 主动私信数 / 转发数 | 有人主动私信问「怎么买」→ 强信号；评论区 ≥ 30 个明确「要」→ 中信号；只有点赞没意愿表达 → 弱信号 |
+
+判断逻辑：
+- **强信号桶非空** → 建议 persevere，把强信号对应的方向放大（下一步可以真做 MVP）
+- **只有弱信号** → 建议 pivot 或换验证切口，别急着做产品
+- **中信号为主** → 再补一轮验证（换平台 / 换文案 / 加投放），别凭这个量级就投入开发
+
+`key_decision` 字段明确写 `persevere` / `pivot` / `re-test`，`next_direction` 写具体下一步。这份 retro YAML 是 idea 验证闭环的收口产物。
 
 ## Chat-only fallback (LUMILAB_CHANNEL != local)
 

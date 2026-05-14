@@ -3,7 +3,7 @@ name: lumilab-playbook-cn
 description: |
   Chinese-language methodology playbook for venture validation. Index of 13 frameworks (Mom Test / Lean Canvas / Sean Ellis 40% / Bob Moesta JTBD / April Dunford / YC office hours / etc.) plus China-specific platform rules. Pure knowledge skill, read by other Skills when they need methodology references. Use when user asks 「这个方法论是什么」「Mom Test 怎么用」「PMF 怎么测」etc.
   关键词：方法论 / playbook / 创业知识 / Mom Test / Lean Canvas / PMF / JTBD / 中文方法论 / 国内平台规则
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [playbook, chinese, platform-rules, 13-frameworks]

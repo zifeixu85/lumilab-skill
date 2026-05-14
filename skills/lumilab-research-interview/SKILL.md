@@ -3,7 +3,7 @@ name: lumilab-research-interview
 description: |
   用户访谈脚本与教练。基于 Rob Fitzpatrick The Mom Test 三原则 + Bob Moesta JTBD switch interview + 5 layers of why。生成访谈提纲、识别 8 种访谈反模式、按 saturation 规则（5-8 个达到饱和）判断是否够、把录音转录提炼成可用结构化数据。Use when 用户准备打第一批冷启动电话、准备做 ICP 验证访谈、已经做了几次访谈但拿到的回答全是空话。
   关键词：interview / Mom Test / 用户访谈 / JTBD switch / 5 whys / 访谈脚本 / 访谈反模式 / saturation / 妈妈测试
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [mom-test, interview, jtbd-switch, 5-whys]

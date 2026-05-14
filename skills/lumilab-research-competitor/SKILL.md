@@ -3,7 +3,7 @@ name: lumilab-research-competitor
 description: |
   Competitor / alternative landscape 真的有用的那种。不做 feature matrix。基于 April Dunford 竞争定位框架 + Clayton Christensen disruption theory + "alternatives to nothing" 思维。把"竞品"扩展为：直接竞品 / 间接替代品 / status quo（什么都不做） / forced-choice 替代。Use when 用户准备做定位、写 landing、要回答"为什么选你不选 X"，或在 pivot 前想看清楚周围地形。
   关键词：competitor / 竞品分析 / 替代品 / alternatives / April Dunford / positioning / disruption / 反 feature matrix / status quo
-version: 1.1.0
+version: 1.2.0
 metadata:
   hermes:
     tags: [competitor, positioning, april-dunford, christensen]
