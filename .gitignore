@@ -27,3 +27,7 @@ _MANAGE_RESULT.md
 
 # Local test results
 /tmp/lumilab-*
+
+# stray screenshots
+/CleanShot*.png
+/*.zip
