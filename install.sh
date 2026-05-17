@@ -97,23 +97,25 @@ if [[ $ASSUME_YES -ne 1 ]]; then
   case "$ans" in [yY]*) ;; *) echo "已取消。"; exit 0 ;; esac
 fi
 
-# 优先用 rsync，没有就 cp
-if command -v rsync >/dev/null 2>&1; then
-  rsync -a --delete \
-    --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
-    --exclude='node_modules' --exclude='bun.lock' \
-    --exclude='_RESULT.md' --exclude='_MANAGE_RESULT.md' \
-    "$SOURCE_DIR/" "$TARGET_DIR/"
-else
-  for d in "$SOURCE_DIR"/*/; do
-    name=$(basename "$d")
-    rm -rf "$TARGET_DIR/$name"
-    cp -R "$d" "$TARGET_DIR/$name"
-    find "$TARGET_DIR/$name" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-    find "$TARGET_DIR/$name" -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
-    rm -f "$TARGET_DIR/$name/_RESULT.md" "$TARGET_DIR/$name/_MANAGE_RESULT.md" 2>/dev/null || true
-  done
-fi
+# 逐个 skill 目录复制（绝不删除 TARGET_DIR 里已有的其他 skill）
+# ⚠️ 不能用 rsync --delete，那会把用户已有的 gstack / baoyu-* 等 skill 全删掉
+for d in "$SOURCE_DIR"/*/; do
+  name=$(basename "$d")
+  dest="$TARGET_DIR/$name"
+  rm -rf "$dest"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a \
+      --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
+      --exclude='node_modules' --exclude='bun.lock' \
+      --exclude='_RESULT.md' --exclude='_MANAGE_RESULT.md' \
+      "$d" "$dest/"
+  else
+    cp -R "$d" "$dest"
+    find "$dest" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+    find "$dest" -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
+    rm -f "$dest/_RESULT.md" "$dest/_MANAGE_RESULT.md" 2>/dev/null || true
+  fi
+done
 echo "✓ skills 已复制到 $TARGET_DIR"
 
 # 把 CLI launcher 复制到稳定位置，不依赖 repo 目录（repo 可能在 /tmp 被清理）
