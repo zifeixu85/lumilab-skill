@@ -72,7 +72,7 @@
 ### 其它结构性补全
 
 - **文件名跨段一致**：frontmatter `outputs` ↔ 正文 ↔ `## Outputs` 三处逐字对齐（rc3 review 发现过 `audience.md` vs `audience.yaml` 类不一致）
-- **依赖成本列**：`## Dependencies` 表加「单次调用大致成本」列（Exa ~$0.005/次、TikHub ~$0.01、host LLM token 估算、free）
+- **依赖成本列**：`## Dependencies` 表加「单次调用大致成本」列（Tavily ~$0.005/次、TikHub ~$0.01、host LLM token 估算、free）
 - **`## 分支决策` if-then 表**：每个 skill 6–7 行显式 if-then，sharpening `act.no_ambiguity`
 - **`## Changelog` + `scripts/package.json`**：flip `maint.has_changelog` / `maint.declares_deps` 规则检查项
 - **触发关键词**：description 稀疏的（如 design-direction）补 `关键词：` + "use when" 触发线索

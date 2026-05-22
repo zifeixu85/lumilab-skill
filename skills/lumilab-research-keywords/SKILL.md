@@ -1,7 +1,7 @@
 ---
 name: lumilab-research-keywords
 description: |
-  Quantitative search-demand validation for venture ideas. Given the product keywords behind an idea, reverse-searches Google search demand: search volume, CPC, competition, keyword difficulty, 12-month trend, related + long-tail + "People Also Search For" expansion. Scores each keyword direction as Blue Ocean / Red Ocean / Differentiation Opportunity. Pluggable provider layer — default DataForSEO (pay-as-you-go), optional Keywords Everywhere. SERP competition depth filled via lumi-lab's existing Playwright / Exa. Feeds hypothesis-ledger as demand evidence and research-platforms cross-platform synthesis. Use when user types /lumilab keywords or asks for search volume / keyword difficulty / 红蓝海 / 关键词热度 / SEO 需求.
+  Quantitative search-demand validation for venture ideas. Given the product keywords behind an idea, reverse-searches Google search demand: search volume, CPC, competition, keyword difficulty, 12-month trend, related + long-tail + "People Also Search For" expansion. Scores each keyword direction as Blue Ocean / Red Ocean / Differentiation Opportunity. Pluggable provider layer — default DataForSEO (pay-as-you-go), optional Keywords Everywhere. SERP competition depth filled via lumi-lab's existing Playwright / Tavily. Feeds hypothesis-ledger as demand evidence and research-platforms cross-platform synthesis. Use when user types /lumilab keywords or asks for search volume / keyword difficulty / 红蓝海 / 关键词热度 / SEO 需求.
   关键词：关键词调研 / keyword research / 搜索量 / search volume / 关键词难度 / keyword difficulty / 长尾词 / long-tail / 趋势 / trend / 红海蓝海 / blue ocean / red ocean / 差异化机会 / SEO 需求验证 / DataForSEO / Keywords Everywhere
 version: 1.4.1
 status: P0-ready
@@ -48,7 +48,7 @@ Lumi Lab 的调研有两层，互补：
 
 | Skill | 回答的问题 | 性质 | 数据源 |
 |---|---|---|---|
-| `lumilab-research-platforms` | 用户在**抱怨什么**、痛点密度 | 定性 | 小红书 Playwright + Exa Web |
+| `lumilab-research-platforms` | 用户在**抱怨什么**、痛点密度 | 定性 | 小红书 Playwright + Tavily Web |
 | **`lumilab-research-keywords`（本 skill）** | 有多少人在**主动搜**、竞争多激烈 | **定量** | DataForSEO / Keywords Everywhere + SERP 探测 |
 
 两者产物都喂 `hypothesis-ledger`，并在 `cross_platform_synthesis.md` 里交叉合成。
@@ -69,7 +69,7 @@ Lumi Lab 的调研有两层，互补：
               ▼                       ▼
    Provider Adapter（统一接口）   SERP 竞争探测
    ┌─────────────────────┐      （复用 lumi-lab 现有）
-   │ dataforseo（默认）   │      Playwright / Exa
+   │ dataforseo（默认）   │      Playwright / Tavily
    │ keywordseverywhere   │      抓 SERP 首页强域名数
    │ (可选)               │
    └─────────────────────┘
@@ -138,7 +138,7 @@ provider 在 `~/.lumilab/config.json` 里配：
 
 4. SERP 竞争探测（config.keywords.serp_probe，默认开）
    对 top 关键词（按 vol 排序取前 N，默认 15）：
-   - 复用 lumi-lab 现有 Playwright / Exa 抓 Google SERP 首页
+   - 复用 lumi-lab 现有 Playwright / Tavily 抓 Google SERP 首页
    - 统计首页强域名数（DR 高 / 大站 / 官方）→ serp_strong_count
    - DataForSEO 用户可直接用 Labs SERP Competitors，跳过抓取
 
@@ -282,7 +282,7 @@ keywords 跑完自动触发 Studio 重渲染。Studio index.html 的「Research 
 skills/lumilab-research-keywords/scripts/
 ├── research.ts                 # 主入口 /lumilab keywords
 ├── scoring.ts                  # opportunity_score + verdict 评分
-├── serp-probe.ts               # 复用 Playwright/Exa 抓 SERP 首页强域名数
+├── serp-probe.ts               # 复用 Playwright/Tavily 抓 SERP 首页强域名数
 └── providers/
     ├── index.ts                # provider 工厂，按 config 选择
     ├── dataforseo.ts           # 默认 — Keywords Data + Labs 端点
@@ -355,7 +355,7 @@ interface KeywordProvider {
 | DataForSEO API v3 | 默认 provider | 付费（PAYG，$50 起充，余额不过期） | ~$0.01–0.05 / 次（搜索量 + KD + 扩展端点合计，按关键词数计） | Basic auth；缺 token 回退 mock |
 | Keywords Everywhere API v1 | 可选 provider | 付费（年付 credit，一年过期） | ~1 credit / 关键词（与浏览器插件共用 credit 池） | Bearer auth；无 KD 字段，由 serp-probe 补；缺 token 回退 mock |
 | host LLM | 宿主提供 | 取决于宿主 | ~2–5k tokens / landscape 解读 | 红蓝海综合解读复用宿主，不直连 |
-| SERP probe（Playwright / Exa） | serp-probe 真实实现 | 免费（本地浏览器）/ 复用 research-platforms 配额 | free–低 | 当前为确定性 stub，TODO 接真实抓取 |
+| SERP probe（Playwright / Tavily） | serp-probe 真实实现 | 免费（本地浏览器）/ 复用 research-platforms 配额 | free–低 | 当前为确定性 stub，TODO 接真实抓取 |
 
 ## Output validation
 

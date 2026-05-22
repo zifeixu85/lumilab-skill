@@ -3,7 +3,7 @@ name: lumilab
 description: |
   Lumi Lab —— C 端创业 idea 的快速验证 skills bundle。给一句话 idea，自动跑市场分析 / 竞品扫描 / 人群拆解 / 关键词红蓝海，产出一份图文并茂的网页版分析报告 + 几个具体方向建议，用户选定方向后再自动生成一个能测真实购买意愿的 fake-door 验证页（带 SEO/GEO + 转化追踪），可一键加密部署上线。全程最多问用户 2 次。24 个 skill 协同，跑在 Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI 里——宿主提供 LLM，bundle 不需要 LLM API key。
   关键词：创业 idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 人群拆解 / 关键词调研 / 红蓝海 / landing page / fake-door 验证页 / SEO / GEO / 购买意愿 / 轻量验证 / skills bundle / OPC / 独立开发者
-version: 1.5.0
+version: 1.6.0
 license: Apache-2.0
 homepage: https://github.com/zifeixu85/lumilab
 platforms: [macos, linux]
@@ -94,7 +94,7 @@ openclaw skills install lumilab
 
 ## 不需要 LLM API key
 
-Lumi Lab 跑在你的 AI 宿主里，宿主已经有 LLM。bundle 只要可选的**工具 token**（Cloudflare 部署 / Exa·TikHub 调研 / DataForSEO·Keywords Everywhere 关键词），而且全部可跳过 —— 不配就用 mock 数据或宿主 LLM 知识兜底，不影响核心流程。
+Lumi Lab 跑在你的 AI 宿主里，宿主已经有 LLM。bundle 只要可选的**工具 token**（Cloudflare 部署 / Tavily·TikHub 调研 / DataForSEO·Keywords Everywhere 关键词），而且全部可跳过 —— 不配就用 mock 数据或宿主 LLM 知识兜底，不影响核心流程。
 
 ## License
 

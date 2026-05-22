@@ -73,7 +73,7 @@ The host LLM:
 ```
 ~/.lumilab/
 ├── config.json          { user, deploy, search, … }   (preferences only)
-├── secrets.json         { cloudflare_api_token, exa_api_key, … }   (NEVER LLM keys)
+├── secrets.json         { cloudflare_api_token, tavily_api_key, … }   (NEVER LLM keys)
 ├── shares.json          { shares: [ { venture, url, password_ref, … } ] }
 └── ventures/
     └── <venture-slug>/
@@ -230,7 +230,7 @@ Phase 0 ships Tier 1 fully. Tier 2–4 land in Phase 1 with a knowledge-graph la
 | Phase | Window | What lands |
 |---|---|---|
 | **0** (this release) | 2026-05 | 21 skills · CLI · Studio · 3 browser UIs · encrypted deploys · 5 platform rules · self-referencing demo |
-| **1** | 2026 Q3 | Real keychain · 5 more interactive pages · XHS Playwright + Exa actual integration · Stripe / Resend / PostHog · cross-venture portfolio · MCP memory graph · multi-account workspaces |
+| **1** | 2026 Q3 | Real keychain · 5 more interactive pages · XHS Playwright + Tavily actual integration · Stripe / Resend / PostHog · cross-venture portfolio · MCP memory graph · multi-account workspaces |
 | **2** | 2026 Q4+ | Pro tier · service-provider tier · white-label · Cloudflare Workers edge · DNS auto-config · GDPR exports |
 
 ---

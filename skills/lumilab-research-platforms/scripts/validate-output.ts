@@ -3,7 +3,7 @@
  * Output validator for lumilab-research-platforms.
  * Validates the JSON research artifacts this skill writes:
  *   - research/xhs_raw.json   (XHS adapter output)
- *   - research/web_exa.json   (Web Exa adapter output)
+ *   - research/web_tavily.json   (Web Tavily adapter output)
  *
  * Checks schema shape, required keys, types, and enum values so downstream
  * skills (hypothesis-ledger, studio) can consume with 0 changes.
@@ -23,10 +23,10 @@ const HELP = `validate-output.ts — research-platforms JSON schema validator
 Usage:
   bun run scripts/validate-output.ts <file.json|dir> [...]
 
-Validates xhs_raw.json / web_exa.json against the documented schema.
+Validates xhs_raw.json / web_tavily.json against the documented schema.
 Exit 0 = valid, 1 = violations found.`;
 
-const SOURCE_ENUM = ['tikhub', 'exa', 'mock'];
+const SOURCE_ENUM = ['tikhub', 'tavily', 'mock'];
 
 type Issue = string;
 

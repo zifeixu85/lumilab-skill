@@ -137,7 +137,7 @@ lumilab research
 
 调用三个子 Skill：
 
-- `lumilab-market-scan`：拉竞品、市场规模、关键词热度（可选 Exa）
+- `lumilab-market-scan`：拉竞品、市场规模、关键词热度（可选 Tavily）
 - `lumilab-interview-prep`：按 Mom Test 5 原则生成 10 道访谈问题
 - `lumilab-platform-rules`：拉取小红书 / 公众号 / 抖音 / 朋友圈 / X 的最新规则（含 2025–2026 更新）
 
@@ -179,7 +179,7 @@ lumilab studio
 
 整个流程不写一行代码，团队成员也能围观、评论。
 
-## 4. 配置（可选）— Cloudflare / Exa / TikHub
+## 4. 配置（可选）— Cloudflare / Tavily / TikHub
 
 Lumi Lab 默认零配置即可跑。以下三项是可选增强。
 
@@ -193,13 +193,13 @@ lumilab config set cloudflare.account_id <your_account_id>
 
 之后 `build-assets` 生成的落地页可以直接 `lumilab deploy landing`，5 秒内拿到 Cloudflare Pages 链接。
 
-### Exa（深度网络研究）
+### Tavily（深度网络研究）
 
 ```bash
-lumilab config set exa.api_key <your_key>
+lumilab config set tavily.api_key <your_key>
 ```
 
-配置后 `research` 阶段会用 Exa 做深度搜索而非默认的轻量搜索，竞品分析的覆盖度显著提升。
+配置后 `research` 阶段会用 Tavily 做深度搜索而非默认的轻量搜索，竞品分析的覆盖度显著提升。
 
 ### TikHub（小红书 / 抖音 / X 数据）
 

@@ -102,6 +102,21 @@
 
 ---
 
+## [1.6.0] · 2026-05-22 · Web 搜索调研：Exa → Tavily
+
+> 调研用的 Web 搜索 provider 从 Exa 换成 [Tavily](https://www.tavily.com/)。
+
+### Changed
+- **Web 搜索 adapter 换 Tavily**：`research-platforms` 的 `web_exa.ts` → `web_tavily.ts`，改用 `POST https://api.tavily.com/search`（`Bearer tvly-` 认证），输出文件 `research/web_exa.json` → `web_tavily.json`，`source` 枚举 `exa` → `tavily`
+- **配置项重命名**：secret key `exa_api_key` → `tavily_api_key`，env `EXA_API_KEY` → `TAVILY_API_KEY`，config flag `has_exa` → `has_tavily`；wizard 的 verify 打 Tavily real API（保留 E_401/E_403/E_429 错误码）
+- **接线同步**：`orchestrate.ts`（token 检测）、`home.ts`（工具状态卡）、`validate-output.ts`（schema 枚举）、24 个 SKILL.md / README / docs 全部从 Exa 改到 Tavily
+- `VERSION` 1.5.0 → 1.6.0；manifest tool_token `EXA_API_KEY` → `TAVILY_API_KEY`
+
+### Migration
+- 已配过 Exa 的用户：重跑 `lumilab config` 填 Tavily key（`app.tavily.com` 拿，`tvly-` 开头），或 `lumilab secrets set TAVILY_API_KEY <key>`。旧的 `exa_api_key` 不再读取。
+
+---
+
 ## [1.5.0] · 2026-05-15 · home ↔ Studio 打通 + 写时更新 + idea 驱动设计
 
 > 用户本地实测的一批问题（导航断裂、阶段产物脱节、首页不更新、设计套预设）一次性修掉。

@@ -7,7 +7,7 @@
  * That number both feeds the friction term of opportunity_score AND fills the
  * keyword_difficulty gap for the Keywords Everywhere provider.
  *
- * TODO: real implementation reuses lumi-lab's Playwright (Channel A) / Exa
+ * TODO: real implementation reuses lumi-lab's Playwright (Channel A) / Tavily
  * (Channel B) to fetch the live Google SERP first page and count strong
  * domains; DataForSEO users can call Labs SERP Competitors directly and skip
  * crawling. Until that lands, this module returns a DETERMINISTIC heuristic

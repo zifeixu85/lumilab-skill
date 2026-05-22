@@ -8,7 +8,7 @@ English ｜ [简体中文](README.md)
 
 🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![Version](https://img.shields.io/badge/version-1.5.0-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-24-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
@@ -26,7 +26,7 @@ English ｜ [简体中文](README.md)
 | **Uses your host's LLM** | Requires your own LLM API key |
 | Reads/writes `~/.lumilab/` for state | Phones home |
 
-**You don't give Lumi Lab an LLM API key.** Your AI host already has one — Lumi Lab plugs into it. The optional tokens it asks for are **tool integrations** (Cloudflare for deploying Studios, Exa for web search, TikHub for Xiaohongshu API, etc.).
+**You don't give Lumi Lab an LLM API key.** Your AI host already has one — Lumi Lab plugs into it. The optional tokens it asks for are **tool integrations** (Cloudflare for deploying Studios, Tavily for web search, TikHub for Xiaohongshu API, etc.).
 
 ---
 
@@ -64,7 +64,7 @@ Each idea gets its own project page — a printable journal with editorial typog
 
 ### Three browser UIs (no LLM needed)
 
-- **Setup Wizard** (`lumilab config`) — 5 steps. Asks for tool tokens you actually need: Cloudflare, Exa, TikHub. **Never asks for an LLM key.**
+- **Setup Wizard** (`lumilab config`) — 5 steps. Asks for tool tokens you actually need: Cloudflare, Tavily, TikHub. **Never asks for an LLM key.**
 - **Share Manager** (`lumilab manage`) — every deployed Studio, with reveal-password / rotate / delete.
 - **Design Direction** (`lumilab design-direction <venture>`) — 4 aesthetic samples + 3 dials (variance / motion / density) + iframe live preview. Output writes `design_direction.json` consumed by downstream skills.
 
@@ -273,7 +273,7 @@ All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - 5 Chinese platform rule-sheets (2025–2026 updated)
 - `lumilab` CLI (incl. retro / research-xhs / research-web / secrets)
 - Real keychain backend (macOS Keychain / Linux secret-tool)
-- XHS / Exa real integration code + mock fallback when no token
+- XHS / Tavily real integration code + mock fallback when no token
 - Self-referencing demo venture (re-verified under v1.0)
 - **SkillLens: all 21 skills at S grade, avg 91.6, all verified**
 
@@ -281,7 +281,7 @@ All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - End-to-end dogfood install test (run `./install.sh` on your machine)
 - Feishu e2e demo recording (needs a Feishu bot)
 - ClawHub publish (needs a clawhub.ai account)
-- XHS / Exa real-token integration test (code ready, needs your API keys)
+- XHS / Tavily real-token integration test (code ready, needs your API keys)
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full manifest.
 

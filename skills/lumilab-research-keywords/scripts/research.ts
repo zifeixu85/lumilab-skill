@@ -16,7 +16,7 @@
  *
  * Tokenless behavior: when no provider token is configured OR --mock is passed,
  * curated mock data is emitted and the process exits 0 with a clear `notice` —
- * exactly like research-platforms/web_exa.ts. The mock still produces a
+ * exactly like research-platforms/web_tavily.ts. The mock still produces a
  * realistic keyword_landscape.md so the downstream pipeline works tokenless.
  */
 import { writeFileSync, mkdirSync, existsSync } from 'fs';

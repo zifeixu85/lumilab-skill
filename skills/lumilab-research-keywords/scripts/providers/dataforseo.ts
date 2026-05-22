@@ -5,7 +5,7 @@
  * Implements `expand` + `metrics` against DataForSEO API v3.
  * Basic auth from `dataforseo_login` / `dataforseo_password` secrets:
  *   keychain first (../lumilab-config/scripts/keychain.ts), then
- *   ~/.lumilab/secrets.json fallback — same pattern as research-platforms/web_exa.ts.
+ *   ~/.lumilab/secrets.json fallback — same pattern as research-platforms/web_tavily.ts.
  *
  * Endpoints used (per SKILL.md):
  *   - Keywords Data Google Ads Search Volume   /v3/keywords_data/google_ads/search_volume/live

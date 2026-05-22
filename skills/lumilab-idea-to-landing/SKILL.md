@@ -30,7 +30,7 @@ metadata:
     - "~/.lumilab/data/ventures/<slug>/landing/ (最终 landing page，带 SEO/GEO)"
     - "~/.lumilab/data/ventures/<slug>/decisions.yaml (方向选择记录)"
   reads:
-    - "~/.lumilab/secrets.json 或 keychain (判断有没有 TikHub/Exa token → 真 API vs 宿主 LLM 知识)"
+    - "~/.lumilab/secrets.json 或 keychain (判断有没有 TikHub/Tavily token → 真 API vs 宿主 LLM 知识)"
     - "MEMORY.md (用户偏好)"
 ---
 
@@ -132,13 +132,13 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 ### 1.1 判断数据源
 
 `orchestrate.ts init` 已经报了 token 状态：
-- 有 `TIKHUB_API_KEY` / `EXA_API_KEY` / DataForSEO / Keywords Everywhere → 走真实 API
+- 有 `TIKHUB_API_KEY` / `TAVILY_API_KEY` / DataForSEO / Keywords Everywhere → 走真实 API
 - 没有 → 用**宿主 LLM 自己的知识**做分析（宿主提供 LLM，这是它该干的）。不要因为没 token 就停下来让用户去配 —— 那违背「轻量」。
 
 ### 1.2 四路分析
 
 **市场（market）**
-- 有 Exa token：`bun run ../lumilab-research-platforms/scripts/web_exa.ts "<idea 相关查询>" --venture <slug>`
+- 有 Tavily token：`bun run ../lumilab-research-platforms/scripts/web_tavily.ts "<idea 相关查询>" --venture <slug>`
 - 无 token：宿主 LLM 基于自身知识写市场概况、规模/增长信号、3 条趋势
 
 **竞品（competitors）**
@@ -306,7 +306,7 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts ~/.lumilab/data/ventur
 |---|---|
 | 用户一句话已含「做什么+给谁」 | 跳过 Phase 0.2 提问，直接 Phase 1 |
 | 缺关键信息 | Phase 0.2 发 1 次 AskUserQuestion（可全跳过） |
-| 有 TikHub/Exa token | Phase 1 走真实 API |
+| 有 TikHub/Tavily token | Phase 1 走真实 API |
 | 无 token | Phase 1 用宿主 LLM 知识，不停下来让用户配 |
 | 用户在 Phase 3 说「你来定」 | 用 `recommended: true` 的方向 |
 | 用户在 Phase 3 给了自己的方向 | 用用户的，对照分析给一句判断 |
@@ -379,7 +379,7 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts ~/.lumilab/data/ventur
 | bun | CLI runtime | free | ≥1.0 |
 | host LLM | 宿主提供 | 取决于宿主 | 分析 + 文案的推理 |
 | TikHub API | 可选 HTTP | ~$0.01/次 | 有则 Phase 1 走真实小红书数据 |
-| Exa API | 可选 HTTP | ~$0.005/次 | 有则 Phase 1 走真实 Web 搜索 |
+| Tavily API | 可选 HTTP | ~$0.005/次 | 有则 Phase 1 走真实 Web 搜索 |
 | lumilab-research-{platforms,competitor,icp} | 同 bundle skill | free | Phase 1 方法论 |
 | lumilab-studio/market-report.ts | 同 bundle 脚本 | free | Phase 2 HTML 报告 |
 | lumilab-landing-mvp + lumilab-copy + lumilab-design-direction | 同 bundle skill | free | Phase 4 |
@@ -436,7 +436,7 @@ export PATH="$HOME/.bun/bin:$PATH"
 
 ## Privacy
 
-idea、分析、landing 全部本地 `~/.lumilab/data/ventures/<slug>/`。无遥测。只有用户显式 `lumilab deploy` 才上传 Cloudflare（且加密）。TikHub/Exa token 走 keychain，不入仓库。
+idea、分析、landing 全部本地 `~/.lumilab/data/ventures/<slug>/`。无遥测。只有用户显式 `lumilab deploy` 才上传 Cloudflare（且加密）。TikHub/Tavily token 走 keychain，不入仓库。
 
 ## Cache
 

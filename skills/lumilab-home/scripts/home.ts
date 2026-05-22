@@ -39,7 +39,7 @@ function channel(): string {
 // ── 9 个工具（config.json api.has_* 标志）──
 const TOOLS: { key: string; label: string; note: string }[] = [
   { key: 'has_cloudflare', label: 'Cloudflare', note: '部署 venture Studio' },
-  { key: 'has_exa', label: 'Exa', note: 'web 搜索调研' },
+  { key: 'has_tavily', label: 'Tavily', note: 'web 搜索调研' },
   { key: 'has_tikhub', label: 'TikHub', note: '国内平台数据' },
   { key: 'has_dataforseo', label: 'DataForSEO', note: '关键词搜索量' },
   { key: 'has_keywordseverywhere', label: 'Keywords Everywhere', note: '关键词需求（备选）' },

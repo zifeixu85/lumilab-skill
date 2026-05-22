@@ -10,8 +10,8 @@
  *   orchestrate.ts status <venture-dir>          报告流水线进度
  *   orchestrate.ts --help
  *
- * `init` 输出 JSON：{ slug, venture_dir, source, has_tikhub, has_exa, next }
- *   source = real-api（有 TikHub/Exa token）| host-llm-knowledge（无）
+ * `init` 输出 JSON：{ slug, venture_dir, source, has_tikhub, has_tavily, next }
+ *   source = real-api（有 TikHub/Tavily token）| host-llm-knowledge（无）
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
@@ -98,8 +98,8 @@ function cmdInit(idea: string) {
   }
 
   const hasTikhub = hasToken("TIKHUB_API_KEY");
-  const hasExa = hasToken("EXA_API_KEY");
-  const source = hasTikhub || hasExa ? "real-api" : "host-llm-knowledge";
+  const hasTavily = hasToken("TAVILY_API_KEY");
+  const source = hasTikhub || hasTavily ? "real-api" : "host-llm-knowledge";
 
   // 写时更新：新建 venture 后顺手 re-render home，让首页立刻能看到这个 venture。
   rerenderHome();
@@ -111,9 +111,9 @@ function cmdInit(idea: string) {
     idea,
     source,
     has_tikhub: hasTikhub,
-    has_exa: hasExa,
+    has_tavily: hasTavily,
     next: source === "real-api"
-      ? "Phase 1 走真实 API（TikHub/Exa）"
+      ? "Phase 1 走真实 API（TikHub/Tavily）"
       : "Phase 1 用宿主 LLM 知识分析（无 token，不阻塞）",
   }, null, 2));
 }

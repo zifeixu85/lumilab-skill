@@ -8,7 +8,7 @@
 
 🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![版本](https://img.shields.io/badge/version-1.5.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.6.0-orange)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 [![Skills](https://img.shields.io/badge/skills-24-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
@@ -26,7 +26,7 @@
 | **用你宿主自己的 LLM** | 要你自己的 LLM API key |
 | 读写 `~/.lumilab/` 做状态 | 偷偷上报数据 |
 
-**你不用给 Lumi Lab LLM API key。** 你的 AI 宿主已经有了——Lumi Lab 接进去就行。它要的那些可选 token 都是**工具集成**（Cloudflare 部署 Studio、Exa 做网页搜索、TikHub 拿小红书 API 等）。
+**你不用给 Lumi Lab LLM API key。** 你的 AI 宿主已经有了——Lumi Lab 接进去就行。它要的那些可选 token 都是**工具集成**（Cloudflare 部署 Studio、Tavily 做网页搜索、TikHub 拿小红书 API 等）。
 
 ---
 
@@ -82,7 +82,7 @@ Lumi Lab 是 **C 端创业 idea 的快速验证工具**。`lumilab-idea-to-landi
 
 ### 三个浏览器 UI（不需要 LLM）
 
-- **Setup Wizard**（`lumilab config`）— 5 步。问你真正需要的工具 token：Cloudflare、Exa、TikHub。**从不问 LLM key。**
+- **Setup Wizard**（`lumilab config`）— 5 步。问你真正需要的工具 token：Cloudflare、Tavily、TikHub。**从不问 LLM key。**
 - **Share Manager**（`lumilab manage`）— 列出每个已部署的 Studio，可显示密码 / rotate / 删除。
 - **Design Direction**（`lumilab design-direction <venture>`）— 4 套美学样本 + 3 个旋钮（variance / motion / density）+ iframe 实时预览。产出 `design_direction.json` 供下游 skill 消费。
 
@@ -227,7 +227,7 @@ lumilab config                        Setup Wizard
 
 lumilab retro [venture]               周复盘四桶交互页
 lumilab research-xhs "<关键词>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
-lumilab research-web  "<查询>"  [...]  Exa Web 搜（需 EXA_API_KEY，无 key 自动 mock）
+lumilab research-web  "<查询>"  [...]  Tavily Web 搜（需 TAVILY_API_KEY，无 key 自动 mock）
 lumilab secrets <动作> [...]           keychain CLI：which|get|set|del|list|migrate-plaintext
 
 lumilab help                          显示帮助
@@ -304,7 +304,7 @@ lumilab help                          显示帮助
 - 5 个中国平台规则表（2025–2026 更新）
 - `lumilab` CLI（含 retro / research-xhs / research-web / secrets）
 - 真 keychain 后端（macOS Keychain / Linux secret-tool）
-- XHS / Exa 真集成代码 + 无 token 时 mock 降级
+- XHS / Tavily 真集成代码 + 无 token 时 mock 降级
 - 自指 demo venture（已用 v1.0 重跑验证）
 - **SkillLens：21 个 skill 全部 S 级，平均 91.6，全部 verified**
 
@@ -312,7 +312,7 @@ lumilab help                          显示帮助
 - 端到端 dogfood 安装真测（需在你的机器上跑 `./install.sh`）
 - 飞书 e2e demo 录屏（需建飞书 bot）
 - ClawHub 发布（需注册 clawhub.ai 账号）
-- XHS / Exa 真 token 联调（代码就绪，需你的 API key）
+- XHS / Tavily 真 token 联调（代码就绪，需你的 API key）
 
 详见 [`CHANGELOG.md`](CHANGELOG.md)。
 

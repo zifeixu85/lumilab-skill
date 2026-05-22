@@ -6,7 +6,7 @@
  * OpenClaw / Cursor / Codex / Hermes / Gemini CLI). The host provides the LLM.
  * This wizard therefore does NOT ask for LLM tokens (Anthropic / OpenAI /
  * DashScope / Gemini). It only collects tool-type tokens that real skills
- * actually need: Cloudflare for deploy, Exa / TikHub for research, and
+ * actually need: Cloudflare for deploy, Tavily / TikHub for research, and
  * Stripe / Resend / WeChat MP / X for the Pro tier. Everything is optional.
  *
  * Single-file bun HTTP server on 127.0.0.1:7777 (fallback 7778-7780).
@@ -57,7 +57,7 @@ type ApiKeys = {
   has_dashscope: null;
   // Tool-type tokens (all optional):
   has_cloudflare: boolean;
-  has_exa: boolean;
+  has_tavily: boolean;
   has_tikhub: boolean;
   has_dataforseo: boolean;
   has_keywordseverywhere: boolean;
@@ -108,7 +108,7 @@ function defaultConfig(): WizardConfig {
       has_anthropic: null,
       has_dashscope: null,
       has_cloudflare: false,
-      has_exa: false,
+      has_tavily: false,
       has_tikhub: false,
       has_dataforseo: false,
       has_keywordseverywhere: false,
@@ -188,19 +188,19 @@ async function verifyCloudflare(token: string): Promise<VerifyResult> {
   }
 }
 
-async function verifyExa(token: string): Promise<VerifyResult> {
+async function verifyTavily(token: string): Promise<VerifyResult> {
   if (!token || token.length < 8) return { ok: false, error: "token 太短", code: "E_FORMAT" };
   try {
-    const r = await fetch("https://api.exa.ai/search", {
+    const r = await fetch("https://api.tavily.com/search", {
       method: "POST",
-      headers: { "x-api-key": token, "content-type": "application/json" },
-      body: JSON.stringify({ query: "lumi lab test", numResults: 1 }),
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ query: "lumi lab test", max_results: 1 }),
     });
     if (r.ok) return { ok: true };
-    if (r.status === 401) return { ok: false, code: "E_401", error: "Exa 401：API key 无效" };
-    if (r.status === 403) return { ok: false, code: "E_403", error: "Exa 403：权限不足" };
-    if (r.status === 429) return { ok: false, code: "E_429", error: "Exa 429：触发限流" };
-    return { ok: false, code: `E_${r.status}`, error: `Exa ${r.status}` };
+    if (r.status === 401) return { ok: false, code: "E_401", error: "Tavily 401：API key 无效" };
+    if (r.status === 403) return { ok: false, code: "E_403", error: "Tavily 403：权限不足" };
+    if (r.status === 429) return { ok: false, code: "E_429", error: "Tavily 429：触发限流" };
+    return { ok: false, code: `E_${r.status}`, error: `Tavily ${r.status}` };
   } catch (e) {
     return { ok: false, code: "E_NET", error: `网络错误：${(e as Error).message}` };
   }
@@ -288,7 +288,7 @@ async function verifyGeneric(_provider: string, token: string): Promise<VerifyRe
 async function verifyToken(provider: string, token: string): Promise<VerifyResult> {
   switch (provider) {
     case "cloudflare": return verifyCloudflare(token);
-    case "exa":        return verifyExa(token);
+    case "tavily":        return verifyTavily(token);
     case "stripe":     return verifyStripe(token);
     case "resend":     return verifyResend(token);
     case "tikhub":     return verifyTikHub(token);
@@ -1649,12 +1649,12 @@ function renderStep5(cfg: WizardConfig): string {
   <fieldset>
     <legend>调研</legend>
     ${tokenField({
-      provider: "exa",
-      label: "Exa.ai key",
-      verified: a.has_exa,
+      provider: "tavily",
+      label: "Tavily key",
+      verified: a.has_tavily,
       verifiable: true,
       hint: "调研 skills 的深度网页搜索。",
-      quickstart: `<ol><li>到 <a href="https://dashboard.exa.ai/api-keys" target="_blank">dashboard.exa.ai</a> 注册</li><li>API Keys → Create Key</li><li>粘贴 → 验证</li></ol>`,
+      quickstart: `<ol><li>到 <a href="https://app.tavily.com" target="_blank">app.tavily.com</a> 注册</li><li>Dashboard → API Keys → Create Key（tvly- 开头）</li><li>粘贴 → 验证</li></ol>`,
     })}
     ${tokenField({
       provider: "tikhub",
@@ -1797,7 +1797,7 @@ async function verifyKey(provider) {
 }
 
 async function finishStep5() {
-  const verifiable = ['cloudflare','exa','tikhub','keywordseverywhere','stripe','resend'];
+  const verifiable = ['cloudflare','tavily','tikhub','keywordseverywhere','stripe','resend'];
   const plain      = ['dataforseo_login','dataforseo_password','wechat_appid','wechat_secret','x_key','x_secret'];
   const keys = {};
   for (const p of verifiable) {
@@ -1832,7 +1832,7 @@ function renderStep6(cfg: WizardConfig): string {
   // 每个工具一行 ✓/— ，让用户在总览里看到完整配置状态（配了什么、没配什么）
   const toolList: [string, boolean, string][] = [
     ["Cloudflare", a.has_cloudflare, a.cloudflare_account ? a.cloudflare_account : "部署验证页"],
-    ["Exa", a.has_exa, "Web 深度搜索"],
+    ["Tavily", a.has_tavily, "Web 深度搜索"],
     ["TikHub", a.has_tikhub, "小红书 / 抖音抓取"],
     ["DataForSEO", a.has_dataforseo, "关键词调研（默认源）"],
     ["Keywords Everywhere", a.has_keywordseverywhere, "关键词调研（可选源）"],
@@ -2143,13 +2143,13 @@ async function apiSaveKeys(req: Request): Promise<Response> {
   // secrets.json 里的规范 key 名（和 CHAT_PROVIDERS / 各 skill 读取逻辑对齐）：
   const SECRET_KEY: Record<string, string> = {
     cloudflare: "cloudflare_api_token",
-    exa: "exa_api_key",
+    tavily: "tavily_api_key",
     tikhub: "tikhub_api_key",
     keywordseverywhere: "keywordseverywhere_api_key",
     stripe: "stripe_secret_key",
     resend: "resend_api_key",
   };
-  const verifiable = ["cloudflare", "exa", "tikhub", "keywordseverywhere", "stripe", "resend"];
+  const verifiable = ["cloudflare", "tavily", "tikhub", "keywordseverywhere", "stripe", "resend"];
   for (const provider of verifiable) {
     const token = keys[provider];
     if (!token) continue;
@@ -2213,7 +2213,7 @@ async function apiDone(): Promise<Response> {
     // 不需要用户回去手动告诉 AI。
     const a = cfg.api;
     const tools = [
-      ["Cloudflare", a.has_cloudflare], ["Exa", a.has_exa], ["TikHub", a.has_tikhub],
+      ["Cloudflare", a.has_cloudflare], ["Tavily", a.has_tavily], ["TikHub", a.has_tikhub],
       ["DataForSEO", a.has_dataforseo], ["Keywords Everywhere", a.has_keywordseverywhere],
       ["Stripe", a.has_stripe], ["Resend", a.has_resend],
       ["微信公众号", a.has_wechat], ["X", a.has_x],
@@ -2277,8 +2277,8 @@ type ChatProvider = {
 const CHAT_PROVIDERS: ChatProvider[] = [
   { id: "cloudflare", label: "Cloudflare API Token", secretKey: "cloudflare_api_token", configFlag: "has_cloudflare", required: false,
     setupHint: "dash.cloudflare.com → My Profile → API Tokens → Create Token（权限：Account·Cloudflare Pages:Edit + Account Settings:Read）。启用 `lumilab deploy`。" },
-  { id: "exa", label: "Exa API Key", secretKey: "exa_api_key", configFlag: "has_exa", required: false,
-    setupHint: "exa.ai → Dashboard → API Keys。启用 `lumilab research-web` 真实搜索。" },
+  { id: "tavily", label: "Tavily API Key", secretKey: "tavily_api_key", configFlag: "has_tavily", required: false,
+    setupHint: "app.tavily.com → Dashboard → API Keys（tvly- 开头）。启用 `lumilab research-web` 真实搜索。" },
   { id: "tikhub", label: "TikHub API Key", secretKey: "tikhub_api_key", configFlag: "has_tikhub", required: false,
     setupHint: "tikhub.io → 注册 → API Key。启用 `lumilab research-xhs` 真实抓取小红书。" },
   { id: "keywordseverywhere", label: "Keywords Everywhere API Key", secretKey: "keywordseverywhere_api_key", configFlag: "has_keywordseverywhere", required: false,

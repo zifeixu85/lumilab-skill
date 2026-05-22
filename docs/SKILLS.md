@@ -36,10 +36,10 @@ The utility skills that make the bundle actually usable.
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| **`lumilab-config`** | `lumilab config` (CLI) | Browser-based 5-step Setup Wizard. Configures **tool tokens only** (Cloudflare / Exa / TikHub / Stripe / Resend / WeChat / X), preferences, default share password. **Never asks for an LLM key.** |
+| **`lumilab-config`** | `lumilab config` (CLI) | Browser-based 5-step Setup Wizard. Configures **tool tokens only** (Cloudflare / Tavily / TikHub / Stripe / Resend / WeChat / X), preferences, default share password. **Never asks for an LLM key.** |
 | **`lumilab-config` (Share Manager)** | `lumilab manage` (CLI) | Browser dashboard for all deployed Studios. Reveal/copy password · rotate · toggle visibility · delete · QR code. |
 | **`lumilab-deploy`** | `lumilab deploy <venture>` | Encrypts the venture's Studio bundle with AES-GCM + PBKDF2 (1M iter), wraps it in an HTML password gate with localStorage caching, deploys to Cloudflare Pages via wrangler. |
-| **`lumilab-research-platforms`** | "research this niche on web + xhs" | Dual-channel research: browser automation (Playwright/CDP) + third-party APIs (Exa / Tavily / TikHub). Outputs cross-platform synthesis with painpoint density. |
+| **`lumilab-research-platforms`** | "research this niche on web + xhs" | Dual-channel research: browser automation (Playwright/CDP) + third-party APIs (Tavily / Tavily / TikHub). Outputs cross-platform synthesis with painpoint density. |
 
 ---
 
