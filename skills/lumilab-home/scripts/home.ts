@@ -370,8 +370,27 @@ function renderTools(status: HomeStatus): string {
   <section class="section" style="--s:1">
     <div class="section__head">
       <span class="section__no">Nº 01</span>
-      <h2 class="section__title">工具集成</h2>
+      <div class="section__titlerow">
+        <h2 class="section__title">工具集成</h2>
+        <button type="button" class="cfg-btn" aria-expanded="false" onclick="lumiToggleCfg(this)">
+          <span class="cfg-btn__ico">✎</span> 修改配置
+        </button>
+      </div>
       <p class="section__hint">已配 ${status.tools_configured.length} / ${status.tools_total} · 工具都是可选的，没配也能用宿主模型知识跑</p>
+    </div>
+    <div class="cfg-panel" hidden>
+      <p class="cfg-panel__lead">改 token、换默认风格、改部署偏好 —— 都在配置向导里。两种方式：</p>
+      <div class="cfg-panel__ways">
+        <div class="cfg-way">
+          <span class="cfg-way__tag">跟 AI 说一句</span>
+          <code class="cfg-way__cmd">打开 lumilab 配置</code>
+        </div>
+        <div class="cfg-way">
+          <span class="cfg-way__tag">或终端运行</span>
+          <button type="button" class="cfg-way__copy" onclick="lumiCopyCfg(this)" data-cmd="lumilab config"><code>lumilab config</code><span class="cfg-way__hint">点击复制</span></button>
+        </div>
+      </div>
+      <p class="cfg-panel__note">配置向导会在浏览器打开（127.0.0.1:7777），改完保存，这个首页会自动重渲染。</p>
     </div>
     ${preset}
     <ul class="tool-grid">${cells}</ul>
@@ -714,6 +733,102 @@ body::before {
   line-height: 1.4;
 }
 
+/* ── 修改配置 按钮 + 面板 ── */
+.section__titlerow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cfg-btn {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.14s cubic-bezier(0.16,1,0.3,1), box-shadow 0.14s cubic-bezier(0.16,1,0.3,1);
+}
+.cfg-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px oklch(48% 0.15 28 / 0.2); }
+.cfg-btn__ico { font-size: 13px; }
+.cfg-panel {
+  margin: 16px 0 4px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+}
+.cfg-panel__lead {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.cfg-panel__ways { display: flex; flex-wrap: wrap; gap: 12px; }
+.cfg-way {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cfg-way__tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.cfg-way__cmd {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.cfg-way__copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.14s ease;
+}
+.cfg-way__copy:hover { border-color: var(--accent); }
+.cfg-way__copy code { background: none; border: 0; padding: 0; }
+.cfg-way__hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+}
+.cfg-panel__note {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
 /* ── Ventures ── */
 .venture-grid {
   display: grid;
@@ -978,9 +1093,25 @@ body::before {
 
   <footer class="footer">
     <p class="footer__hint">回到对话里说一句想法，或继续某个 venture。</p>
-    <p class="footer__sub">Lumi Lab v1.4.0 — 输入「lumilab home」随时回到这里</p>
+    <p class="footer__sub">输入「lumilab home」随时回到这里</p>
   </footer>
 </main>
+<script>
+function lumiToggleCfg(btn){
+  var panel = document.querySelector('.cfg-panel');
+  if(!panel) return;
+  var open = panel.hasAttribute('hidden');
+  if(open){ panel.removeAttribute('hidden'); } else { panel.setAttribute('hidden',''); }
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function lumiCopyCfg(btn){
+  var cmd = btn.getAttribute('data-cmd') || '';
+  var hint = btn.querySelector('.cfg-way__hint');
+  var done = function(){ if(hint){ var old = hint.textContent; hint.textContent = '已复制 ✓'; setTimeout(function(){ hint.textContent = old; }, 1600); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(cmd).then(done).catch(done); }
+  else { var ta = document.createElement('textarea'); ta.value = cmd; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta); done(); }
+}
+</script>
 </body>
 </html>`;
 }
