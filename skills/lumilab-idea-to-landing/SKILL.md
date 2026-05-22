@@ -218,6 +218,23 @@ B) <方向2 title>
 - 用户说「你来定」 → 用推荐的那个
 - 把选择记进 `decisions.yaml`
 
+### 3.x 落初始假设 —— 写 `hypotheses.yaml`（必做，不可跳）
+
+决策一落定，**立刻**把这次验证要赌的东西写成可证伪假设，存进
+`~/.lumilab/data/ventures/<slug>/hypotheses.yaml`。这是 Studio「初始假设」区的唯一数据源——
+不写它，Studio 的假设区就永远是空的，整个验证流水线也失去可追溯的真理源。
+
+来源就在手边，不要现编：
+- Phase 0 intake 的 **想验证的点** → 一条核心假设（通常关于付费意愿 / 真实需求）
+- Phase 0 intake 的 **目标用户** + **期望用户完成** → 一条「谁 + 在什么挣扎瞬间」的人群假设
+- 选定方向的 **❌ risk** → 一条风险假设（这正是这个方向最该被证伪的点）
+- landing 的主 CTA 目标转化率（点击率 > X% / 留资率 > Y%）→ 一条可量化的验证假设
+
+每条严格遵守 `lumilab-hypothesis-ledger` 的 atomic fact schema（`id: h-NNN` 递增、
+`fact` 可证伪一句话、`confidence`、`test_method`、`test_status: pending`、`status: active`、
+`created_at/updated_at` 用 ISO 时间戳）。不确定字段格式时读
+`../lumilab-hypothesis-ledger/SKILL.md`。**至少写 2 条，通常 3–4 条。**
+
 **用户一选定，立刻进 Phase 4，不要停、不要确认、不要问「要不要我开始做」。** 决策门已经过了，剩下是自动执行。
 
 ---
@@ -392,6 +409,7 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts ~/.lumilab/data/ventur
 - `~/.lumilab/data/ventures/<slug>/design_direction.json` — 自动选的设计方向
 - `~/.lumilab/data/ventures/<slug>/landing/` — 最终 landing page（含 SEO/GEO）
 - `~/.lumilab/data/ventures/<slug>/decisions.yaml` — 方向选择记录
+- `~/.lumilab/data/ventures/<slug>/hypotheses.yaml` — 初始可证伪假设（Studio「初始假设」区数据源）
 
 ## Example（完整流水线，注意 agent 全程在跑脚本/写文件，不是在 chat 里聊）
 
@@ -490,7 +508,7 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 
 Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新的 —— 没有常驻进程做实时同步，所以**谁改了数据，谁负责顺手刷新**。
 
-这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
+这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `hypotheses.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
 
 1. 重渲这个 venture 的 Studio：`bun run ../lumilab-studio/scripts/render.ts ~/.lumilab/data/ventures/<slug>`
 2. 重渲 home dashboard：`bun run ../lumilab-home/scripts/home.ts render`

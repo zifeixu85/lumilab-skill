@@ -367,9 +367,9 @@ function renderTools(status: HomeStatus): string {
     ? `<span class="tools__preset">默认设计风格 · ${esc(status.default_design_preset)}</span>`
     : '';
   return `
-  <section class="section" style="--s:1">
+  <section class="section" style="--s:2">
     <div class="section__head">
-      <span class="section__no">Nº 01</span>
+      <span class="section__no">Nº 02</span>
       <div class="section__titlerow">
         <h2 class="section__title">工具集成</h2>
         <button type="button" class="cfg-btn" aria-expanded="false" onclick="lumiToggleCfg(this)">
@@ -414,9 +414,9 @@ const VENTURE_SHOW_LIMIT = 12;
 function renderVentures(status: HomeStatus): string {
   if (status.ventures.length === 0) {
     return `
-  <section class="section" style="--s:2">
+  <section class="section" style="--s:1">
     <div class="section__head">
-      <span class="section__no">Nº 02</span>
+      <span class="section__no">Nº 01</span>
       <h2 class="section__title">我的 venture</h2>
     </div>
     <div class="empty">
@@ -456,9 +456,9 @@ function renderVentures(status: HomeStatus): string {
       ? `<p class="venture-overflow">共 ${status.ventures.length} 个，上面是最近活跃的 ${VENTURE_SHOW_LIMIT} 个</p>`
       : '';
   return `
-  <section class="section" style="--s:2">
+  <section class="section" style="--s:1">
     <div class="section__head">
-      <span class="section__no">Nº 02</span>
+      <span class="section__no">Nº 01</span>
       <h2 class="section__title">我的 venture</h2>
       <p class="section__hint">共 ${status.ventures.length} 个 · 按最近活动排序 · 点卡片进各自的 Studio</p>
     </div>
@@ -1087,8 +1087,8 @@ body::before {
     </div>
   </header>
 
-  ${renderTools(status)}
   ${renderVentures(status)}
+  ${renderTools(status)}
   ${renderNext(status)}
 
   <footer class="footer">

@@ -117,9 +117,16 @@ function extractOneLiner(brief: string): string {
   return m ? m[1] : '';
 }
 function extractField(brief: string, label: string): string {
-  const re = new RegExp(`\\*\\*${label}\\*\\*:?\\s*([^\\n]+)`, 'i');
+  // 兼容三种 brief 写法：
+  //   **目标用户**: xxx   （加粗 inline）
+  //   - 目标用户: xxx      （列表项，project_brief 模板实际格式）
+  //   目标用户：xxx        （裸行，中文冒号）
+  const re = new RegExp(
+    `(?:^|\\n)\\s*[-*]?\\s*\\*{0,2}${label}\\*{0,2}\\s*[:：]\\s*([^\\n]+)`,
+    'i',
+  );
   const m = brief.match(re);
-  return m ? m[1].trim() : '';
+  return m ? m[1].trim().replace(/\*+$/, '').trim() : '';
 }
 
 // ── Artifact detection (relative-link aware) ──
