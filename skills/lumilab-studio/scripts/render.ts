@@ -596,6 +596,10 @@ export function render(ventureDir: string): string {
             <span class="dir-row__title">${esc(d.title ?? d.id)}${isChosen ? ' <span class="dir-row__badge">已选 / 推荐</span>' : ''}</span>
             ${d.angle ? `<span class="dir-row__angle">${esc(d.angle)}</span>` : ''}
             ${d.why_it_works ? `<span class="dir-row__why">${esc(d.why_it_works)}</span>` : ''}
+            ${d.risk ? `<span class="dir-row__risk">⚠ ${esc(d.risk)}</span>` : ''}
+            <span class="dir-row__cta">
+              <button class="btn-ghost" data-act="dir-gen" data-id="${esc(d.id ?? '')}" data-title="${escAttr(d.title ?? d.id ?? '')}">用此方向生成 Landing →</button>
+            </span>
           </span>
         </li>`;
     })
@@ -655,27 +659,62 @@ export function render(ventureDir: string): string {
           ${artifactCard('🌐', primaryLandingLabel, primaryLandingHref, '真实购买意愿验证页（fake-door）')}
           ${landingVersions.length > 1 ? `<ul class="ver-list">${landingVersionList}</ul>` : ''}
         ` : ''}
-        ${designDirection ? `
+        ${designDirection ? (() => {
+          const dd = designDirection;
+          const accent = dd.palette?.accent ?? dd.palette?.cta ?? 'oklch(58% 0.22 25)';
+          const surface = dd.palette?.surface ?? 'oklch(100% 0 0)';
+          const ink = dd.palette?.text_primary ?? 'oklch(15% 0 0)';
+          const ink2 = dd.palette?.text_secondary ?? 'oklch(45% 0 0)';
+          const radius = dd.radius != null ? dd.radius : 14;
+          const heading = dd.typography?.heading ?? 'serif';
+          const body = dd.typography?.body ?? 'sans-serif';
+          const di = dd.dials ?? {};
+          const presetOpts = ['editorial', 'minimalist', 'brutalist', 'soft']
+            .map((p) => `<option value="${p}"${p === dd.preset ? ' selected' : ''}>${p}</option>`).join('');
+          const swatches = dd.palette ? Object.entries(dd.palette).map(([k, v]) =>
+            typeof v === 'string' && /^oklch|^#|^rgb/.test(v)
+              ? `<div class="swatch"><span class="swatch-chip" style="background:${esc(String(v))}"></span><span class="swatch-name">${esc(k)}</span></div>`
+              : '').join('') : '';
+          return `
           <header class="section__head" style="margin-top:20px;">
-            <h2 class="section__title">设计方向</h2>
-            <span class="section__count">${esc(designDirection.preset ?? '—')} preset · design_direction.json</span>
+            <h2 class="section__title">设计系统</h2>
+            <span class="section__count">${esc(dd.preset ?? '—')} preset · design_direction.json</span>
           </header>
-          <div class="design-card">
-            <dl class="design-meta">
-              <dt>预设</dt><dd>${esc(designDirection.preset ?? '—')}</dd>
-              <dt>方差</dt><dd>${esc(designDirection.dials?.variance ?? '—')}</dd>
-              <dt>动效</dt><dd>${esc(designDirection.dials?.motion ?? '—')}</dd>
-              <dt>密度</dt><dd>${esc(designDirection.dials?.density ?? '—')}</dd>
-            </dl>
-            <div class="palette-row">
-              ${designDirection.palette ? Object.entries(designDirection.palette).map(([k, v]) =>
-                typeof v === 'string' && /^oklch|^#|^rgb/.test(v)
-                  ? `<div class="swatch"><span class="swatch-chip" style="background:${esc(String(v))}"></span><span class="swatch-name">${esc(k)}</span><code class="swatch-val">${esc(String(v))}</code></div>`
-                  : ''
-              ).join('') : ''}
+          <div class="ds" data-ds
+            data-accent="${escAttr(accent)}" data-radius="${radius}"
+            data-variance="${di.variance ?? 50}" data-motion="${di.motion ?? 40}" data-density="${di.density ?? 55}">
+            <div class="ds-controls">
+              <label class="ds-ctl"><span>预设</span><select data-ds-preset>${presetOpts}</select></label>
+              <label class="ds-ctl"><span>圆角 <b data-ds-out="radius">${radius}px</b></span><input type="range" min="0" max="28" value="${radius}" data-ds-radius></label>
+              <label class="ds-ctl"><span>方差 <b data-ds-out="variance">${di.variance ?? 50}</b></span><input type="range" min="0" max="100" value="${di.variance ?? 50}" data-ds-dial="variance"></label>
+              <label class="ds-ctl"><span>动效 <b data-ds-out="motion">${di.motion ?? 40}</b></span><input type="range" min="0" max="100" value="${di.motion ?? 40}" data-ds-dial="motion"></label>
+              <label class="ds-ctl"><span>密度 <b data-ds-out="density">${di.density ?? 55}</b></span><input type="range" min="0" max="100" value="${di.density ?? 55}" data-ds-dial="density"></label>
+              <label class="ds-ctl"><span>强调色</span><input type="text" value="${escAttr(accent)}" data-ds-accent spellcheck="false"></label>
+              <div class="ds-actions">
+                <button class="btn-primary" data-act="design-apply">应用设计</button>
+                <button class="btn-ghost" data-act="design-gen">用此设计生成新 Landing →</button>
+              </div>
+            </div>
+            <div class="ds-preview" id="ds-preview"
+              style="--ds-accent:${esc(accent)};--ds-radius:${radius}px;--ds-surface:${esc(surface)};--ds-ink:${esc(ink)};--ds-ink2:${esc(ink2)};">
+              <div class="ds-pv-card ds-pv-card--lg">
+                <span class="ds-pv-eyebrow">Card · 圆角 / 阴影 / 层级</span>
+                <h3 class="ds-pv-h" style="font-family:${esc(heading)},serif">${esc(oneLiner || ventureName)}</h3>
+                <p class="ds-pv-body" style="font-family:${esc(body)},sans-serif">这是当前设计 token 渲染出的卡片样例。拖动上面的旋钮，圆角与强调色实时变化；点「应用设计」写回 design_direction.json。</p>
+                <div class="ds-pv-btns">
+                  <button class="ds-pv-btn ds-pv-btn--primary">主按钮 CTA</button>
+                  <button class="ds-pv-btn ds-pv-btn--ghost">次按钮</button>
+                  <span class="ds-pv-chip">标签 chip</span>
+                </div>
+              </div>
+              <div class="ds-pv-side">
+                <div class="ds-pv-card ds-pv-card--sm"><span class="ds-pv-num">A</span><span>卡片 A</span></div>
+                <div class="ds-pv-card ds-pv-card--sm"><span class="ds-pv-num">B</span><span>卡片 B</span></div>
+                <div class="ds-pv-swatches">${swatches}</div>
+              </div>
             </div>
           </div>
-        ` : ''}
+        `; })() : ''}
       ` : pendingState(STAGE_LABELS.build, STAGE_SKILL_HINT.build)}
     </section>`;
 
@@ -1788,7 +1827,48 @@ kbd {
 }
 .dir-row__mark { font-size: 14px; color: var(--mute-2); flex-shrink: 0; line-height: 1.6; }
 .dir-row.is-chosen .dir-row__mark { color: var(--accent); }
-.dir-row__body { display: flex; flex-direction: column; gap: 4px; }
+.dir-row__body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.dir-row__risk { font-size: 12px; color: oklch(50% 0.14 40); line-height: 1.5; }
+.dir-row__cta { margin-top: 8px; }
+.dir-row__cta .btn-ghost { font-size: 12px; height: 28px; padding: 4px 12px; }
+
+/* ───── Design System demo (P3) ───── */
+.ds { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+@media (max-width: 860px) { .ds { grid-template-columns: 1fr; } }
+.ds-controls {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px; background: var(--surface-2);
+  border: 1px solid var(--hairline); border-radius: var(--r-lg);
+}
+.ds-ctl { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
+.ds-ctl b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.ds-ctl select, .ds-ctl input[type=text] {
+  font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-md); background: var(--surface); color: var(--ink); width: 100%; box-sizing: border-box;
+}
+.ds-ctl input[type=range] { width: 100%; accent-color: var(--accent); }
+.ds-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.ds-preview { display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 600px) { .ds-preview { grid-template-columns: 1fr; } }
+.ds-pv-card {
+  background: var(--ds-surface); border: 1px solid var(--hairline);
+  border-radius: var(--ds-radius); padding: 20px;
+  box-shadow: 0 6px 24px oklch(0% 0 0 / 0.07); transition: border-radius 160ms var(--ease);
+}
+.ds-pv-card--lg { display: flex; flex-direction: column; gap: 10px; }
+.ds-pv-eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--ds-accent); text-transform: uppercase; }
+.ds-pv-h { font-size: clamp(20px, 3vw, 30px); line-height: 1.12; color: var(--ds-ink); margin: 0; }
+.ds-pv-body { font-size: 13.5px; line-height: 1.6; color: var(--ds-ink2); margin: 0; }
+.ds-pv-btns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.ds-pv-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: var(--ds-radius); cursor: pointer; transition: all 140ms var(--ease); border: 1px solid transparent; }
+.ds-pv-btn--primary { background: var(--ds-accent); color: oklch(100% 0 0); }
+.ds-pv-btn--primary:hover { filter: brightness(0.92); }
+.ds-pv-btn--ghost { background: transparent; border-color: var(--ds-accent); color: var(--ds-accent); }
+.ds-pv-chip { font-size: 11.5px; padding: 3px 11px; border-radius: 999px; background: color-mix(in oklch, var(--ds-accent) 14%, transparent); color: var(--ds-accent); font-weight: 600; }
+.ds-pv-side { display: flex; flex-direction: column; gap: 10px; }
+.ds-pv-card--sm { display: flex; align-items: center; gap: 10px; padding: 14px 16px; font-size: 13px; color: var(--ds-ink2); }
+.ds-pv-num { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: var(--ds-radius); background: var(--ds-accent); color: oklch(100% 0 0); font-weight: 700; font-size: 12px; }
+.ds-pv-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .dir-row__title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
 .dir-row__badge {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
@@ -2219,7 +2299,51 @@ const CONF_OPTS = [['high','强信号'],['medium','中信号'],['low','弱信号
 const TS_OPTS = [['pending','待测试'],['running','测试中'],['passed','已验证'],['failed','已证伪']];
 const DECTYPE_OPTS = Object.entries(DECISION_TYPE_LABEL);
 
-function handleAction(act, id) {
+// Show a copyable AI-host prompt in the panel (generation needs the LLM host, not the server).
+function aiHandoff(title, prompt) {
+  openPanel('overview');
+  const form = document.getElementById('panel-form') || (() => {
+    const pb = document.getElementById('panel-body');
+    const d = document.createElement('div'); d.id = 'panel-form'; pb.appendChild(d); return d;
+  })();
+  document.getElementById('panel-title').textContent = title;
+  form.hidden = false;
+  form.innerHTML = '<div class="pf-hint"><p>生成 Landing 由 AI 宿主完成（需要 LLM，本地 server 只负责记录与重渲）。把下面这句发给你的 AI：</p>'
+    + '<code class="pf-cmd" data-copy="' + esc(prompt) + '">' + esc(prompt) + '</code></div>';
+}
+
+function readDesign() {
+  const ds = document.querySelector('[data-ds]'); if (!ds) return null;
+  const dial = (n) => Number((ds.querySelector('[data-ds-dial="' + n + '"]') || {}).value || 0);
+  return {
+    preset: (ds.querySelector('[data-ds-preset]') || {}).value,
+    radius: Number((ds.querySelector('[data-ds-radius]') || {}).value || 14),
+    dials: { variance: dial('variance'), motion: dial('motion'), density: dial('density') },
+    palette: { accent: (ds.querySelector('[data-ds-accent]') || {}).value },
+  };
+}
+
+function handleAction(act, id, el) {
+  if (act === 'dir-gen') {
+    const title = (el && el.dataset.title) || id;
+    const prompt = '用 ' + VENTURE + ' 的「' + title + '」方向生成一个新的 landing 验证页（landing/v<n+1>），出海默认英文';
+    if (LUMI.interactive) {
+      lumiPost('/api/direction/select', { directionId: id, title })
+        .then(() => { toast('已记录方向选择', 'ok'); aiHandoff('生成 Landing · ' + title, prompt); })
+        .catch(e => toast('失败：' + e.message, 'warn'));
+    } else { aiHandoff('生成 Landing · ' + title, prompt); }
+    return;
+  }
+  if (act === 'design-apply') {
+    const d = readDesign(); if (!d) return;
+    if (!LUMI.interactive) return staticHint('应用设计', '把 ' + VENTURE + ' 的设计方向更新为 ' + JSON.stringify(d));
+    lumiPost('/api/design/adjust', { design: d }).then(reloadSoon).catch(e => toast('失败：' + e.message, 'warn'));
+    return;
+  }
+  if (act === 'design-gen') {
+    aiHandoff('用当前设计生成 Landing', '用 ' + VENTURE + ' 当前的 design_direction.json 设计方向，生成一个新的 landing 验证页（landing/v<n+1>），出海默认英文');
+    return;
+  }
   if (act === 'hyp-edit') {
     if (!LUMI.interactive) return staticHint('编辑假设 ' + id, '编辑 ' + VENTURE + ' 的假设 ' + id);
     const h = DATA.hypotheses.find(x => x.id === id); if (!h) return;
@@ -2285,7 +2409,7 @@ document.addEventListener('click', (e) => {
   // Panel action buttons (edit / supersede / delete)
   const actBtn = e.target.closest('[data-act]');
   if (actBtn) {
-    handleAction(actBtn.dataset.act, actBtn.dataset.id);
+    handleAction(actBtn.dataset.act, actBtn.dataset.id, actBtn);
     return;
   }
   // Stage nav (left rail) OR middle progress cells — same behavior
@@ -2343,6 +2467,21 @@ document.addEventListener('click', (e) => {
     const group = segBtn.parentElement;
     group.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
     return;
+  }
+});
+
+// Live design-system preview: sliders update CSS vars + output labels in real time.
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!t || !t.dataset) return;
+  const preview = document.getElementById('ds-preview');
+  if (t.hasAttribute('data-ds-radius')) {
+    if (preview) preview.style.setProperty('--ds-radius', t.value + 'px');
+    const out = document.querySelector('[data-ds-out="radius"]'); if (out) out.textContent = t.value + 'px';
+  } else if (t.hasAttribute('data-ds-accent')) {
+    if (preview) preview.style.setProperty('--ds-accent', t.value);
+  } else if (t.hasAttribute('data-ds-dial')) {
+    const out = document.querySelector('[data-ds-out="' + t.dataset.dsDial + '"]'); if (out) out.textContent = t.value;
   }
 });
 

@@ -147,6 +147,37 @@ function decDelete(slug: string, id: string): void {
   writeList(p, list);
 }
 
+// ── Design direction (P3): merge a partial design into design_direction.json ──
+function ddPath(slug: string): string {
+  return join(ventureDir(slug), 'design_direction.json');
+}
+function designAdjust(slug: string, patch: any): void {
+  const p = ddPath(slug);
+  let dd: any = {};
+  if (existsSync(p)) { try { dd = JSON.parse(readFileSync(p, 'utf-8')); } catch { dd = {}; } }
+  if (patch.preset) dd.preset = patch.preset;
+  if (patch.dials) dd.dials = { ...(dd.dials ?? {}), ...patch.dials };
+  if (patch.radius != null) dd.radius = patch.radius;
+  if (patch.palette) dd.palette = { ...(dd.palette ?? {}), ...patch.palette };
+  if (patch.typography) dd.typography = { ...(dd.typography ?? {}), ...patch.typography };
+  dd.updated_at = nowIso();
+  writeFileSync(p, JSON.stringify(dd, null, 2) + '\n', 'utf-8');
+}
+
+// ── Direction pick (P2): record the chosen direction as a decision ──
+function directionSelect(slug: string, directionId: string, title: string): void {
+  const p = decPath(slug);
+  const list = readList(p);
+  list.push({
+    id: nextId(list, 'd'),
+    decision: '选定方向：' + (title || directionId),
+    rationale: '用户在 Studio 方向卡片中选择此方向，准备生成对应的 landing 验证页。',
+    by: 'user', type: 'directional', at: nowIso(),
+    related: [directionId], superseded_by: null,
+  });
+  writeList(p, list);
+}
+
 function pick(obj: any, keys: string[]): any {
   const out: any = {};
   for (const k of keys) if (obj[k] !== undefined) out[k] = obj[k];
@@ -180,6 +211,8 @@ async function handleApi(pathname: string, req: Request): Promise<Response> {
       case '/api/hypothesis/delete': hypDelete(slug, body.id); break;
       case '/api/decision/save': decSave(slug, body.decision ?? {}); break;
       case '/api/decision/delete': decDelete(slug, body.id); break;
+      case '/api/design/adjust': designAdjust(slug, body.design ?? {}); break;
+      case '/api/direction/select': directionSelect(slug, body.directionId, body.title); break;
       case '/api/render': break;
       default: return json({ ok: false, error: 'unknown endpoint' }, 404);
     }
@@ -190,13 +223,33 @@ async function handleApi(pathname: string, req: Request): Promise<Response> {
   }
 }
 
-function main(): void {
-  const slug = process.argv[2];
-  if (!slug) { console.error('usage: bun serve.ts <venture-slug>'); process.exit(1); }
-  if (!existsSync(ventureDir(slug))) { console.error('venture not found: ' + ventureDir(slug)); process.exit(1); }
+// Re-render the home dashboard (data/_home/home.html) without opening a browser.
+function reRenderHome(): void {
+  const homeScript = join(import.meta.dir, '..', '..', 'lumilab-home', 'scripts', 'home.ts');
+  if (!existsSync(homeScript)) return;
+  // LUMILAB_CHANNEL != local → home.ts writes the file but does NOT open a browser.
+  Bun.spawnSync(['bun', 'run', homeScript, 'render'], {
+    env: { ...process.env, LUMILAB_CHANNEL: 'served' },
+    stdout: 'ignore', stderr: 'ignore',
+  });
+}
 
-  // ensure a fresh render before opening
-  reRender(slug);
+function main(): void {
+  const args = process.argv.slice(2);
+  const homeMode = args.includes('--home');
+  const slug = args.find((a) => !a.startsWith('--'));
+
+  // Landing path: home dashboard, or a specific venture studio.
+  let openPath: string;
+  if (homeMode) {
+    reRenderHome();
+    openPath = '/_home/home.html';
+  } else {
+    if (!slug) { console.error('usage: bun serve.ts <venture-slug> | --home'); process.exit(1); }
+    if (!existsSync(ventureDir(slug))) { console.error('venture not found: ' + ventureDir(slug)); process.exit(1); }
+    reRender(slug);
+    openPath = '/ventures/' + slug + '/studio/index.html';
+  }
 
   let server: any;
   for (let port = PORT_BASE; port < PORT_BASE + 10; port++) {
@@ -207,7 +260,9 @@ function main(): void {
           const url = new URL(req.url);
           if (url.pathname.startsWith('/api/') && req.method === 'POST') return handleApi(url.pathname, req);
           if (url.pathname === '/favicon.ico') return new Response(null, { status: 204 });
-          if (url.pathname === '/') return Response.redirect('/ventures/' + slug + '/studio/index.html', 302);
+          // Always re-render home on access so the dashboard reflects latest venture state.
+          if (url.pathname === '/_home/home.html') { reRenderHome(); return serveStatic(url.pathname); }
+          if (url.pathname === '/') return Response.redirect(openPath, 302);
           return serveStatic(url.pathname);
         },
       });
@@ -217,9 +272,10 @@ function main(): void {
     }
   }
 
-  const openUrl = 'http://localhost:' + server.port + '/ventures/' + slug + '/studio/index.html';
-  console.log('[studio] interactive · ' + openUrl);
-  console.log('[studio] Ctrl+C to stop');
+  const openUrl = 'http://localhost:' + server.port + openPath;
+  const tag = homeMode ? '[home]' : '[studio]';
+  console.log(tag + ' interactive · ' + openUrl);
+  console.log(tag + ' Ctrl+C to stop');
   const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
   try { Bun.spawn([opener, openUrl], { stdout: 'ignore', stderr: 'ignore' }); } catch { /* manual */ }
 }

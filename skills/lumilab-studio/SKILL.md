@@ -57,8 +57,12 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 `serve.ts` 服务整个 `~/.lumilab/data` 树（让 studio 页里 `../landing`、`../reports`、`../../../_home` 等相对链接都解析得到），写 API：
 `/api/hypothesis/save`（upsert）·`/api/hypothesis/supersede`（迭代，旧条标记 superseded 保留历史）·`/api/hypothesis/delete`（软删 status=archived）·`/api/decision/save`·`/api/decision/delete`·`/api/render`。
 
-> **已实现**：交互 server + 假设/决策 CRUD/supersede（通过右侧详情面板的内联表单）。
-> **待实现（P2/P3）**：`decisions/*` 独立交互页（clarify / design-direction 旋钮 + Live Preview / retro / 选方向生成 landing）、`preview/*` 资产预览。这些仍在路线图上。
+> **已实现**：
+> - 交互 server + 假设/决策 CRUD/supersede（右侧详情面板内联表单）。
+> - **Home 也走服务模式**：`lumilab home` 默认起同一 server 打开 `/_home/home.html`（访问即重渲，内容实时）；点 venture 卡片进入的 studio 也是交互态。`--static` 回退 file://。
+> - **方向选择（P2）**：产品 stage 每个方向卡片有「用此方向生成 Landing →」按钮 → `/api/direction/select` 记录决策 + 给 AI 宿主可复制生成 prompt（生成本身是 LLM 工作，server 不跑 LLM）。
+> - **设计系统 demo（P3）**：构建 stage 的 Design System 区——预设 / 圆角 / 方差·动效·密度旋钮 / 强调色，实时预览卡片（圆角·阴影·按钮·调色板随旋钮变化）；「应用设计」→ `/api/design/adjust` 写回 `design_direction.json` 重渲；「用此设计生成新 Landing」→ AI handoff prompt。
+> **仍待实现**：`decisions/*` 独立交互页（clarify / retro）、`preview/*` 资产预览。生成新 landing 始终是 AI 宿主动作（server 只做确定性记录 + 重渲）。
 
 ## 何时触发
 

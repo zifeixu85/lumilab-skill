@@ -195,9 +195,9 @@ async function cmdDeploy(venture: string, ...args: string[]) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-async function cmdHome() {
+async function cmdHome(...args: string[]) {
   ensureLumilabHome();
-  // 未引导过 → 直接拉起首次引导页；引导过 → 渲染 dashboard
+  // 未引导过 → 直接拉起首次引导页；引导过 → 打开 dashboard
   const onboarded = isOnboarded();
   if (!onboarded) {
     console.log('  👋 第一次用 Lumi Lab —— 先走一遍首次引导（选界面风格 / 可选工具 token）');
@@ -207,11 +207,21 @@ async function cmdHome() {
     });
     if (wiz.status !== 0) process.exit(wiz.status ?? 1);
   }
-  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-home', 'scripts', 'home.ts'), 'render'], {
+  // --static / --read-only：旧行为，渲染 home.html 并用 file:// 打开（点进 venture 是只读）。
+  if (args.includes('--static') || args.includes('--read-only')) {
+    const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-home', 'scripts', 'home.ts'), 'render'], {
+      stdio: 'inherit',
+      env: { ...process.env, LUMILAB_HOME },
+    });
+    if (result.status !== 0) process.exit(result.status ?? 1);
+    return;
+  }
+  // 默认：起本地交互 server（home + 所有 venture studio 同一服务，点进 venture 可编辑），Ctrl+C 退出。
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts'), '--home'], {
     stdio: 'inherit',
     env: { ...process.env, LUMILAB_HOME },
   });
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  if (result.status !== 0 && result.status != null) process.exit(result.status);
 }
 
 async function cmdConfig() {
@@ -334,7 +344,7 @@ function ensureLumilabHome() {
 const [, , cmd, ...args] = process.argv;
 
 switch (cmd) {
-  case 'home': await cmdHome(); break;
+  case 'home': await cmdHome(...args); break;
   case 'idea': await cmdIdea(args.join(' ')); break;
   case 'new': await cmdNew(args.join(' ')); break;
   case 'list': await cmdList(); break;

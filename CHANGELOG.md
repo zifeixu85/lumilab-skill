@@ -102,6 +102,21 @@
 
 ---
 
+## [1.8.0] · 2026-05-23 · Home 服务模式 + 方向选择 + 设计系统 demo
+
+> Home 从 file:// 升级为服务模式（内容实时、点进 venture 即可编辑）；产品阶段可选方向生成 landing；构建阶段加可视化、可调的设计系统 demo。
+
+### Added
+- **Home 服务模式** —— `lumilab home` 默认起本地 server 打开 `/_home/home.html`，访问即重渲（内容实时），从 home 点进任意 venture studio 都是交互态。`serve.ts --home` 支持；`--static` / `--read-only` 回退旧 file://。
+- **方向选择（P2）** —— 产品 stage 每个方向卡片新增「用此方向生成 Landing →」按钮：`/api/direction/select` 记录方向决策 + 给 AI 宿主一句可复制的生成 prompt（生成 landing 是 LLM 工作，server 不跑 LLM）。方向卡片补充 `risk` 展示。
+- **设计系统 demo（P3）** —— 构建 stage 新增 Design System 区：预设 / **圆角滑块** / 方差·动效·密度旋钮 / 强调色，**实时预览卡片**（圆角、阴影、主次按钮、chip、调色板随旋钮即时变化）。「应用设计」→ `/api/design/adjust` 写回 `design_direction.json` 并重渲；「用此设计生成新 Landing」→ AI handoff prompt。
+- serve.ts 新增 `/api/design/adjust`、`/api/direction/select` 端点。
+
+### Fixed
+- `lumilab home` 之前用 `file://` 打开静态文件、点进 venture 是只读且内容可能过期 —— 现走服务模式，实时重渲、可编辑。
+
+---
+
 ## [1.7.0] · 2026-05-22 · 交互 Studio + 出海关键词引擎 + landing 英文化
 
 > Studio 从「只读看板」升级成真正可编辑的作战室；关键词调研接入 DataForSEO 并默认出海/英文；landing 出海默认产出地道英文。
