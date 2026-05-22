@@ -102,6 +102,31 @@
 
 ---
 
+## [1.7.0] · 2026-05-22 · 交互 Studio + 出海关键词引擎 + landing 英文化
+
+> Studio 从「只读看板」升级成真正可编辑的作战室；关键词调研接入 DataForSEO 并默认出海/英文；landing 出海默认产出地道英文。
+
+### Added
+- **交互 Studio（`scripts/serve.ts`）** —— 本地 `localhost:7777` HTTP server（占用顺延 7778-7786）。同一个 `index.html` 用 `location.protocol` 运行时检测模式，无需两套构建：
+  - 假设：编辑 / 迭代为新版（旧条 supersede 保留历史）/ 删除（软删 status=archived）—— 右侧面板内联表单，POST 回写 YAML 后自动重渲
+  - 决策：编辑 / 删除
+  - 写 API：`/api/hypothesis/{save,supersede,delete}`、`/api/decision/{save,delete}`、`/api/render`
+- **DataForSEO 出海关键词引擎接入流水线** —— 每个新 venture 自动跑一次英文/US 搜索需求调研（搜索量 / KD / 趋势 / 红蓝海），关键词强制英文化对标 Google 海外数据。
+- **landing 语言分层** —— 出海默认产出 native-English landing（Anti-Slop EN + 英文 CTA/modal/SEO）；过程文件与 Studio dashboard 仍全中文。Phase 0 新增「目标市场」选项（默认出海）+ 英文 landing 知情确认。
+
+### Changed
+- `lumilab studio <v>` 默认起交互 server（可编辑）；`--static` / `--read-only` 回退旧的 `file://` 只读模式。
+- 跨页链接（landing / 市场报告 / 各版本 / 回首页 / 上线页）统一新标签页打开（`target="_blank"`）。
+- 已部署 venture 的「已上线 ↗」链接置于顶栏主位。
+
+### Fixed
+- 假设 / 决策详情面板的「编辑 / 迭代 / 删除」按钮此前是死按钮（无任何事件绑定）—— 现已接活；`file://` 只读模式下降级为可复制的操作提示，不再无反应。
+- `render.ts` 的 `extractField` 正则只认 `**加粗**` 格式，抓不到 `project_brief.md` 实际的 `- 目标用户:` 列表项 —— 已兼容列表 / 裸行 / 中文冒号，dashboard 不再缺 audience。
+- idea-to-landing 流水线此前从不生成 `hypotheses.yaml`，导致 Studio「初始假设」区永远为空 —— Phase 3 决策门后新增强制写初始可证伪假设步骤。
+- `data-copy` 复制在 `file://` 下静默失败 —— 加 `execCommand` 降级 + toast 反馈。
+
+---
+
 ## [1.6.3] · 2026-05-22 · home 区块顺序：venture 在前、配置在后
 
 > 用户反馈：最近的 venture 列表应该在前，配置卡片在后。

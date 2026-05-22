@@ -109,17 +109,28 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 
 读用户那句话。**如果已经包含「做什么 + 给谁」两点 → 直接跳到 Phase 1，0 提问。**
 
-只有缺关键信息时，发**一次** AskUserQuestion（决策简报式，全部可跳过），最多 3 个字段：
+只有缺关键信息时，发**一次** AskUserQuestion（决策简报式，全部可跳过），最多 4 个字段：
 
 ```
 我准备帮你跑一轮市场分析。你可以补充几点，也可以直接跳过 —— 跳过我就自己推断。
 
+· 目标市场？　[出海 / 海外（推荐，默认）] [国内]
 · 目标用户大概是谁？（一句话，或「你来推断」）
 · 你希望用户用它完成什么？（或「你来推断」）
 · 有没有特别想验证的点？（或「没有，你来定」）
 ```
 
 用 AskUserQuestion 时，每个选项给「我自己推断」作为一等选项，并标为推荐。**不要逼用户打字。**
+
+#### ⭐ 目标市场与语言（出海优先 —— 这是 Lumi Lab 当前默认）
+
+- **默认出海**（海外市场）。除非用户明确说「国内 / 中文用户 / 小红书」等，否则按出海处理。
+- **语言分层（硬规则，不可混淆）**：
+  - **过程文件 + 本地 Studio dashboard 一律中文**（market_analysis / hypotheses / decisions / 报告都是给创始人自己看的）。
+  - **landing page 用英文**（给海外用户看），native-English、地道表达。
+  - 关键词用英文只是为了对标 Google 海外搜索量，呈现这些数据的报告仍是中文。
+- 把 `market: overseas`（或 `domestic`）+ `landing_lang: en`（或 `zh`）写进 `project_brief.md` 和 `market_analysis.json`，后续 phase 都读它。
+- **英文 landing 的确认**：出海是默认，但 landing 是英文这件事要让用户知情——在 Phase 0 intake 里把目标市场作为一等选项呈现（默认出海），或在 Phase 3 决策门的开场白里明确一句「landing 将用英文产出（出海默认），需要中文版请说一声」。不要默默产出英文页让用户意外。
 
 > 关键：这一次问完就够了。后面 Phase 1-2 不准再回头问。
 
@@ -150,12 +161,14 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 - 调 `lumilab-research-icp` 的方法论：拒绝「所有人」，收窄到 2-3 个具体细分人群
 - 每个人群记 `segment` + `jtbd`（什么场景下挣扎）+ `where_they_are`（在哪找到他们）+ `willingness`（付费意愿信号）
 
-**搜索需求（keywords）—— 定量验证**
-- 调 `lumilab-research-keywords`：把 idea 的产品关键词反查 Google 搜索需求（搜索量 / KD / 趋势 / 红蓝海）
-  - 有 DataForSEO / Keywords Everywhere token：`bun run ../lumilab-research-keywords/scripts/research.ts --seed="<idea 关键词>" --venture <slug>`
-  - 无 token：`--mock`，或宿主 LLM 基于自身知识给定性的搜索需求判断（哪些方向像蓝海、哪些像红海）
+**搜索需求（keywords）—— 定量验证（出海默认，自动跑）**
+- 调 `lumilab-research-keywords`：把 idea 的产品关键词反查 Google 搜索需求（搜索量 / KD / 趋势 / 红蓝海）。**每个新 venture 自动跑一次，不用等用户开口。**
+- **⭐ 关键词必须英文化**：idea 多半是中文，但我们看的是 Google 海外搜索量。先把 idea 的**产品关键词翻成地道的当地英文**（不是直译中式英语 —— 用海外用户真会搜的词，例如「找回走失宠物」→ `lost pet finder`/`find lost dog`/`pet recovery service`），给 5-8 个英文 seed。
+  - 出海（默认）：`bun run ../lumilab-research-keywords/scripts/research.ts --seed="<英文关键词,逗号分隔>" --country=us --language=en --venture <slug>`
+  - 国内（用户明确选）：`--country=cn --language=zh`，seed 用中文
+  - 无 token：`--mock`，或宿主 LLM 基于自身知识给定性判断
 - 这是和「市场/竞品/人群」互补的**定量**维度：竞品/人群回答「用户在抱怨什么」，关键词回答「有多少人在主动搜、竞争多激烈」
-- 产出 `keyword_landscape.md` + `keyword_metrics.csv`，并把红蓝海 top 关键词摘要进 `market_analysis.json` 的 `keywords` 段
+- 产出 `keyword_landscape.md` + `keyword_metrics.csv`，并把红蓝海 top 关键词（含搜索量/KD/趋势）摘要进 `market_analysis.json` 的 `keywords` 段。**报告呈现仍用中文**，只有关键词词条本身是英文。
 
 **方向建议（directions）—— 最重要**
 - 基于上面三路分析，生成 **3-5 个具体方向**
@@ -265,11 +278,16 @@ B) <方向2 title>
 ### 4.2 生成 fake-door 验证页
 
 调 `lumilab-landing-mvp`（它已经是 fake-door 验证页生成器，见该 skill 的 `## Fake-door 验证机制` 段）：
-- **必须有真实、显眼的主 CTA**：「立即购买」/「立即预订」/「￥XX 抢先体验」—— 真实价格、真实按钮
-- **点击主 CTA → fake-door modal**：「即将上线，留个邮箱第一时间通知你」+ 邮箱输入。点击 = 意愿信号，留邮箱 = 强意愿信号
+- **⭐ landing 语言 = `landing_lang`（出海默认 `en`）**：出海产品 landing 用**地道英文**（native-English，不是中式直译），给海外用户看。这是 Lumi Lab 里**唯一**用英文的产出 —— dashboard、报告、假设、决策仍是中文。
+  - 英文文案走 `lumilab-copy` 的英文 hook patterns + **Anti-Slop EN 禁词**（delve / robust / crucial / comprehensive / leverage / seamless / unlock 等一律不用）。
+  - CTA、价格、modal、SEO meta、GEO 段全部英文；用 Phase 1 跑出的英文蓝海关键词做 SEO 锚点。
+  - 国内（`landing_lang: zh`）才用中文 landing。
+  - 生成前若用户还不知道 landing 是英文，先按 Phase 0 的「英文 landing 确认」说明确认一句，别让用户意外收到英文页。
+- **必须有真实、显眼的主 CTA**：「Pre-order」/「Get early access」/「Reserve — $XX」—— 真实价格、真实按钮（英文场景用英文 CTA）
+- **点击主 CTA → fake-door modal**：「Launching soon — drop your email and we'll notify you first」+ 邮箱输入。点击 = 意愿信号，留邮箱 = 强意愿信号
 - **内嵌转化追踪 JS**：记录 `cta_click` / `email_submit` 事件
 - **必须带 SEO + GEO**（见 `lumilab-landing-mvp` 的 `## SEO + GEO` 段）—— 被搜到才能验证
-- 文案调 `lumilab-copy` 方法论；过 Anti-Slop + SEO/GEO + fake-door 质量 gate
+- 过 Anti-Slop + SEO/GEO + fake-door 质量 gate
 
 ### 4.3 校验
 

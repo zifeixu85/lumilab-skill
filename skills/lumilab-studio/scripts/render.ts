@@ -336,13 +336,15 @@ function detectStages(ventureDir: string) {
   };
 }
 
-function render(ventureDir: string): string {
+export function render(ventureDir: string): string {
   const ventureName = ventureDir.split('/').filter(Boolean).pop()!;
   const brief = readText(join(ventureDir, 'project_brief.md'));
   const audience = readText(join(ventureDir, 'audience.md'));
   const productDef = readText(join(ventureDir, 'product_definition.md'));
   const reviewReport = readText(join(ventureDir, 'review_report.md'));
-  const hypotheses = readYaml<Hypothesis[]>(join(ventureDir, 'hypotheses.yaml')) ?? [];
+  // archived = soft-deleted; kept in YAML for history but hidden from the dashboard.
+  const hypotheses = (readYaml<Hypothesis[]>(join(ventureDir, 'hypotheses.yaml')) ?? [])
+    .filter((h) => (h as any).status !== 'archived');
   const decisions = readYaml<Decision[]>(join(ventureDir, 'decisions.yaml')) ?? [];
   const designDirection = readJson<any>(join(ventureDir, 'design_direction.json'));
   const accent = designDirection?.palette?.accent ?? 'oklch(42% 0.16 28)';
@@ -455,7 +457,7 @@ function render(ventureDir: string): string {
 
   // ── Artifact card: a real link to a generated file ──
   const artifactCard = (icon: string, title: string, href: string, sub?: string) => `
-    <a class="artifact-card" href="${esc(href)}">
+    <a class="artifact-card" href="${esc(href)}" target="_blank" rel="noopener">
       <span class="artifact-card__icon">${icon}</span>
       <span class="artifact-card__text">
         <span class="artifact-card__title">${esc(title)}</span>
@@ -639,7 +641,7 @@ function render(ventureDir: string): string {
   const primaryLandingLabel =
     topVersion != null ? `打开 Landing 验证页 (v${topVersion})` : '打开 Landing 验证页';
   const landingVersionList = landingVersions
-    .map((n) => `<li class="ver-row"><a href="../landing/v${n}/index.html">v${n}</a>${n === topVersion ? '<span class="ver-row__latest">最新</span>' : ''}</li>`)
+    .map((n) => `<li class="ver-row"><a href="../landing/v${n}/index.html" target="_blank" rel="noopener">v${n}</a>${n === topVersion ? '<span class="ver-row__latest">最新</span>' : ''}</li>`)
     .join('');
   const hasBuildArtifact = !!primaryLandingHref || !!designDirection;
   const stageBuild = `
@@ -879,6 +881,35 @@ kbd {
 }
 .btn-ghost:hover { border-color: var(--accent); color: var(--ink); background: var(--surface-2); }
 .btn-ghost:active { background: var(--accent-soft); }
+.btn-ghost--danger:hover { border-color: oklch(58% 0.18 25); color: oklch(50% 0.2 25); background: oklch(96% 0.03 25); }
+
+/* ───── Inline panel form (interactive edit/supersede) ───── */
+.panel-form { margin-top: 14px; }
+.pf { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg); }
+.pf-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.pf-note, .pf-hint p { font-size: 12px; color: var(--mute); line-height: 1.55; margin: 0; }
+.pf-row { display: flex; flex-direction: column; gap: 5px; }
+.pf-label { font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
+.pf textarea, .pf input, .pf select {
+  font: inherit; font-size: 13px; color: var(--ink);
+  padding: 8px 10px; border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
+  background: var(--surface); width: 100%; box-sizing: border-box; resize: vertical;
+}
+.pf textarea:focus, .pf input:focus, .pf select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pf-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pf-hint { display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--surface-2); border: 1px dashed var(--hairline-strong); border-radius: var(--r-lg); }
+.pf-cmd { display: block; font-family: var(--mono); font-size: 11.5px; padding: 8px 10px; background: var(--ink); color: var(--surface); border-radius: var(--r-md); cursor: copy; word-break: break-all; }
+
+/* ───── Toast ───── */
+#lumi-toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--surface); font-size: 13px; font-weight: 500;
+  padding: 10px 18px; border-radius: 999px; box-shadow: 0 8px 30px oklch(0% 0 0 / 0.25);
+  opacity: 0; pointer-events: none; transition: all 220ms var(--ease); z-index: 9999;
+}
+#lumi-toast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#lumi-toast.is-warn { background: oklch(50% 0.2 25); }
+#lumi-toast.is-ok { background: oklch(48% 0.12 150); }
 .btn-primary {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 14px;
@@ -1890,7 +1921,7 @@ ${share ? '' : `
     ${navStages}
     <div class="nav-divider"></div>
     <div class="nav-section-label">其他</div>
-    <a class="nav-item--minor" href="../../../_home/home.html">← 回首页 / 全部 ventures</a>
+    <a class="nav-item--minor" href="../../../_home/home.html" target="_blank" rel="noopener">← 回首页 / 全部 ventures</a>
     <a class="nav-item--minor" id="new-venture-toggle" role="button" tabindex="0">+ 新建 venture</a>
     <div class="nav-hint" id="new-venture-hint" hidden>
       在你的 AI 宿主里说一句你的新想法，或 CLI 跑
@@ -1902,7 +1933,7 @@ ${share ? '' : `
 
   <main class="main" id="main">
     <div class="main__breadcrumb">
-      <a class="crumb-home" href="../../../_home/home.html">← 回首页</a>
+      <a class="crumb-home" href="../../../_home/home.html" target="_blank" rel="noopener">← 回首页</a>
       <span class="crumb-sep">/</span>
       <span>${esc(ventureName)}</span>
       <span class="crumb-sep">/</span>
@@ -1938,6 +1969,54 @@ ${share ? '' : `
 const DATA = ${JSON.stringify(dataPayload)};
 const STAGE_LABELS = ${JSON.stringify(STAGE_LABELS)};
 const DECISION_TYPE_LABEL = ${JSON.stringify(DECISION_TYPE_LABEL)};
+
+// ── Runtime mode ──
+// Same HTML serves both file:// (read-only) and http://localhost (interactive).
+const VENTURE = DATA.venture.name;
+const LUMI = { interactive: location.protocol !== 'file:' };
+
+function toast(msg, kind) {
+  let t = document.getElementById('lumi-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'lumi-toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'is-show' + (kind ? ' is-' + kind : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = ''; }, 2600);
+}
+
+function legacyCopy(txt, ok) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const done = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if (done) ok(); else toast('复制失败，请手动选中', 'warn');
+  } catch { toast('复制失败，请手动选中', 'warn'); }
+}
+
+async function lumiPost(path, body) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ venture: VENTURE, ...body }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+// In static (file://) mode, mutation isn't possible — show how to do it via AI host.
+function staticHint(label, prompt) {
+  toast('本地只读模式：' + label, 'warn');
+  const form = document.getElementById('panel-form');
+  if (form) {
+    form.hidden = false;
+    form.innerHTML = '<div class="pf-hint"><p>file:// 是只读看板，写操作要起本地服务或让 AI 宿主代劳。</p>'
+      + '<p>跑 <code data-copy="lumilab studio ' + esc(VENTURE) + '">lumilab studio ' + esc(VENTURE) + '</code> 进入可编辑模式，或对 AI 说：</p>'
+      + '<code class="pf-cmd" data-copy="' + esc(prompt) + '">' + esc(prompt) + '</code></div>';
+  }
+}
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const decisionTypeLabel = (t) => DECISION_TYPE_LABEL[t] ?? t;
@@ -2023,11 +2102,12 @@ function renderHypothesis(id) {
       <div class="panel-block__label">关联</div>
       <div class="panel-related">\${related}</div>
     </div>\` : ''}
-    <div class="panel-actions">
-      <button class="btn-ghost">编辑</button>
-      <button class="btn-ghost">迭代为新版</button>
-      <button class="btn-ghost">删除</button>
+    <div class="panel-actions" data-kind="hypothesis" data-id="\${esc(h.id)}">
+      <button class="btn-ghost" data-act="hyp-edit" data-id="\${esc(h.id)}">编辑</button>
+      \${h.status === 'superseded' ? '' : \`<button class="btn-ghost" data-act="hyp-supersede" data-id="\${esc(h.id)}">迭代为新版</button>\`}
+      <button class="btn-ghost btn-ghost--danger" data-act="hyp-delete" data-id="\${esc(h.id)}">删除</button>
     </div>
+    <div class="panel-form" id="panel-form" hidden></div>
   \`;
 }
 
@@ -2056,10 +2136,11 @@ function renderDecision(id) {
       <div class="panel-block__label">关联假设</div>
       <div class="panel-related">\${related}</div>
     </div>\` : ''}
-    <div class="panel-actions">
-      <button class="btn-ghost">编辑</button>
-      <button class="btn-ghost">删除</button>
+    <div class="panel-actions" data-kind="decision" data-id="\${esc(d.id)}">
+      <button class="btn-ghost" data-act="dec-edit" data-id="\${esc(d.id)}">编辑</button>
+      <button class="btn-ghost btn-ghost--danger" data-act="dec-delete" data-id="\${esc(d.id)}">删除</button>
     </div>
+    <div class="panel-form" id="panel-form" hidden></div>
   \`;
 }
 
@@ -2104,6 +2185,79 @@ function openPanel(target, id) {
   }
 }
 
+// ── Hypothesis / decision mutations (interactive mode) ──
+function fieldRow(label, inner) {
+  return '<label class="pf-row"><span class="pf-label">' + esc(label) + '</span>' + inner + '</label>';
+}
+function selectFor(name, val, opts) {
+  return '<select name="' + name + '">' + opts.map(o =>
+    '<option value="' + esc(o[0]) + '"' + (o[0] === val ? ' selected' : '') + '>' + esc(o[1]) + '</option>'
+  ).join('') + '</select>';
+}
+function showForm(title, inner, onSubmit) {
+  const form = document.getElementById('panel-form');
+  if (!form) return;
+  form.hidden = false;
+  form.innerHTML = '<form class="pf"><div class="pf-title">' + esc(title) + '</div>' + inner
+    + '<div class="pf-actions"><button type="submit" class="btn-primary">保存</button>'
+    + '<button type="button" class="btn-ghost" data-pf-cancel>取消</button></div></form>';
+  const f = form.querySelector('form');
+  f.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const fd = Object.fromEntries(new FormData(f).entries());
+    const btn = f.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = '保存中…';
+    try { await onSubmit(fd); }
+    catch (err) { toast('保存失败：' + err.message, 'warn'); btn.disabled = false; btn.textContent = '保存'; }
+  });
+  f.querySelector('[data-pf-cancel]').addEventListener('click', () => { form.hidden = true; form.innerHTML = ''; });
+  form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function reloadSoon() { toast('已保存，刷新中…', 'ok'); setTimeout(() => location.reload(), 600); }
+
+const CONF_OPTS = [['high','强信号'],['medium','中信号'],['low','弱信号']];
+const TS_OPTS = [['pending','待测试'],['running','测试中'],['passed','已验证'],['failed','已证伪']];
+const DECTYPE_OPTS = Object.entries(DECISION_TYPE_LABEL);
+
+function handleAction(act, id) {
+  if (act === 'hyp-edit') {
+    if (!LUMI.interactive) return staticHint('编辑假设 ' + id, '编辑 ' + VENTURE + ' 的假设 ' + id);
+    const h = DATA.hypotheses.find(x => x.id === id); if (!h) return;
+    showForm('编辑假设 ' + id,
+      fieldRow('陈述', '<textarea name="fact" rows="2" required>' + esc(h.fact) + '</textarea>')
+      + fieldRow('信号', selectFor('confidence', h.confidence, CONF_OPTS))
+      + fieldRow('测试方法', '<textarea name="test_method" rows="2">' + esc(h.test_method || '') + '</textarea>')
+      + fieldRow('测试状态', selectFor('test_status', h.test_status, TS_OPTS)),
+      async (fd) => { await lumiPost('/api/hypothesis/save', { hypothesis: { id, ...fd } }); reloadSoon(); });
+  } else if (act === 'hyp-supersede') {
+    if (!LUMI.interactive) return staticHint('迭代假设 ' + id, '把 ' + VENTURE + ' 的假设 ' + id + ' 迭代为新版');
+    const h = DATA.hypotheses.find(x => x.id === id); if (!h) return;
+    showForm('迭代 ' + id + ' 为新版',
+      '<p class="pf-note">旧假设会标记为「已迭代」并保留历史，新假设取代它。</p>'
+      + fieldRow('新陈述', '<textarea name="fact" rows="2" required>' + esc(h.fact) + '</textarea>')
+      + fieldRow('信号', selectFor('confidence', h.confidence, CONF_OPTS))
+      + fieldRow('测试方法', '<textarea name="test_method" rows="2">' + esc(h.test_method || '') + '</textarea>')
+      + fieldRow('迭代原因', '<input name="reason" placeholder="为什么要改？新证据是什么？">'),
+      async (fd) => { await lumiPost('/api/hypothesis/supersede', { id, ...fd }); reloadSoon(); });
+  } else if (act === 'hyp-delete') {
+    if (!LUMI.interactive) return staticHint('删除假设 ' + id, '归档 ' + VENTURE + ' 的假设 ' + id);
+    if (!confirm('归档假设 ' + id + '？历史会保留，可恢复。')) return;
+    lumiPost('/api/hypothesis/delete', { id }).then(reloadSoon).catch(e => toast('失败：' + e.message, 'warn'));
+  } else if (act === 'dec-edit') {
+    if (!LUMI.interactive) return staticHint('编辑决策 ' + id, '编辑 ' + VENTURE + ' 的决策 ' + id);
+    const d = DATA.decisions.find(x => x.id === id); if (!d) return;
+    showForm('编辑决策 ' + id,
+      fieldRow('决策', '<textarea name="decision" rows="2" required>' + esc(d.decision) + '</textarea>')
+      + fieldRow('理由', '<textarea name="rationale" rows="2">' + esc(d.rationale || '') + '</textarea>')
+      + fieldRow('类型', selectFor('type', d.type, DECTYPE_OPTS)),
+      async (fd) => { await lumiPost('/api/decision/save', { decision: { id, ...fd } }); reloadSoon(); });
+  } else if (act === 'dec-delete') {
+    if (!LUMI.interactive) return staticHint('删除决策 ' + id, '删除 ' + VENTURE + ' 的决策 ' + id);
+    if (!confirm('删除决策 ' + id + '？')) return;
+    lumiPost('/api/decision/delete', { id }).then(reloadSoon).catch(e => toast('失败：' + e.message, 'warn'));
+  }
+}
+
 // ── Stage switching (no scroll, no hash) ──
 // Keeps left-nav AND middle prog-cells visually in sync.
 function switchStage(stage) {
@@ -2128,6 +2282,12 @@ openPanel('overview');
 
 // Delegated click
 document.addEventListener('click', (e) => {
+  // Panel action buttons (edit / supersede / delete)
+  const actBtn = e.target.closest('[data-act]');
+  if (actBtn) {
+    handleAction(actBtn.dataset.act, actBtn.dataset.id);
+    return;
+  }
   // Stage nav (left rail) OR middle progress cells — same behavior
   const stageEl = e.target.closest('.nav-stage, .prog-cell');
   if (stageEl && stageEl.dataset.stage) {
@@ -2153,15 +2313,15 @@ document.addEventListener('click', (e) => {
     if (h) h.hidden = !h.hidden;
     return;
   }
-  // Copy-to-clipboard code chip
+  // Copy-to-clipboard code chip (with file:// fallback)
   const copyEl = e.target.closest('[data-copy]');
   if (copyEl) {
-    const txt = copyEl.dataset.copy;
-    if (navigator.clipboard && txt) {
-      navigator.clipboard.writeText(txt).then(() => {
-        copyEl.classList.add('copied');
-        setTimeout(() => copyEl.classList.remove('copied'), 1400);
-      });
+    const txt = copyEl.dataset.copy || '';
+    const ok = () => { copyEl.classList.add('copied'); setTimeout(() => copyEl.classList.remove('copied'), 1400); toast('已复制', 'ok'); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(txt).then(ok).catch(() => legacyCopy(txt, ok));
+    } else {
+      legacyCopy(txt, ok);
     }
     return;
   }
@@ -2311,15 +2471,24 @@ async function main() {
     process.exit(1);
   }
 
+  renderVenture(absDir);
+  console.log(`✓ Studio rendered: ${join(absDir, 'studio', 'index.html')}`);
+}
+
+/** Render a venture's studio HTML to disk and return the output path. Reused by serve.ts. */
+export function renderVenture(absDir: string): string {
   const html = render(absDir);
   const outDir = join(absDir, 'studio');
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, 'index.html');
   writeFileSync(outPath, html);
-  console.log(`✓ Studio rendered: ${outPath}`);
+  return outPath;
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only run the CLI entry when invoked directly (not when imported by serve.ts).
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

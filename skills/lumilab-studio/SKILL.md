@@ -46,18 +46,25 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 双模式
 
-| 模式 | 何时 | 实现 |
-|---|---|---|
-| **本地交互** | Setup Wizard / design-direction / clarify / retro / manage | `localhost:7777` bun HTTP server |
-| **本地只读** | 看 index / preview | `file://` 直接打开 |
-| **公网部署** | `/lumilab deploy` 后 | Cloudflare Pages + 客户端加密 + 密码门 |
+**同一个 `index.html` 同时适配两种模式** —— 页面运行时用 `location.protocol` 检测自己在哪，无需两套构建：
+
+| 模式 | 何时 | 实现 | 写操作 |
+|---|---|---|---|
+| **本地交互**（默认） | `lumilab studio <v>` | `scripts/serve.ts` · `localhost:7777`（占用顺延 7778-7786）bun HTTP server | 假设/决策的编辑·迭代·删除真働，POST 回写 YAML 后自动重渲 |
+| **本地只读** | `lumilab studio <v> --static` 或直接双击 `file://` | `file://` 直接打开 | 写操作降级为提示（教用户起交互模式或让 AI 代劳），不再是死按钮 |
+| **公网部署** | `/lumilab deploy` 后 | Cloudflare Pages + 客户端加密 + 密码门 | 只读 |
+
+`serve.ts` 服务整个 `~/.lumilab/data` 树（让 studio 页里 `../landing`、`../reports`、`../../../_home` 等相对链接都解析得到），写 API：
+`/api/hypothesis/save`（upsert）·`/api/hypothesis/supersede`（迭代，旧条标记 superseded 保留历史）·`/api/hypothesis/delete`（软删 status=archived）·`/api/decision/save`·`/api/decision/delete`·`/api/render`。
+
+> **已实现**：交互 server + 假设/决策 CRUD/supersede（通过右侧详情面板的内联表单）。
+> **待实现（P2/P3）**：`decisions/*` 独立交互页（clarify / design-direction 旋钮 + Live Preview / retro / 选方向生成 landing）、`preview/*` 资产预览。这些仍在路线图上。
 
 ## 何时触发
 
-- Agent 写入 `data/ventures/<name>/` 任何文件 → auto-rerender 对应 HTML
-- 用户 `/lumilab studio [venture]` → 浏览器打开 index
-- 用户 `/lumilab design-direction` → 启动 localhost + 打开 design-direction.html
-- 用户 `/lumilab config` / `/lumilab manage` → 启动 localhost + 打开 setup/manage
+- Agent 写入 `data/ventures/<name>/` 任何文件 → 重渲对应 HTML（`render.ts`）
+- 用户 `/lumilab studio [venture]` → 默认起 `serve.ts` 交互 server 并打开浏览器；`--static` 只开 file://
+- 写操作（编辑/迭代/删除假设·决策）在交互模式下经 `serve.ts` 的 `/api/*` 回写 YAML 并自动重渲
 
 ## 渲染流程
 

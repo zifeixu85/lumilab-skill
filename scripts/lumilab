@@ -167,16 +167,22 @@ async function cmdRender(venture?: string) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-async function cmdStudio(venture?: string) {
+async function cmdStudio(venture?: string, ...args: string[]) {
   const v = venture || getCurrentVenture();
   if (!v) { console.error('No venture found.'); process.exit(1); }
-  const indexPath = join(VENTURES, v, 'studio', 'index.html');
-  if (!existsSync(indexPath)) {
-    console.log('Studio not rendered yet, rendering...');
-    await cmdRender(v);
+  // --static / --read-only：只开 file://（旧行为，按钮降级为提示）。
+  if (args.includes('--static') || args.includes('--read-only')) {
+    const indexPath = join(VENTURES, v, 'studio', 'index.html');
+    if (!existsSync(indexPath)) { console.log('Studio not rendered yet, rendering...'); await cmdRender(v); }
+    console.log(`Opening (read-only): file://${indexPath}`);
+    spawnSync('open', [indexPath]);
+    return;
   }
-  console.log(`Opening: file://${indexPath}`);
-  spawnSync('open', [indexPath]);
+  // 默认：起本地交互 server（编辑/迭代/删除假设·决策真働），Ctrl+C 退出。
+  const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts'), v], {
+    stdio: 'inherit',
+  });
+  if (result.status !== 0 && result.status != null) process.exit(result.status);
 }
 
 async function cmdDeploy(venture: string, ...args: string[]) {
@@ -333,7 +339,7 @@ switch (cmd) {
   case 'new': await cmdNew(args.join(' ')); break;
   case 'list': await cmdList(); break;
   case 'render': await cmdRender(args[0]); break;
-  case 'studio': await cmdStudio(args[0]); break;
+  case 'studio': await cmdStudio(args[0], ...args.slice(1)); break;
   case 'design-direction': await cmdDesignDirection(args[0]); break;
   case 'deploy': await cmdDeploy(args[0], ...args.slice(1)); break;
   case 'manage': await cmdManage(); break;
