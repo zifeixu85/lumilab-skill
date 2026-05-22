@@ -102,6 +102,21 @@
 
 ---
 
+## [1.6.1] · 2026-05-22 · 配置向导引导页视觉打磨
+
+> 用户反馈：直角太锐利、信息分层不清晰、没有重点。
+
+### Changed
+- **柔化圆角**：editorial 主题 `--radius` 2px → 8px，新增 `--radius-lg`（卡片/容器用更大圆角），各主题同步加 `--radius-lg`（minimalist/brutalist 仍为 0 保持识别度）
+- **加入层次与重点**（wizard 引导页 CSS）：
+  - 新增暖色调柔和阴影 token（`--shadow-sm/md/lift/accent`），卡片浮起而非平铺硬框
+  - 流程图升为 hero：抬高加阴影；两个「产物 ①②」节点填实重音色 + 白字，作为真正产出跳出来
+  - 两张产物卡：阴影 + hover 上浮 + 红色顶边 + 圆形编号徽标
+  - 区块标题加重音 kicker 竖条；「这一步」提示带填色；步骤条圆角 + 当前步更突出；skill chip 改胶囊 + 微阴影
+- 仅改 `lumilab-config/scripts/wizard.ts` 的 CSS，不动逻辑；anti-slop 仍干净（OKLCH only，无 Inter/Roboto，无紫渐变）
+
+---
+
 ## [1.6.0] · 2026-05-22 · Web 搜索调研：Exa → Tavily
 
 > 调研用的 Web 搜索 provider 从 Exa 换成 [Tavily](https://www.tavily.com/)。

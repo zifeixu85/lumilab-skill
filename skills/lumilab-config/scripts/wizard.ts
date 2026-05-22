@@ -326,8 +326,15 @@ const CSS = `
   --space-6:  1.5rem;
   --space-8:  2rem;
 
-  --radius:   4px;
-  --radius-2: 6px;
+  --radius:    6px;
+  --radius-2:  9px;
+  --radius-lg: 12px;
+
+  /* 暖色调柔和阴影 —— 让卡片浮在纸面上，而不是平铺的硬框 */
+  --shadow-sm: 0 1px 2px oklch(30% 0.02 60 / 0.06);
+  --shadow-md: 0 6px 18px oklch(30% 0.03 60 / 0.08), 0 2px 5px oklch(30% 0.02 60 / 0.05);
+  --shadow-lift: 0 12px 30px oklch(30% 0.03 60 / 0.12), 0 3px 8px oklch(30% 0.02 60 / 0.06);
+  --shadow-accent: 0 8px 22px oklch(45% 0.15 32 / 0.22);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -346,8 +353,9 @@ html[data-theme="editorial"] {
   --color-accent-2: oklch(93% 0.045 40);
   --font-sans: "Fraunces", "Noto Serif SC", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --radius: 2px;
-  --radius-2: 3px;
+  --radius: 8px;
+  --radius-2: 12px;
+  --radius-lg: 16px;
 }
 /* minimalist — cool near-white + geometric sans + airy */
 html[data-theme="minimalist"] {
@@ -364,6 +372,7 @@ html[data-theme="minimalist"] {
   --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
   --radius: 0px;
   --radius-2: 0px;
+  --radius-lg: 0px;
 }
 /* brutalist — high-contrast acid + mono + hard edges */
 html[data-theme="brutalist"] {
@@ -380,6 +389,7 @@ html[data-theme="brutalist"] {
   --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
   --radius: 0px;
   --radius-2: 0px;
+  --radius-lg: 0px;
 }
 /* soft — low-saturation pastel + rounded + gentle */
 html[data-theme="soft"] {
@@ -396,6 +406,7 @@ html[data-theme="soft"] {
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   --radius: 12px;
   --radius-2: 16px;
+  --radius-lg: 22px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -451,6 +462,9 @@ body {
   grid-template-columns: repeat(6, 1fr);
   gap: 0; margin-bottom: var(--space-6);
   border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 .step-cell {
   position: relative;
@@ -514,17 +528,21 @@ body {
 /* "what this step does" intro box */
 .step-intro {
   display: flex; gap: var(--space-3); align-items: flex-start;
-  border: 1px solid var(--color-hairline);
+  border: 1px solid var(--color-accent-2);
   border-left: 3px solid var(--color-accent);
-  background: var(--color-surface);
-  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  background: var(--color-accent-2);
+  padding: var(--space-4) var(--space-4);
   margin-bottom: var(--space-6);
 }
 .step-intro__tag {
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--color-accent); padding-top: 2px;
-  white-space: nowrap;
+  color: var(--color-surface);
+  background: var(--color-accent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap; flex: 0 0 auto;
 }
 .step-intro__text {
   font-family: var(--font-sans); font-size: 14.5px;
@@ -871,66 +889,91 @@ details.pro[open] > summary::before { content: '− '; }
 }
 .autosave-note strong { color: var(--color-ink); font-weight: 600; }
 
-/* welcome — flow diagram */
+/* welcome — flow diagram (the hero) */
 .flow {
   display: flex; align-items: stretch; flex-wrap: wrap;
   gap: var(--space-2);
   border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
-  padding: var(--space-4);
+  padding: var(--space-6);
   margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-md);
 }
 .flow__node {
-  flex: 1 1 0; min-width: 92px;
-  display: flex; flex-direction: column; gap: 4px;
-  padding: var(--space-3);
+  flex: 1 1 0; min-width: 96px;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: var(--space-3) var(--space-3) calc(var(--space-3) + 2px);
   background: var(--color-bg-2);
   border: 1px solid var(--color-hairline);
+  border-radius: var(--radius);
+  transition: transform 150ms var(--ease-out);
 }
 .flow__node .k {
   font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.1em; color: var(--color-accent);
+  letter-spacing: 0.1em; color: var(--color-mute);
 }
 .flow__node .t {
-  font-family: var(--font-sans); font-size: 12px;
+  font-family: var(--font-sans); font-size: 12.5px;
   font-weight: 600; color: var(--color-ink); line-height: 1.35;
 }
 .flow__arrow {
   align-self: center;
-  font-family: var(--font-mono); font-size: 13px;
-  color: var(--color-mute);
+  font-family: var(--font-mono); font-size: 14px;
+  color: var(--color-hairline);
 }
+/* 两个「产物」节点 = 流程里真正的产出，填实重音色让它们跳出来 */
 .flow__node.accent {
-  background: var(--color-accent-2);
+  background: var(--color-accent);
   border-color: var(--color-accent);
+  box-shadow: var(--shadow-accent);
 }
+.flow__node.accent .k { color: var(--color-accent-2); }
+.flow__node.accent .t { color: var(--color-surface); }
 
-/* welcome — section heading */
+/* welcome — section heading（带重音 kicker，方便扫读） */
 .block-h {
-  font-family: var(--font-sans); font-size: 15px; font-weight: 600;
-  color: var(--color-ink); margin: var(--space-6) 0 var(--space-3);
+  font-family: var(--font-sans); font-size: 16px; font-weight: 600;
+  color: var(--color-ink); margin: var(--space-8) 0 var(--space-4);
   padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-hairline);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.block-h::before {
+  content: ''; flex: 0 0 auto;
+  width: 4px; height: 16px; border-radius: 2px;
+  background: var(--color-accent);
 }
 
-/* welcome — two deliverables */
+/* welcome — two deliverables（产物 = 用户真正拿到的东西，做成会浮起的卡片） */
 .deliverables {
   display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
 .deliv {
-  border: 1px solid var(--color-hairline); border-radius: var(--radius);
-  background: var(--color-bg-2); padding: var(--space-4); min-width: 0;
+  position: relative;
+  border: 1px solid var(--color-hairline); border-radius: var(--radius-lg);
+  background: var(--color-surface); padding: var(--space-6); min-width: 0;
+  box-shadow: var(--shadow-md);
+  transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+.deliv:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+.deliv::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: var(--color-accent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .deliv__no {
+  display: inline-block;
   font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  color: var(--color-accent); letter-spacing: 0.06em;
+  color: var(--color-surface); background: var(--color-accent);
+  letter-spacing: 0.06em; padding: 3px 9px; border-radius: 999px;
 }
 .deliv__title {
-  font-family: var(--font-sans); font-size: 15px; font-weight: 600;
-  color: var(--color-ink); margin: var(--space-2) 0;
+  font-family: var(--font-sans); font-size: 17px; font-weight: 600;
+  color: var(--color-ink); margin: var(--space-3) 0 var(--space-2);
 }
 .deliv__desc {
-  font-family: var(--font-sans); font-size: 14.5px; line-height: 1.6;
+  font-family: var(--font-sans); font-size: 14.5px; line-height: 1.65;
   color: var(--color-ink-2); margin: 0;
 }
 
@@ -941,10 +984,13 @@ details.pro[open] > summary::before { content: '− '; }
 }
 .skill-chip {
   font-family: var(--font-mono); font-size: 12px;
-  color: var(--color-ink-2); background: var(--color-bg-2);
-  border: 1px solid var(--color-hairline); border-radius: var(--radius);
-  padding: 4px 10px; white-space: nowrap;
+  color: var(--color-ink-2); background: var(--color-surface);
+  border: 1px solid var(--color-hairline); border-radius: 999px;
+  padding: 5px 12px; white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms var(--ease-out), border-color 120ms var(--ease-out);
 }
+.skill-chip:hover { transform: translateY(-1px); border-color: var(--color-accent); }
 
 /* welcome — tips list */
 .tips {
