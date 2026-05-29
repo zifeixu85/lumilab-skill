@@ -4,13 +4,12 @@
 
 [English](README.en.md) ｜ 简体中文
 
-**Lumi Lab** 是一套 24 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
+**Lumi Lab** 是一套 25 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
 🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![版本](https://img.shields.io/badge/version-1.6.3-orange)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-24-blue)](skills/)
+[![版本](https://img.shields.io/badge/version-1.8.0-orange)](CHANGELOG.md)
+[![Skills](https://img.shields.io/badge/skills-25-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
@@ -138,40 +137,34 @@ brew install qrencode                        # 可选；或 apt install qrencode
 
 ### 安装 skills bundle
 
-Lumi Lab 支持三种宿主的三条安装路径——选你正在用的：
+**最简单：把这句话发给你的 AI agent（Claude Code / OpenClaw / Cursor…），它会自己装好：**
 
-#### Claude Code / Cursor / Codex（本地 `~/.claude/skills/`）
+> 帮我装 Lumi Lab：跑 `curl -fsSL https://get.lumiclaw.ai | bash`，装完告诉我怎么用。
 
-```bash
-git clone https://github.com/zifeixu85/lumilab.git
-cd lumilab
-./install.sh
-```
-
-`install.sh` 把 21 个 skill 复制到 `~/.claude/skills/`（或 `--target` 自定义）。`--yes` 非交互。
-
-#### OpenClaw（ClawHub 集中安装）
+或自己在终端跑这条命令（效果一样）：
 
 ```bash
-openclaw skills install lumilab
-openclaw gateway restart
+curl -fsSL https://get.lumiclaw.ai | bash
 ```
 
-绑定飞书 bot（可选，跑通 OpenClaw → 飞书 chat 入口）：
+它会：检测系统 → 下载并校验 → 装到**所有检测到的宿主**的 skills 目录：
 
-```bash
-openclaw channels login --channel feishu
-```
+| Agent | 目录 |
+|---|---|
+| Claude Code | `~/.claude/skills/` |
+| OpenClaw | `~/.openclaw/skills/` |
+| Codex CLI | `~/.codex/skills/` |
+| Gemini CLI | `~/.gemini/skills/` |
 
-#### Hermes Agent（chat 内一句话装，飞书 / Telegram / Slack 全 channel 通用）
+bun 缺失会自动安装。**重跑同一条命令即升级，本地数据（venture / 配置 / 密钥）完整保留**，升级前自动备份可回滚。
 
-在你已经接好的 chat（如飞书 @bot）直接发：
+> **Cursor**（仅项目级）：在项目根目录跑
+> `mkdir -p .cursor/skills && cp -R ~/.claude/skills/lumilab-* .cursor/skills/`
 
-```
-/skills install https://github.com/zifeixu85/lumilab
-```
+#### 其它安装路径
 
-Hermes 会 quarantine → `skills_guard` 静态扫描 → 写入 `~/.hermes/skills/lumilab/`。之后 `@bot 帮我用 lumilab 走一遍这个 idea` 即可调用。
+- **OpenClaw 原生命令**：`openclaw skills install lumilab && openclaw gateway restart`（飞书 bot 可选：`openclaw channels login --channel feishu`）
+- **Hermes（chat 内一句话）**：在已接好的 chat 里发 `/skills install <你的镜像地址>`，Hermes 会静态扫描后写入 `~/.hermes/skills/lumilab/`
 
 ### 入口：「打开 lumilab」
 
@@ -320,7 +313,7 @@ lumilab help                          显示帮助
 
 ## License
 
-Apache 2.0 — 见 [`LICENSE`](LICENSE)。
+授权见 [`LICENSE`](LICENSE)。
 
 ## 致谢
 

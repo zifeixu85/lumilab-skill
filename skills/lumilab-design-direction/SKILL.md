@@ -37,13 +37,12 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 提供 `Design direction - 4 presets + 3 dials + register` 能力。P0 极简 overlay 策略：frontmatter + 触发词 + 引用上游 + Lumi Lab 规则叠加。
 
-## 上游引用
+## 上游灵感来源（非依赖）
 
-- Leonxlnx/taste-skill + pbakaus/impeccable
+- Leonxlnx/taste-skill — 美学/口味维度的建模思路
+- pbakaus/impeccable — design quality scoring 模式
 
-完整内容（已下载）：
-- `/Users/cheche/workspace/skills-fun/Lumi Lab/reference/skills/`
-- `/Users/cheche/workspace/skills/01_active_research/lumi-lab/collected_skills/`
+具体改写见 `references/` 与公开 repo `ATTRIBUTION.md`。
 
 ## Lumi Lab 上下文叠加
 

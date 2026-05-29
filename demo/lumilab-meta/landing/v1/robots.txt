@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /
+# 内测验证页：暂不收录

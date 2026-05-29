@@ -6,6 +6,79 @@
 
 ---
 
+## [1.9.0] · 2026-05-30 · 验证工具 + 发布对齐
+
+> 同步发布版到 GitHub（此前线上停在 v1.8.0 旧快照，缺下列内容）。25 skill。
+
+### Added
+- **`lumilab-payment-link`** 新 skill — Stripe Test Mode 真 checkout（创建 product + price + payment_link），让 fake-door 验证页能测真实付费意愿，不止留邮箱。
+- **`lumilab deploy --public` / `--indexable`** 三档可见性：默认私有 / `--public` 公开但 noindex / `--public --indexable` SEO 上线；wrangler 4.x 下自动先建 Pages 项目再部署。
+- **`lumilab demo`** 命令 — 把 `lumilab-meta` 样例 venture 落到 `~/.lumilab/data/ventures/`，全新装机首跑 `lumilab home` 即有可点样例。
+- 一键安装分发：`curl -fsSL https://get.lumiclaw.ai | bash`（不暴露 GitHub 仓库），多宿主 `install.sh`（Claude Code / OpenClaw / Codex / Gemini 自动探测）+ 升级保留本地数据。
+
+### Fixed
+- **studio `render.ts` stage→skill 接线**：移除 5 个不存在的幻影 skill 名（clarify / product-shape / build / launch / retro），改指真实主 skill（coach-yc / research-platforms / product-mvp / landing-mvp / launch-strategy / weekly-sop-runner）。
+- `lumilab idea` 新建 venture 后立即渲染其 studio → home 点进去不再 404。
+- `lumilab deploy` 在 wrangler 4.x 下先 `pages project create` 再部署（幂等）。
+
+## [1.8.0] · 2026-05-28 · 决赛冲刺收尾
+
+> 把工作区源（lumi-lab/workspace/）和发布产物（releases/lumilab/）的真相对齐；
+> 为 v2.0.0 "BYOK → hosted 中转"切换打地基。
+
+### Added
+- **`workspace/skills/_lib/lumilab-services/`** 空骨架（mode.ts / index.ts / README）。这是 v2 把所有外部 API 抽离到一处的预留点；当前不影响功能。
+- `~/.lumilab/config.json` 新增三字段：`service_mode: "byok"` · `hosted_endpoint: null` · `hosted_session_token_ref: null`。byok 是默认；hosted 留给 v2 切换。
+- `docs/ARCHITECTURE.md` § 14 **Provider Abstraction Pattern**（公开版同步发布）。
+- `scripts/release.sh` 升级为标准构建流水：workspace → release 同步 + anti-slop 全量扫描 + 版本一致性校验。
+
+### Changed
+- Anti-slop 词表扫描范围把 `CHANGELOG.md / README.md / RELEASE_NOTES.md / ATTRIBUTION.md / LICENSE` 加入白名单。说明文档讨论禁词不再被打。
+- `lumilab-design-direction/SKILL.md` 上游引用块替换原硬编码 `/Users/cheche/...` 路径为"上游灵感来源（非依赖）"说明。
+
+### Removed
+- `lumilab-studio/scripts/render-editorial-backup.ts`（30KB 历史 backup，已并入 render.ts）
+
+### Fixed
+- 工作区 11 个 stub SKILL.md（指向不存在的 `/Users/cheche/...`）已被实际 v1.8.0 内容替换。
+
+## [1.5.0 ~ 1.7.x] · 2026-05-15 ~ 2026-05-25 · 决赛后续打磨
+
+> 1.4.1 之后的若干打磨版本，主题：search provider 切换 + studio 交互模式 + CLI 扩展。
+
+### Added
+- `lumilab-studio/scripts/serve.ts` — Studio 进入 **dual mode**：file:// 静态浏览（旧）+ localhost 交互编辑（新，假设增删/决策记录直写回 YAML）。
+- `lumilab-research-platforms/scripts/web_tavily.ts` — Tavily 为 web research 默认 provider。
+- CLI 新增 `lumilab idea "<一句话>"` 一键 idea → landing 编排入口。
+
+### Changed
+- **Search provider：Exa → Tavily**（覆盖 31 处引用、wizard 卡片、SKILL 描述、TUTORIAL 配置示例）。原因：Tavily 中国可达性更稳。
+- `lumilab-config` wizard 配置卡片对齐到新 provider 列表。
+
+## [1.4.1] · 2026-05-15 · 决赛提交版
+
+> 决赛提交节点（5-14 24:00 截止后 patch 修订）。
+
+### Added
+- 24 个 skill 全部加 `scripts/anti-slop-lint.ts` + `scripts/validate-output.ts`（确定性、可独立运行、exit 0/1）
+- 新增 `lumilab-home`（dashboard 入口）+ `lumilab-idea-to-landing`（自动编排）= 24 skill
+- CLI 新增：`home / idea / retro / research-xhs / research-web / secrets`
+- `lumilab-config/scripts/keychain.ts` — secrets 三段后端：macOS keychain / Linux libsecret / plaintext fallback
+
+### Changed
+- 每个 SKILL.md 补 5 段工程化内容（Idempotency / Privacy / Cache / Failure modes / Edge cases）+ `## Alternatives` / `## Moat` / `## 分支决策` if-then 表 / `## Changelog`
+
+## [1.0.0] · 2026-05-14 · SkillLens S 级首发
+
+> 决赛作品提交版（21 skill 全部 S 级）。
+
+### Added
+- 21 skill 完成 SkillLens Deep Review，平均分 **91.59**，全部 `deepReviewCertificate.status = "verified"`
+- 4 轮迭代：rc1 (80.53) → rc2 (87.32) → rc3 (87.25) → v1.0 (91.59)
+- 公开 README + 安装脚本 + manifest.json（agentskills.io v1）
+
+详见 `docs/SKILLLENS_REPORT.md`（v1.0 历史快照）。
+
 ## [0.1.0-p0] · 2026-05-13 · Phase 0 首发
 
 > **Lumi Lab 是 Skills bundle，跑在你已有的 AI 宿主里**（Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI）。宿主提供 LLM。Lumi Lab 提供 21 个 skill、3 个浏览器 UI（Setup Wizard / Share Manager / Design Direction）、加密的 Cloudflare 部署，以及 `~/.lumilab/` 本地状态目录。**不需要 LLM API key**。

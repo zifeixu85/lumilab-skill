@@ -22,7 +22,7 @@ const BANNED_CN = ['赋能', '打造', '闭环', '赛道', '矩阵', '抓手', '
 const BANNED_EN = [/\bdelve\b/i, /\brobust\b/i, /\bcrucial\b/i, /\bcomprehensive\b/i, /\bnuanced\b/i, /\bleverage\b/i];
 const BANNED_VIS = [/\bInter\b/, /\bRoboto\b/, /\bArial\b/, /#000\b/, /#fff\b/, /linear-gradient[^;]*purple/i];
 const NEGATION = /(不用|禁用|禁止|禁|避免|不要|不能|別用|别用|替换|→|❌|no |avoid|never|don't|forbidden)/i;
-const SKIP_FILES = new Set(['anti-slop-lint.ts', 'validate-output.ts', 'SKILL.md']);
+const SKIP_FILES = new Set(['anti-slop-lint.ts', 'validate-output.ts', 'SKILL.md', 'CHANGELOG.md', 'README.md', 'README.en.md', 'RELEASE_NOTES.md', 'ATTRIBUTION.md', 'LICENSE']);
 const SKIP_DIRS = new Set(['node_modules', 'tests', 'references']);
 
 let issues = 0;

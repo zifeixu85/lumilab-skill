@@ -74,14 +74,16 @@ const STAGE_LABELS: Record<Stage, string> = {
   retro:    '复盘',
 };
 
+// 每个 stage 的主 skill（真实存在；点进去/兜底时跑的那个）。
+// 关联 skill 见 docs/STAGE_BRANCH_GEO_2026-05-29.md §1.1。
 const STAGE_SKILL_HINT: Record<Stage, string> = {
   overview: '',
-  idea:     'lumilab-clarify',
+  idea:     'lumilab-coach-yc',
   research: 'lumilab-research-platforms',
-  product:  'lumilab-product-shape',
-  build:    'lumilab-build',
-  launch:   'lumilab-launch',
-  retro:    'lumilab-retro',
+  product:  'lumilab-product-mvp',
+  build:    'lumilab-landing-mvp',
+  launch:   'lumilab-launch-strategy',
+  retro:    'lumilab-weekly-sop-runner',
 };
 
 const DECISION_TYPE_LABEL: Record<string, string> = {
@@ -740,6 +742,9 @@ export function render(ventureDir: string): string {
       ` : pendingState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
     </section>`;
 
+  // next-actions 行动卡（若 studio/next-actions.html 存在 → 在复盘 stage 顶部给入口）
+  const hasNextActions = existsSync(join(ventureDir, 'studio', 'next-actions.html'));
+
   // ── 复盘 stage ──
   const retroBucket = (label: string, cls: string, items: any): string => {
     const arr = Array.isArray(items) ? items : items ? [items] : [];
@@ -763,6 +768,13 @@ export function render(ventureDir: string): string {
   const hasRetroArtifact = !!retroData || reviewReport.trim() || decisions.length > 0;
   const stageRetro = `
     <section class="stage" data-stage="retro" hidden>
+      ${hasNextActions ? `
+        <header class="section__head">
+          <h2 class="section__title">下一步行动</h2>
+          <span class="section__count">本轮信号 → 现在该做什么</span>
+        </header>
+        ${artifactCard('🧭', '打开「下一步」行动卡', 'next-actions.html', '信号灯 + 解读 + 候选动作（你来选，不替你拍板）')}
+      ` : ''}
       ${retroData ? `
         <header class="section__head">
           <h2 class="section__title">复盘</h2>

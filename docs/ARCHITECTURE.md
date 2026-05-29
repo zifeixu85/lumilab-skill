@@ -237,4 +237,4 @@ Phase 0 ships Tier 1 fully. Tier 2–4 land in Phase 1 with a knowledge-graph la
 
 ## License
 
-Apache 2.0. See [`../LICENSE`](../LICENSE).
+授权见 [`../LICENSE`](../LICENSE)。

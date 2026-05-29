@@ -1,0 +1,44 @@
+- id: d-001
+  decision: "确定产品形态为「OpenClaw Lead Agent + 21 Skills」，而非纯 markdown Skill 集"
+  rationale: "9 Agent 并行会割裂上下文；OpenClaw workspace 才是真正交付容器"
+  by: user
+  type: user_challenge
+  at: "2026-05-12T13:00:00Z"
+  related: []
+  superseded_by: null
+
+- id: d-002
+  decision: "采纳 Thariq HTML effectiveness 方法论，Studio Mode 升格为第 5 大壁垒"
+  rationale: "markdown 可读 ≠ 值得读；HTML 给人，MD 给 AI；双轨设计"
+  by: user
+  type: user_challenge
+  at: "2026-05-12T23:50:00Z"
+  related: []
+  superseded_by: null
+
+- id: d-003
+  decision: "部署只用 Cloudflare Pages，跳过 GitHub + Vercel"
+  rationale: "GitHub token 注册门槛太高，Cloudflare 单 token 私密免费 + 国内访问快"
+  by: user
+  type: user_challenge
+  at: "2026-05-13T00:00:00Z"
+  related: ["h-003"]
+  superseded_by: null
+
+- id: d-004
+  decision: "默认密码 6 位数字 + 「常用密码」机制（首次设置一次，之后预填）"
+  rationale: "4 位太弱（10s 暴力破解），8 位记不住；6 位 + 1M PBKDF2 = 30 分钟破解 + 易记"
+  by: user
+  type: taste
+  at: "2026-05-13T01:00:00Z"
+  related: []
+  superseded_by: null
+
+- id: d-005
+  decision: "Supersede h-001 → h-004（真痛点是「组合」而非「找到」）"
+  rationale: "5/5 访谈结果指向「skill 太多但不知道怎么编排」"
+  by: user
+  type: user_challenge
+  at: "2026-05-13T10:00:00Z"
+  related: ["h-001", "h-004"]
+  superseded_by: null

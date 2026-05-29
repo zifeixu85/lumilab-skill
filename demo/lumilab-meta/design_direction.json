@@ -1,0 +1,19 @@
+{
+  "preset": "minimalist",
+  "dials": {
+    "variance": 6,
+    "motion": 5,
+    "density": 4
+  },
+  "palette": {
+    "primary": "oklch(18% 0.018 60)",
+    "accent": "oklch(42% 0.16 28)",
+    "neutral": "oklch(97% 0.012 80)"
+  },
+  "typography": {
+    "display": "Geist",
+    "body": "Geist",
+    "mono": "JetBrains Mono"
+  },
+  "decided_at": "2026-05-13T04:29:18.830Z"
+}

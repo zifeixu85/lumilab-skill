@@ -25,6 +25,7 @@ interface DeployOptions {
   venture: string;
   password?: string;
   public?: boolean;
+  indexable?: boolean;              // 仅 --public 模式有效；默认 noindex
   target?: 'landing' | 'studio';   // 默认 landing（验证页）；studio = 项目作战室日志
 }
 
@@ -189,20 +190,53 @@ async function deploy(opts: DeployOptions) {
       process.exit(1);
     }
   } else {
-    // Public: 直接拷贝源目录内容到 deployDir
+    // Public: 拷贝源目录内容到 deployDir
     spawnSync('cp', ['-r', `${sourceDir}/.`, deployDir]);
+    // 默认 noindex：搜索引擎不索引 fake-door 验证页
+    //   - HTML 注入 <meta name="robots" content="noindex,nofollow">
+    //   - Cloudflare _headers 文件加 X-Robots-Tag: noindex
+    //   - 写一个 robots.txt 兜底
+    // 显式 --indexable 时跳过（v2 SEO 上线模式）
+    const allowIndex = opts.indexable ?? false;
+    if (!allowIndex) {
+      const indexHtml = join(deployDir, 'index.html');
+      if (existsSync(indexHtml)) {
+        const original = readFileSync(indexHtml, 'utf-8');
+        if (!original.includes('name="robots"')) {
+          const injected = original.replace(
+            /<head>/i,
+            '<head>\n  <meta name="robots" content="noindex,nofollow,noarchive">'
+          );
+          writeFileSync(indexHtml, injected);
+        }
+      }
+      writeFileSync(join(deployDir, '_headers'), '/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n');
+      writeFileSync(join(deployDir, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+      console.log('  🔕 noindex: meta + _headers + robots.txt (no search engine)');
+    } else {
+      console.log('  🔎 indexable: search engines can crawl this page');
+    }
   }
 
   // Step 3: wrangler deploy
   const projectName = `${opts.venture}-${process.env.USER ?? 'user'}`.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 58);
-  console.log(`  ☁️  wrangler pages deploy → ${projectName}.pages.dev`);
-
   const cfToken = getCloudflareToken();
+  const wranglerEnv = { ...process.env, CLOUDFLARE_API_TOKEN: cfToken };
+
+  // 首次部署：项目不存在时 wrangler 4.x 不会自动建 → 先确保项目存在（幂等，已存在则忽略报错）
+  console.log(`  ☁️  确保 Pages 项目存在：${projectName}`);
+  spawnSync(
+    'wrangler',
+    ['pages', 'project', 'create', projectName, '--production-branch', 'main'],
+    { env: wranglerEnv, stdio: 'ignore' }
+  ); // 已存在会非零退出，无害；真失败由下面的 deploy 兜底报错
+
+  console.log(`  ☁️  wrangler pages deploy → ${projectName}.pages.dev`);
   const wranglerResult = spawnSync(
     'wrangler',
     ['pages', 'deploy', deployDir, '--project-name', projectName, '--commit-dirty=true'],
     {
-      env: { ...process.env, CLOUDFLARE_API_TOKEN: cfToken },
+      env: wranglerEnv,
       stdio: 'inherit',
     }
   );
@@ -279,12 +313,16 @@ async function deploy(opts: DeployOptions) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error('Usage: bun run deploy.ts <venture-name> [--public] [--password=xxxxxx] [--target landing|studio]');
-    console.error('  默认部署 landing 验证页；--target studio 部署 Studio 作战室日志');
+    console.error('Usage: bun run deploy.ts <venture-name> [--public] [--indexable] [--password=xxxxxx] [--target landing|studio]');
+    console.error('  默认：私有 + 加密 + 密码门');
+    console.error('  --public：公开（noindex 兜底，搜索引擎不收录）');
+    console.error('  --public --indexable：完全开放（最终上线模式）');
+    console.error('  --target studio：部署 Studio 作战室（默认 landing 验证页）');
     process.exit(1);
   }
   const venture = args[0];
   const isPublic = args.includes('--public');
+  const indexable = args.includes('--indexable');
   const passwordArg = args.find(a => a.startsWith('--password='));
   const password = passwordArg ? passwordArg.split('=')[1] : undefined;
   // --target landing|studio （也接受 --target=landing 写法）
@@ -297,7 +335,7 @@ async function main() {
     else { console.error(`✗ --target 只能是 landing 或 studio（收到：${raw}）`); process.exit(2); }
   }
 
-  await deploy({ venture, public: isPublic, password, target });
+  await deploy({ venture, public: isPublic, indexable, password, target });
 }
 
 main().catch(err => {

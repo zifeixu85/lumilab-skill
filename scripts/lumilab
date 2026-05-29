@@ -292,6 +292,52 @@ async function cmdDesignDirection(venture?: string) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+// Bundle 里的 demo 模板位置：当 CLI 在 release 里跑时，demo 在 SCRIPT_DIR/../demo
+//                              当 CLI 在 workspace 里跑时，demo 在 SCRIPT_DIR/../demo
+function resolveDemoDir(): string {
+  const candidates = [
+    process.env.LUMILAB_DEMO_DIR,
+    resolve(SCRIPT_DIR, '..', 'demo'),
+    resolve(SKILLS, '..', 'demo'),
+  ].filter(Boolean) as string[];
+  for (const p of candidates) if (existsSync(join(p, 'lumilab-meta'))) return p;
+  return resolve(SCRIPT_DIR, '..', 'demo'); // fallback for clear error path
+}
+
+async function cmdDemo(...args: string[]) {
+  ensureLumilabHome();
+  const DEMO = resolveDemoDir();
+  const SRC = join(DEMO, 'lumilab-meta');
+  const DST = join(VENTURES, 'lumilab-meta');
+
+  if (!existsSync(SRC)) {
+    console.error(`✗ demo template not found at ${SRC}`);
+    console.error('  bundle may be incomplete; reinstall with ./install.sh');
+    process.exit(1);
+  }
+
+  if (existsSync(DST) && !args.includes('--force')) {
+    console.log(`✓ demo venture already exists: ${DST}`);
+    console.log(`  use 'lumilab demo --force' to refresh from bundle`);
+  } else {
+    if (existsSync(DST)) {
+      // refresh path
+      spawnSync('rm', ['-rf', DST]);
+    }
+    mkdirSync(VENTURES, { recursive: true });
+    const r = spawnSync('cp', ['-R', SRC, DST]);
+    if (r.status !== 0) { console.error('✗ copy failed'); process.exit(1); }
+    console.log(`✓ demo venture installed: ${DST}`);
+  }
+
+  // render its studio so home dashboard 立即能看到完整 venture 卡片
+  await cmdRender('lumilab-meta');
+
+  console.log('');
+  console.log('  下一步：lumilab home');
+  console.log('  （home dashboard 会显示这个 venture，点开看 9 阶段进度 + 假设 ledger）');
+}
+
 async function cmdList() {
   if (!existsSync(VENTURES)) { console.log('No ventures yet.'); return; }
   const ventures = readdirSync(VENTURES).filter(n => statSync(join(VENTURES, n)).isDirectory());
@@ -316,6 +362,7 @@ Usage:
   lumilab home                       同上 —— 看总览（已配工具 / venture 进度 / 下一步）
   lumilab idea "<一句话想法>"        默认流程：一句话 idea → 自动分析 → 方向 → 验证页
   lumilab new "<idea>"               只建 venture 目录（手动流程）
+  lumilab demo                       装载自指 demo venture（lumilab-meta）—— 新手参考样本
   lumilab list                       列出所有 venture
   lumilab studio [venture]           浏览器打开 Studio
   lumilab render [venture]           重新渲染 Studio HTML
@@ -347,6 +394,7 @@ switch (cmd) {
   case 'home': await cmdHome(...args); break;
   case 'idea': await cmdIdea(args.join(' ')); break;
   case 'new': await cmdNew(args.join(' ')); break;
+  case 'demo': await cmdDemo(...args); break;
   case 'list': await cmdList(); break;
   case 'render': await cmdRender(args[0]); break;
   case 'studio': await cmdStudio(args[0], ...args.slice(1)); break;

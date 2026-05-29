@@ -423,6 +423,9 @@ function renderVentures(status: HomeStatus): string {
       <p class="empty__title">还没有 venture</p>
       <p class="empty__body">在 AI 宿主里说一句你的想法就能开始第一个 —— 系统会自动跑市场分析、给方向建议、生成一个验证 landing。</p>
       <code class="empty__code">lumilab idea "你的想法"</code>
+      <p class="empty__divider">或</p>
+      <p class="empty__body">先看一个跑通的样本（lumilab 自己用 lumilab 做的自指验证）：</p>
+      <code class="empty__code">lumilab demo</code>
     </div>
   </section>`;
   }

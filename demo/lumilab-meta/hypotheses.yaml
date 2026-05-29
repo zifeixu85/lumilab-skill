@@ -1,0 +1,73 @@
+- id: h-001
+  fact: "Skill 太多，用户不知道什么阶段调用什么，需要一个简单工具按需推荐"
+  category: assumption
+  confidence: medium
+  test_method: "调研 30 个 OPC，看「不知道用什么 skill」是否前 3 痛点"
+  test_status: passed
+  evidence:
+    - source: "research/web_findings.md"
+      excerpt: "Reddit r/SideProject 12/30 帖子提到工具选择困难"
+      timestamp: "2026-05-12T16:00:00Z"
+  status: superseded
+  superseded_by: h-004
+  superseded_reason: "更深层痛点不是「找不到」，是「找到了不知道怎么组合」"
+  created_at: "2026-05-12T12:00:00Z"
+  updated_at: "2026-05-13T10:00:00Z"
+  related_entities: []
+  last_accessed: "2026-05-13"
+  access_count: 3
+  verification_count: 1
+
+- id: h-002
+  fact: "Studio Mode（项目作战室 HTML）是 VST 区别于 super-prompt 的最强信号"
+  category: assumption
+  confidence: high
+  test_method: "路演 demo 时给 5 个评委看 Studio，记录 verbatim 反应"
+  test_status: pending
+  evidence: []
+  status: active
+  superseded_by: null
+  superseded_reason: null
+  created_at: "2026-05-12T22:00:00Z"
+  updated_at: "2026-05-13T09:00:00Z"
+  related_entities: ["resources/proven-hooks/visual-output.md"]
+  last_accessed: "2026-05-13"
+  access_count: 5
+  verification_count: 0
+
+- id: h-003
+  fact: "Cloudflare-only 部署 + 客户端加密 + 默认密码，比 GitHub+Vercel 流程对 OPC 用户友好 10 倍"
+  category: assumption
+  confidence: high
+  test_method: "对比 GitHub+Vercel 6 步 vs Cloudflare 单 token 流程，测注册到首次部署时间"
+  test_status: pending
+  evidence: []
+  status: active
+  superseded_by: null
+  superseded_reason: null
+  created_at: "2026-05-13T00:30:00Z"
+  updated_at: "2026-05-13T00:30:00Z"
+  related_entities: []
+  last_accessed: "2026-05-13"
+  access_count: 2
+  verification_count: 0
+
+- id: h-004
+  fact: "OPC 真正的痛点是「不知道在创业阶段 N 该调用什么 skill 组合」，不是「找不到 skill」"
+  category: assumption
+  confidence: high
+  test_method: "深度访谈 5 个独立开发者，问「上次卡住时你在干嘛 / 试了什么 / 最后怎么解决」（Mom Test 风格）"
+  test_status: passed
+  evidence:
+    - source: "research/xhs_findings.md"
+      excerpt: "5/5 受访者描述「我有 skill，但不知道哪个先用」"
+      timestamp: "2026-05-13T08:00:00Z"
+  status: active
+  superseded_by: null
+  superseded_reason: null
+  created_at: "2026-05-13T08:30:00Z"
+  updated_at: "2026-05-13T10:00:00Z"
+  related_entities: ["h-001"]
+  last_accessed: "2026-05-13"
+  access_count: 7
+  verification_count: 2

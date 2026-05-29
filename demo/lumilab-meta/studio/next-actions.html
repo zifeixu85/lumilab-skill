@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>下一步 · 本轮实验信号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=JetBrains+Mono:wght@400;600&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:oklch(97% 0.012 85); --surface:oklch(99% 0.008 85);
+  --ink:oklch(23% 0.02 60); --muted:oklch(52% 0.02 70);
+  --accent:oklch(45% 0.15 25); --line:oklch(88% 0.012 80);
+  --green:oklch(58% 0.13 145); --yellow:oklch(72% 0.13 85); --red:oklch(55% 0.18 25);
+  --serif:"Fraunces","Noto Serif SC",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--serif);background:var(--paper);color:var(--ink);line-height:1.6;padding:clamp(1.5rem,4vw,4rem)}
+.card{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;animation:rise 500ms cubic-bezier(0.16,1,0.3,1) both}
+.card__head{padding:1.5rem 2rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.card__head h1{font-size:1.5rem;font-weight:600}
+.card__head .venture{font-family:var(--mono);font-size:0.8rem;color:var(--muted)}
+.block{padding:1.5rem 2rem;border-bottom:1px solid var(--line)}
+.block__no{font-family:var(--mono);font-size:0.75rem;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase}
+.block h2{font-size:1.1rem;font-weight:600;margin:0.3rem 0 1rem}
+.sig{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px dotted var(--line);font-family:var(--mono);font-size:0.9rem}
+.sig:last-child{border-bottom:none}
+.dot{width:0.7rem;height:0.7rem;border-radius:50%;flex-shrink:0}
+.dot--g{background:var(--green)} .dot--y{background:var(--yellow)} .dot--r{background:var(--red)}
+.sig__ch{width:4.5rem;color:var(--ink)} .sig__m{color:var(--muted)}
+.note{font-size:0.7rem;color:var(--muted);font-style:italic}
+.interp{color:var(--ink);line-height:1.7}
+.interp em{color:var(--accent);font-style:normal;font-weight:600}
+.act{display:flex;gap:0.75rem;align-items:flex-start;padding:0.8rem 1rem;margin-top:0.6rem;background:var(--paper);border:1px solid var(--line);border-radius:4px;cursor:default;transition:border-color 150ms}
+.act:hover{border-color:var(--accent)}
+.act__tag{font-family:var(--mono);font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:3px;white-space:nowrap;flex-shrink:0}
+.act__tag--offline{background:oklch(93% 0.04 35);color:var(--accent)}
+.act__tag--auto{background:oklch(92% 0.05 145);color:var(--green)}
+.act__tag--wait{background:oklch(92% 0.01 80);color:var(--muted)}
+.disclaimer{padding:1rem 2rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);background:var(--paper)}
+</style>
+</head>
+<body>
+<main class="card">
+  <header class="card__head">
+    <h1>Idea 创业实验室 · 本轮信号</h1>
+    <span class="venture">venture: lumilab-meta</span>
+  </header>
+
+  <section class="block">
+    <span class="block__no">① 信号（仅参考，非判决）</span>
+    <h2>各通道温度</h2>
+    <div class="sig"><span class="dot dot--y"></span><span class="sig__ch">小红书</span><span class="sig__m">收藏/阅读 1.8% <span class="note">（样本 240，置信度低）</span></span></div>
+    <div class="sig"><span class="dot dot--g"></span><span class="sig__ch">朋友圈</span><span class="sig__m">3 条「在哪买」私信</span></div>
+    <div class="sig"><span class="dot dot--r"></span><span class="sig__ch">网页</span><span class="sig__m">CTR 0.6%，邮箱 0 条</span></div>
+  </section>
+
+  <section class="block">
+    <span class="block__no">② 解读</span>
+    <h2>这些信号说明什么</h2>
+    <p class="interp">信号集中在熟人圈，公域冷。按 <em>Mom Test</em>，熟人主动问「在哪买」比陌生人点赞更可信——这是值得跟进的<em>弱正信号</em>，但样本太小，别据此下结论。</p>
+  </section>
+
+  <section class="block">
+    <span class="block__no">③ 下一步（你来选，不替你拍板）</span>
+    <h2>现在可以做的三件事</h2>
+    <div class="act"><span class="act__tag act__tag--offline">🧑 线下</span><span>联系这 3 位问「在哪买」的朋友做 Mom Test 访谈（脚本已生成）</span></div>
+    <div class="act"><span class="act__tag act__tag--auto">🤖 自动</span><span>重写小红书钩子，主打「3 个朋友都问的痛点」，再发一轮</span></div>
+    <div class="act"><span class="act__tag act__tag--wait">⏸ 等待</span><span>先按兵不动，攒到 500 曝光再看公域信号</span></div>
+  </section>
+
+  <p class="disclaimer">※ 信号灯只表达方向/温度，不表达成败结论。阈值带样本量，仅供参考。最终「继续 / 调整 / 放弃」由你拍板。</p>
+</main>
+</body>
+</html>

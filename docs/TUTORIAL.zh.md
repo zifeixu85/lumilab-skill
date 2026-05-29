@@ -1,6 +1,6 @@
 # Lumi Lab 上手指南
 
-> 版本：v1.0 · 更新时间：2026-05
+> 版本：v1.8.0 · 更新时间：2026-05-28
 
 ![](./assets/screenshot-01.png)
 
@@ -8,7 +8,7 @@
 
 **Lumi Lab 是什么**
 
-Lumi Lab 是一组开源 Skill 包，帮独立开发者把一个 idea 从「脑子里」走到「能验证」「能上线」「能跑首批用户」。它把 Mom Test、Lean Canvas、Sean Ellis 40%、JTBD、April Dunford Positioning 等 13 套创业方法论，拆成可以被 AI Agent 直接调用的可执行步骤；同时内置了小红书、公众号、抖音、朋友圈、X 五个平台的最新发布规则。
+Lumi Lab 是一套 Skill 包，帮独立开发者把一个 idea 从「脑子里」走到「能验证」「能上线」「能跑首批用户」。它把 Mom Test、Lean Canvas、Sean Ellis 40%、JTBD、April Dunford Positioning 等 13 套创业方法论，拆成可以被 AI Agent 直接调用的可执行步骤；同时内置了小红书、公众号、抖音、朋友圈、X 五个平台的最新发布规则。
 
 跑一次 venture 的完整路径：
 `new`（建项目）→ `coach`（六问拷打）→ `research`（市场 + 竞品 + 客户访谈）→ `build-assets`（落地页 / 文案 / 邮件 / 平台内容）→ `studio`（看板 + 数据 + 复盘）。

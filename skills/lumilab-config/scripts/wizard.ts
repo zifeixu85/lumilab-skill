@@ -75,6 +75,7 @@ type Deploy = {
   default_visibility: "private" | "public";
 };
 type DesignPreset = "editorial" | "minimalist" | "brutalist" | "soft" | "";
+type ServiceMode = "byok" | "hosted";
 type WizardConfig = {
   version: "0.1.0";
   step: number;             // last completed step (0 = none)
@@ -86,6 +87,11 @@ type WizardConfig = {
   onboarded: boolean;
   onboarded_at?: string;
   completed_at?: string;
+  // Forward-compat: v1.8.0 always 'byok'. v2.x will allow hosted via api.ideamind.io.
+  // See workspace/skills/_lib/lumilab-services/README.md.
+  service_mode: ServiceMode;
+  hosted_endpoint: string | null;
+  hosted_session_token_ref: string | null;
 };
 
 type Secrets = Record<string, string>;
@@ -120,6 +126,9 @@ function defaultConfig(): WizardConfig {
     deploy:   { default_password: genPassword(), reuse_password: true, default_visibility: "public" },
     default_design_preset: "",
     onboarded: false,
+    service_mode: "byok",
+    hosted_endpoint: null,
+    hosted_session_token_ref: null,
   };
 }
 

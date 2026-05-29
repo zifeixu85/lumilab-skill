@@ -175,7 +175,15 @@ async function main(): Promise<void> {
             "utf8",
           );
           console.log(`[design-direction] wrote ${ddPath(targetSlug)}`);
-          return Response.json({ ok: true, written: ddPath(targetSlug) });
+          // 设计变了 → 立刻重渲染该 venture 的 studio，让看板反映新 token
+          const renderScript = resolve(WORKSPACE_ROOT, "skills", "lumilab-studio", "scripts", "render.ts");
+          if (existsSync(renderScript)) {
+            Bun.spawnSync(["bun", "run", renderScript, venturePath(targetSlug)], { stdout: "ignore", stderr: "ignore" });
+          }
+          // landing 是 LLM 生成物 → 给明确的重生成 handoff（server 不跑 LLM）
+          const handoff = `设计已保存。要让 landing 套用新风格，在 AI 宿主里说：「用 lumilab-landing-mvp 按新的 design_direction 重新生成 ${targetSlug} 的 landing」`;
+          console.log(`[design-direction] studio re-rendered · ${handoff}`);
+          return Response.json({ ok: true, written: ddPath(targetSlug), studio_rerendered: true, next: handoff });
         } catch (e) {
           return Response.json(
             { ok: false, error: (e as Error).message },

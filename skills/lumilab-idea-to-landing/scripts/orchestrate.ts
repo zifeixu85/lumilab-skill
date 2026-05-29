@@ -101,7 +101,8 @@ function cmdInit(idea: string) {
   const hasTavily = hasToken("TAVILY_API_KEY");
   const source = hasTikhub || hasTavily ? "real-api" : "host-llm-knowledge";
 
-  // 写时更新：新建 venture 后顺手 re-render home，让首页立刻能看到这个 venture。
+  // 新建 venture 后：先渲染它自己的 studio（否则 home 点进去 404），再 re-render home。
+  renderVentureStudio(ventureDir);
   rerenderHome();
 
   console.log(JSON.stringify({
@@ -124,6 +125,15 @@ function rerenderHome(): void {
     const homeScript = join(import.meta.dir, "..", "..", "lumilab-home", "scripts", "home.ts");
     if (!existsSync(homeScript)) return;
     Bun.spawnSync(["bun", "run", homeScript, "render"], { stdout: "ignore", stderr: "ignore" });
+  } catch { /* best-effort */ }
+}
+
+// 新建 venture 后立刻渲染它的 studio，保证 home 卡片点进去不 404。失败不影响主流程。
+function renderVentureStudio(ventureDir: string): void {
+  try {
+    const renderScript = join(import.meta.dir, "..", "..", "lumilab-studio", "scripts", "render.ts");
+    if (!existsSync(renderScript)) return;
+    Bun.spawnSync(["bun", "run", renderScript, ventureDir], { stdout: "ignore", stderr: "ignore" });
   } catch { /* best-effort */ }
 }
 
