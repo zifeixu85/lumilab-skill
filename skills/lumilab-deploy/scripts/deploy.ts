@@ -297,11 +297,13 @@ async function deploy(opts: DeployOptions) {
   console.log(`  ☁️  wrangler pages deploy → ${projectName}.pages.dev`);
   const wranglerResult = spawnSync(
     'wrangler',
-    // --branch main：部署到生产别名（否则 functions/ 不编译到生产，/api/track 404）。
-    ['pages', 'deploy', deployDir, '--project-name', projectName, '--branch', 'main', '--commit-dirty=true'],
+    // 必须从 deployDir 里跑 `pages deploy .`：wrangler 只编译 **CWD 下** 的 functions/，
+    // 传绝对路径不编译 → /api/track 404。--branch main 部署到生产别名。
+    ['pages', 'deploy', '.', '--project-name', projectName, '--branch', 'main', '--commit-dirty=true'],
     {
       env: wranglerEnv,
       stdio: 'inherit',
+      cwd: deployDir,
     }
   );
 
