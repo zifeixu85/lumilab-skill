@@ -9,9 +9,9 @@
 🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
 [![版本](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-25-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-26_S_·_avg_92.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -40,7 +40,7 @@
 - 假设该 pivot 了，而不是继续打磨 landing page
 - 怎么发一个不像 AI demo 的私密项目 Studio
 
-Lumi Lab 把这些答案编码成 21 个自包含的 skill + 一个共享的 `~/.lumilab/` 状态目录 + 3 个浏览器工具 UI（Setup Wizard、Share Manager、Design Direction）。
+Lumi Lab 把这些答案编码成 26 个自包含的 skill + 一个共享的 `~/.lumilab/` 状态目录 + 一个**常驻 Studio 服务**（文件变更自动刷新浏览器）+ 3 个浏览器工具 UI（Setup Wizard、Share Manager、Design Direction）。
 
 ---
 
@@ -75,9 +75,15 @@ Lumi Lab 是 **C 端创业 idea 的快速验证工具**。`lumilab-idea-to-landi
 
 每个假设都是一条带 `id`、置信度、验证方法、证据、supersede 历史的 atomic YAML。你可以 pivot——旧假设保留 `status: superseded` + `superseded_by: <新 id>`。Studio 把 diff 内联渲染出来。
 
-### 每个 venture 一个 Studio
+### 每个 venture 一个 Studio（常驻服务，实时刷新）
 
 每个想法有自己的项目页——一份可打印的实验日志，编辑式排版（Fraunces 衬线 + JetBrains Mono）、SVG 进度时间线、假设卡片、决策轨迹。暖纸色 OKLCH + 颗粒噪声纹理。
+
+`lumilab serve start` 起一个**常驻 Studio 守护进程**（固定端口，统一服务所有 venture + home）：改任意 venture 数据，**已打开的页面自动刷新**，不用手动重渲。Studio 里还内联了几块实时交互：
+
+- **下一步行动**（复盘阶段）：决策引擎把本轮信号收敛成多方向候选 → **看板**（原生拖拽，drop 即持久化）+ **脑图**（离线渲染，断网可用）+ `@media print` 可打印贴墙。
+- **付款验证**（启动阶段）：`lumilab payment sync` 只读回读真实 Stripe 付款 → 「N 笔 · ¥X · 转化 Y% · 强信号」（脱敏，不存邮箱/卡）。
+- **实时 re-theme**（构建阶段）：真实落地页放进 iframe + 设计面板并排，**拖旋钮 → 落地页立刻变**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
 
 ### 三个浏览器 UI（不需要 LLM）
 
@@ -161,10 +167,22 @@ bun 缺失会自动安装。**重跑同一条命令即升级，本地数据（ve
 > **Cursor**（仅项目级）：在项目根目录跑
 > `mkdir -p .cursor/skills && cp -R ~/.claude/skills/lumilab-* .cursor/skills/`
 
+#### 从 GitHub 直接装（仓库 = [`zifeixu85/lumilab`](https://github.com/zifeixu85/lumilab)）
+
+```bash
+git clone https://github.com/zifeixu85/lumilab.git
+cd lumilab
+./install.sh            # 自动检测 Claude Code / Codex / OpenClaw / Gemini，装到每一个
+```
+
+`install.sh` 把整个 `skills/` 装到所有检测到的宿主，CLI 装到 `~/.lumilab/bin/`，升级前自动备份旧版可回滚。**只装到某一个宿主**：`./install.sh --target ~/.codex/skills`（例如只给 Codex）。
+
+> 私有仓库需要你已登录 GitHub（`gh auth login` 或配好 SSH key）。
+
 #### 其它安装路径
 
+- **飞书 Hermes（chat 内一句话）**：在已接好的 chat 里发 `/skills install https://github.com/zifeixu85/lumilab`，Hermes 静态扫描后写入 `~/.hermes/skills/lumilab/`
 - **OpenClaw 原生命令**：`openclaw skills install lumilab && openclaw gateway restart`（飞书 bot 可选：`openclaw channels login --channel feishu`）
-- **Hermes（chat 内一句话）**：在已接好的 chat 里发 `/skills install <你的镜像地址>`，Hermes 会静态扫描后写入 `~/.hermes/skills/lumilab/`
 
 ### 入口：「打开 lumilab」
 
@@ -210,7 +228,8 @@ lumilab deploy <venture>   # 发布 + 加密 + URL + 密码，30 秒
 lumilab idea "<一句话想法>"      ★ 默认入口：idea → 分析 → 方向 → landing
 lumilab new "<想法>"            只建 venture 目录（手动流程）
 lumilab list                    列出所有 venture
-lumilab studio [venture]        浏览器打开 Studio
+lumilab studio [venture]        浏览器打开 Studio（守护进程在跑则直接开它）
+lumilab serve <start|stop|status|restart|open>   常驻 Studio 守护进程（固定端口，文件变更自动刷新）
 lumilab render [venture]        重新渲染 Studio HTML
 
 lumilab design-direction [venture]    选美学方向 + 旋钮 + 实时预览
@@ -219,8 +238,10 @@ lumilab manage                        管理所有已部署的 Studio
 lumilab config                        Setup Wizard
 
 lumilab retro [venture]               周复盘四桶交互页
+lumilab payment create [...]          创建 Stripe 验证用 payment link（test mode）
+lumilab payment sync <venture>        只读回读真实付款 → 验证信号（--mock 写样例）
 lumilab research-xhs "<关键词>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
-lumilab research-web  "<查询>"  [...]  Tavily Web 搜（需 TAVILY_API_KEY，无 key 自动 mock）
+lumilab research-web  "<查询>"  [...]  Exa Web 搜（需 EXA_API_KEY，无 key 自动 mock）
 lumilab secrets <动作> [...]           keychain CLI：which|get|set|del|list|migrate-plaintext
 
 lumilab help                          显示帮助
@@ -238,9 +259,9 @@ lumilab help                          显示帮助
 |---|---|---|
 | **门面 / 入口** | 1 | **lumilab-home**（首次引导 + home dashboard：工具状态 / venture 进度 / 下一步） |
 | **Orchestrator** | 1 | **idea-to-landing**（一句话 idea → 分析 → 方向 → 验证页 全自动流水线） |
-| **核心（自建）** | 5 | hypothesis-ledger、founder-coach、landing-mvp（含 SEO/GEO）、content-repurpose、weekly-sop-runner |
-| **基础设施** | 3 | config（Setup Wizard + Share Manager + chat-mode）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web） |
-| **渲染** | 1 | studio（Studio HTML + 市场分析报告 HTML） |
+| **核心（自建）** | 6 | hypothesis-ledger、founder-coach、landing-mvp（含 SEO/GEO + theme.css）、content-repurpose、weekly-sop-runner、**next-actions**（信号 → 多方向下一步：看板 + 脑图 + 打印） |
+| **基础设施** | 4 | config（Setup Wizard + Share Manager）、deploy（Cloudflare + 加密）、research-platforms（小红书 + Web）、**payment-link**（Stripe 真 checkout + 付款回流） |
+| **渲染** | 1 | studio（常驻服务 + Studio HTML + 市场分析报告 + 看板/脑图/付款/re-theme） |
 | **Overlay（上游封装）** | 12 | coach-yc、research-{interview,icp,competitor,keywords}、product-{positioning,pmf,mvp}、copy、launch-strategy、metrics、design-direction |
 | **知识** | 1 | playbook-cn（13 个框架 + 中国平台规则索引） |
 
@@ -257,7 +278,7 @@ lumilab help                          显示帮助
 | 超级 prompt | Lumi Lab |
 |---|---|
 | 无状态。每次会话重新粘贴。 | `~/.lumilab/` 就是状态。 |
-| 一个作者的口吻。 | 21 个独立 skill，各有各的纪律。 |
+| 一个作者的口吻。 | 26 个独立 skill，各有各的纪律。 |
 | 输出是丢进聊天框的文本。 | 输出是文件：HTML、YAML、CSV、MD。可 diff、可部署。 |
 | 「试试这个方法。」 | atomic 假设账本，带 supersede 历史。 |
 | 难分享。 | `lumilab deploy` → 30 秒一个加密的公开 Studio。 |
@@ -283,29 +304,27 @@ lumilab help                          显示帮助
 
 ---
 
-## v1.0.0 状态
+## 1.10.0 新增（决赛优化 W1–W4）
+
+- **W1 · 常驻 Studio 守护进程** — `lumilab serve start`，固定端口统一服务所有 venture + home，文件变更 → 已打开页面**自动刷新**，访问时惰性重渲（不用 agent 手动 render）。
+- **W2 · `lumilab-next-actions` 新 skill** — 决策引擎：读全量 venture 数据 → 对照 R6 信号基线 → 多方向候选下一步。Studio 内联**看板**（原生拖拽持久化）+ **脑图**（离线渲染、断网可用）+ 可打印。
+- **W3 · 付款数据回流** — `lumilab payment sync` 只读回读真实 Stripe 付款笔数/金额（脱敏）→ 对照基线判信号 → 回写假设 → 喂 next-actions。付款是比留邮箱强 1000× 的需求信号。
+- **W4 · 落地页 `theme.css` + 实时 re-theme** — 构建阶段真实落地页 iframe + 设计面板并排，拖旋钮**立刻可见**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
+- **全量 26 skill 跑过 SkillLens Deep Review → 全部 S 级**（平均 ~92.6，证书 verified）；每个 skill 精简 SKILL.md + 完整操作详版在 `references/full-guide.md`（progressive disclosure）。
+
+## 当前状态（v1.10.0）
 
 ✅ 已就绪：
-- 21 个 skill，完整 SKILL.md + agentskills.io v1 frontmatter
-- 每个 skill 带 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器
-- Studio HTML 渲染引擎（编辑式美学）
+- **26 个 skill**，完整 SKILL.md + frontmatter，每个带 `validate-output.ts` 校验器 + `anti-slop-lint.ts` 文案检查器
+- 常驻 Studio 服务（SSE 自动刷新）+ Studio HTML 渲染引擎（编辑式美学）+ 看板/脑图/付款验证/实时 re-theme
 - Setup Wizard / Share Manager / Design Direction 三个浏览器 UI
-- **chat-mode 配置**：飞书 / Telegram 里 `wizard.ts --chat-set <provider> <token>` 直接配 key（verify 真实 API → 写 keychain）
-- Cloudflare 部署 + 客户端加密（AES-GCM + PBKDF2 1M）
-- localStorage 密码缓存（刷新不重复要密码）
-- PARA 三层记忆布局
-- 5 个中国平台规则表（2025–2026 更新）
-- `lumilab` CLI（含 retro / research-xhs / research-web / secrets）
-- 真 keychain 后端（macOS Keychain / Linux secret-tool）
-- XHS / Tavily 真集成代码 + 无 token 时 mock 降级
-- 自指 demo venture（已用 v1.0 重跑验证）
-- **SkillLens：21 个 skill 全部 S 级，平均 91.6，全部 verified**
-
-⏳ 待你的环境收尾（不阻塞代码可用性）：
-- 端到端 dogfood 安装真测（需在你的机器上跑 `./install.sh`）
-- 飞书 e2e demo 录屏（需建飞书 bot）
-- ClawHub 发布（需注册 clawhub.ai 账号）
-- XHS / Tavily 真 token 联调（代码就绪，需你的 API key）
+- Cloudflare 部署 + 客户端加密（AES-GCM + PBKDF2 1M）+ localStorage 密码缓存
+- Stripe 真 checkout 创建 + 只读付款回流（脱敏）
+- 真 keychain 后端（macOS Keychain / Linux secret-tool）+ XHS / Exa 真集成 + 无 token 时 mock 降级
+- 5 个中国平台规则表（2025–2026 更新）+ PARA 三层记忆布局
+- 自指 demo venture（`lumilab demo` 一键装载）
+- **SkillLens：26 个 skill 全部 S 级，平均 ~92.6，全部 verified**
+- 两条安装通道都已发布最新：`curl get.lumiclaw.ai`（CF Pages）+ `git clone github.com/zifeixu85/lumilab`
 
 详见 [`CHANGELOG.md`](CHANGELOG.md)。
 

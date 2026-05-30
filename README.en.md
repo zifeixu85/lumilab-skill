@@ -9,9 +9,9 @@ English ｜ [简体中文](README.md)
 🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
 [![Version](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
-[![Skills](https://img.shields.io/badge/skills-25-blue)](skills/)
+[![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-26_S_·_avg_92.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -39,7 +39,7 @@ The problem isn't finding a prompt or skill. It's knowing:
 - when to pivot a hypothesis instead of polishing the landing page
 - how to publish a private project Studio that doesn't look like an AI demo
 
-Lumi Lab encodes the answers as 21 self-contained skills + a shared `~/.lumilab/` state directory + 3 utility browser UIs (Setup Wizard, Share Manager, Design Direction).
+Lumi Lab encodes the answers as 26 self-contained skills + a shared `~/.lumilab/` state directory + a **resident Studio service** (auto-refreshes the browser on file change) + 3 utility browser UIs (Setup Wizard, Share Manager, Design Direction).
 
 ---
 
@@ -143,10 +143,20 @@ bun is auto-installed if missing. **Re-run the same command to upgrade — your 
 > **Cursor** (project-level only): in your project root run
 > `mkdir -p .cursor/skills && cp -R ~/.claude/skills/lumilab-* .cursor/skills/`
 
+#### Install straight from GitHub ([`zifeixu85/lumilab`](https://github.com/zifeixu85/lumilab))
+
+```bash
+git clone https://github.com/zifeixu85/lumilab.git
+cd lumilab
+./install.sh            # auto-detects Claude Code / Codex / OpenClaw / Gemini, installs to each
+```
+
+`install.sh` copies the whole `skills/` to every detected host + the CLI to `~/.lumilab/bin/`, backing up the old version first (rollback-able). **Single host only**: `./install.sh --target ~/.codex/skills` (e.g. Codex only). Private repo — you need GitHub access (`gh auth login` or an SSH key).
+
 #### Other paths
 
+- **Feishu/Hermes (in-chat)**: send `/skills install https://github.com/zifeixu85/lumilab` in a connected chat; Hermes static-scans then writes to `~/.hermes/skills/lumilab/`
 - **OpenClaw native**: `openclaw skills install lumilab && openclaw gateway restart`
-- **Hermes (in-chat)**: send `/skills install <your mirror URL>` in a connected chat; Hermes static-scans then writes to `~/.hermes/skills/lumilab/`
 
 ### Configure (one-time, 2 min)
 
@@ -211,8 +221,8 @@ Inside Claude Code / OpenClaw / etc., the skills `coach / clarify / research / b
 
 | Layer | Count | Skills |
 |---|---|---|
-| **Core (self-built)** | 5 | hypothesis-ledger, founder-coach, landing-mvp, content-repurpose, weekly-sop-runner |
-| **Infrastructure** | 3 | config (Setup Wizard + Share Manager), deploy (Cloudflare + encryption), research-platforms (XHS + Web) |
+| **Core (self-built)** | 6 | hypothesis-ledger, founder-coach, landing-mvp (SEO/GEO + theme.css), content-repurpose, weekly-sop-runner, **next-actions** (signals → multi-direction next steps: kanban + mindmap + print) |
+| **Infrastructure** | 4 | config (Setup Wizard + Share Manager), deploy (Cloudflare + encryption), research-platforms (XHS + Web), **payment-link** (Stripe checkout + payment loop) |
 | **Rendering** | 1 | studio (HTML + SVG progress + hypothesis cards + decision timeline) |
 | **Overlays (upstream wrappers)** | 11 | coach-yc, research-{interview,icp,competitor}, product-{positioning,pmf,mvp}, copy, launch-strategy, metrics, design-direction |
 | **Knowledge** | 1 | playbook-cn (13 frameworks + China platform rules index) |
@@ -246,16 +256,24 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 
 - [`docs/TUTORIAL.zh.md`](docs/TUTORIAL.zh.md) — full getting-started guide (three host paths + Feishu onboarding)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — technical architecture
-- [`docs/SKILLS.md`](docs/SKILLS.md) — 21-skill index with one-line purpose
+- [`docs/SKILLS.md`](docs/SKILLS.md) — 26-skill index with one-line purpose
 - [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md) — SkillLens evaluation report
 - [`CHANGELOG.md`](CHANGELOG.md) — changelog
 
 ---
 
-## v1.0.0 status
+## New in 1.10.0
+
+- **W1 · Resident Studio daemon** — `lumilab serve start`: one process serves every venture + home on a fixed port; change any data → open pages **auto-refresh**, lazy re-render on access (no manual render).
+- **W2 · `lumilab-next-actions` skill** — decision engine: reads all venture data → R6 signal baselines → multi-direction next-step candidates. Inline **kanban** (native drag, persists) + **mindmap** (offline, works without network) + printable.
+- **W3 · Payment loop** — `lumilab payment sync` read-only pulls real Stripe paid count/amount (de-identified) → scores against baselines → writes back to hypotheses → feeds next-actions.
+- **W4 · Landing `theme.css` + live re-theme** — build stage puts the real landing in an iframe beside a design panel; drag a dial → the page **changes instantly**; "Apply" deterministically rewrites `theme.css` (no LLM).
+- **All 26 skills at SkillLens S grade** (avg ~92.6, verified); each SKILL.md is lean with the full operational guide in `references/full-guide.md` (progressive disclosure).
+
+## Status (v1.10.0)
 
 ✅ Ready:
-- 21 skills with full SKILL.md + agentskills.io v1 frontmatter
+- 26 skills with full SKILL.md + frontmatter
 - Each skill ships `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts`
 - Studio HTML renderer (editorial aesthetic)
 - Setup Wizard / Share Manager / Design Direction browser UIs
@@ -268,7 +286,7 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - Real keychain backend (macOS Keychain / Linux secret-tool)
 - XHS / Tavily real integration code + mock fallback when no token
 - Self-referencing demo venture (re-verified under v1.0)
-- **SkillLens: all 21 skills at S grade, avg 91.6, all verified**
+- **SkillLens: all 26 skills at S grade, avg ~92.6, all verified**
 
 ⏳ Pending your environment (does not block code usability):
 - End-to-end dogfood install test (run `./install.sh` on your machine)
