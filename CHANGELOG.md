@@ -6,6 +6,27 @@
 
 ---
 
+## [1.10.2] · 2026-05-30 · 修真实数据源（secret 解析 / TikHub 端点 / XHS 接进流水线）
+
+> 用户在 Codex 实测时发现：配了 Tavily/TikHub 却仍回退 mock；修好 token 后又发现小红书端点已弃用，
+> 且出海流水线根本不调 TikHub。本版把三处都修通，真实数据源全部可用。
+
+### Fixed
+- **secret 解析统一**：研究/付款脚本改为 `env → keychain → secrets.json` 解析 token，且大小写名变体都试。
+  根因：config wizard 把 token 写成小写名（`tavily_api_key` / `tikhub_api_key` / `stripe_secret_key`）存进
+  secrets.json，旧代码只查大写名（`TAVILY_API_KEY`）且不读 keychain → 找不到 → 回退 mock。修了
+  `web_tavily.ts` / `xhs_tikhub.ts` / `payment-link` create+sync。Tavily / 小红书现在用真实数据。
+- **TikHub 小红书端点迁移**：旧 `/api/v1/xiaohongshu/web/search_notes` 被 TikHub 弃用（400）→
+  迁到 `/api/v1/xiaohongshu/app_v2/search_notes`（响应路径 `data.data.items`、互动数平铺在 note 上、
+  URL 现需 `xsec_token`）。实测返回真实笔记。
+
+### Changed
+- **idea-to-landing Phase 1 显式跑 XHS 通道**：之前只显式调 web_tavily、从不调 TikHub → 出海 venture 报告
+  只有 Web+DataForSEO 无小红书。现在有 TikHub token 就跑 `xhs_tikhub.ts`（中文关键词），即使出海 idea
+  也作「国内市场旁证」，写 `research/xhs_raw.json`。
+- **market-report.ts 新增确定性「小红书信号」章节**：读 `research/xhs_raw.json` 渲染 top 互动笔记
+  （标题/作者/赞·藏·评/原帖链接，按互动量排序），mock 时标注占位。
+
 ## [1.10.1] · 2026-05-30 · 恢复操作型 skill 的完整流水线细节
 
 > 1.10.0 的 SkillLens S 化把 SKILL.md 砍到 ≤6000 字时，**对 14 个操作型 skill 矫枉过正**——

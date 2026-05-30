@@ -8,7 +8,7 @@ English ｜ [简体中文](README.md)
 
 🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![Version](https://img.shields.io/badge/version-1.10.1-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.2-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)

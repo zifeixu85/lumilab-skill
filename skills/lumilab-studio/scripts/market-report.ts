@@ -267,6 +267,46 @@ function renderAudience(audience: AudienceSegment[]): string {
   </section>`;
 }
 
+// ── 小红书信号（国内旁证）：读 research/xhs_raw.json，确定性渲染 ──
+interface XhsNote { title?: string; desc?: string; author?: string; likes?: number; collects?: number; comments?: number; url?: string; }
+interface XhsRaw { keyword?: string; source?: string; notes?: XhsNote[]; }
+
+function hasXhs(xhs: XhsRaw | null | undefined): boolean {
+  return !!xhs && Array.isArray(xhs.notes) && xhs.notes.length > 0;
+}
+
+function renderXhs(xhs: XhsRaw | null | undefined, no: number): string {
+  if (!hasXhs(xhs)) return '';
+  const x = xhs as XhsRaw;
+  const isMock = x.source === 'mock';
+  const top = (x.notes ?? [])
+    .slice()
+    .sort((a, b) => (Number(b.likes ?? 0) + Number(b.collects ?? 0)) - (Number(a.likes ?? 0) + Number(a.collects ?? 0)))
+    .slice(0, 6);
+  const cards = top.map((n, i) => `
+      <article class="xhs-card" style="--i:${i}">
+        <h3 class="xhs-card__title">${esc(n.title || '(无标题)')}</h3>
+        ${n.desc ? `<p class="xhs-card__desc">${esc(String(n.desc).slice(0, 90))}</p>` : ''}
+        <div class="xhs-card__meta">
+          <span class="xhs-author">${esc(n.author || '—')}</span>
+          <span>♡ ${esc(String(n.likes ?? 0))}</span>
+          <span>⭑ ${esc(String(n.collects ?? 0))}</span>
+          <span>💬 ${esc(String(n.comments ?? 0))}</span>
+        </div>
+        ${n.url ? `<a class="xhs-card__link" href="${esc(n.url)}" target="_blank" rel="noopener">看原帖 →</a>` : ''}
+      </article>`).join('');
+  const noStr = 'Nº ' + String(no).padStart(2, '0');
+  return `
+  <section class="section" style="--s:${no}">
+    <div class="section__head">
+      <span class="section__no">${noStr}</span>
+      <h2 class="section__title">小红书信号${isMock ? '（示例数据）' : ''}</h2>
+    </div>
+    <p class="xhs-note">国内市场旁证 · 关键词「${esc(x.keyword || '')}」热门笔记（按互动量排序）${isMock ? ' · ⚠️ 占位数据，配置 TikHub token 后为真实抓取' : ''}。出海 idea 视作国内交叉验证，国内 idea 则是主信号。</p>
+    <div class="xhs-grid">${cards}</div>
+  </section>`;
+}
+
 function hasKeywords(kw: KeywordsBlock | undefined): boolean {
   return !!kw && (!!kw.summary || !!kw.blue_ocean?.length || !!kw.red_ocean?.length);
 }
@@ -361,7 +401,7 @@ function renderDirections(directions: Direction[], no: number): string {
 }
 
 // ── Page shell ──
-function renderHtml(data: MarketAnalysis): string {
+function renderHtml(data: MarketAnalysis, xhs?: XhsRaw | null): string {
   const sourceLabel = SOURCE_LABEL[data.source] ?? esc(data.source);
 
   return `<!doctype html>
@@ -840,6 +880,16 @@ body::before {
     margin-right: calc(-1 * clamp(20px, 5vw, 56px));
   }
 }
+/* ── 小红书信号 ── */
+.xhs-note { font-size: 14px; line-height: 1.6; color: var(--ink-2, oklch(48% 0.02 60)); margin: 4px 0 18px; }
+.xhs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.xhs-card { background: oklch(99% 0.008 350); border: 1px solid oklch(90% 0.03 0); border-left: 3px solid oklch(62% 0.2 12); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.xhs-card__title { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--ink, oklch(22% 0.02 60)); margin: 0; }
+.xhs-card__desc { font-size: 12.5px; line-height: 1.55; color: var(--ink-2, oklch(48% 0.02 60)); margin: 0; }
+.xhs-card__meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--ink-2, oklch(50% 0.02 60)); font-variant-numeric: tabular-nums; margin-top: auto; }
+.xhs-card__meta .xhs-author { font-weight: 600; color: oklch(55% 0.16 12); }
+.xhs-card__link { font-size: 11.5px; color: oklch(55% 0.16 12); text-decoration: none; align-self: flex-start; }
+.xhs-card__link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -857,7 +907,8 @@ body::before {
   ${renderCompetitors(data.competitors)}
   ${renderAudience(data.audience)}
   ${renderKeywords(data.keywords)}
-  ${renderDirections(data.directions, hasKeywords(data.keywords) ? 5 : 4)}
+  ${renderXhs(xhs, hasKeywords(data.keywords) ? 5 : 4)}
+  ${renderDirections(data.directions, (hasKeywords(data.keywords) ? 5 : 4) + (hasXhs(xhs) ? 1 : 0))}
 
   <footer class="footer">
     <p class="footer__hint">回到对话选一个方向，或说你自己的想法。</p>
@@ -889,7 +940,15 @@ function main(): void {
   }
 
   const data = validate(raw);
-  const html = renderHtml(data);
+
+  // 小红书信号（国内旁证）：若 research/xhs_raw.json 存在则渲染独立章节。
+  let xhs: XhsRaw | null = null;
+  const xhsPath = join(ventureDir, 'research', 'xhs_raw.json');
+  if (existsSync(xhsPath)) {
+    try { xhs = JSON.parse(readFileSync(xhsPath, 'utf-8')) as XhsRaw; } catch { /* ignore malformed */ }
+  }
+
+  const html = renderHtml(data, xhs);
 
   const reportsDir = join(ventureDir, 'reports');
   mkdirSync(reportsDir, { recursive: true });

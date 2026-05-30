@@ -39,13 +39,26 @@ function parseArgs(argv: string[]): Args {
   return { query, venture, num, mock, depth };
 }
 
+// Resolve a secret across env → platform keychain → secrets.json, trying BOTH
+// the canonical UPPER name and the wizard's lowercase form (e.g. tavily_api_key).
+// Mirrors research-keywords/providers/index.ts so config-wizard tokens are actually found.
 function loadSecret(name: string): string | undefined {
+  const lower = name.toLowerCase();
   if (process.env[name]) return process.env[name];
+  if (process.env[lower]) return process.env[lower];
+  // platform keychain (best-effort; module may be absent in stripped bundles)
+  try {
+    const kc = require('../../lumilab-config/scripts/keychain.ts');
+    if (typeof kc?.getSecret === 'function') {
+      const v = kc.getSecret(name) || kc.getSecret(lower);
+      if (v) return v;
+    }
+  } catch { /* keychain unavailable — fall through */ }
   const secretsPath = join(process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab'), 'secrets.json');
   if (!existsSync(secretsPath)) return undefined;
   try {
     const s = JSON.parse(readFileSync(secretsPath, 'utf-8'));
-    return s[name] || s.tavily?.api_key;
+    return s[name] || s[lower] || s.tavily?.api_key;
   } catch { return undefined; }
 }
 

@@ -19,7 +19,7 @@
  *   写入：data/ventures/<venture>/payment/stripe.json（若指定 --venture）
  */
 import { spawnSync } from 'child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -49,15 +49,28 @@ function parseArgs(argv: string[]): Args {
 
 function getStripeKey(): string {
   if (process.env.STRIPE_SK_TEST) return process.env.STRIPE_SK_TEST;
-  // try keychain via lumilab keychain.ts
+  // keychain (dotted + wizard 'stripe_secret_key' + canonical names)
   const keychainScript = join(import.meta.dir, '..', '..', 'lumilab-config', 'scripts', 'keychain.ts');
   if (existsSync(keychainScript)) {
-    const r = spawnSync('bun', ['run', keychainScript, 'get', 'stripe.sk_test']);
-    const key = String(r.stdout).trim();
-    if (key.startsWith('sk_test_')) return key;
+    for (const name of ['stripe.sk_test', 'STRIPE_SK_TEST', 'stripe_secret_key']) {
+      const r = spawnSync('bun', ['run', keychainScript, 'get', name]);
+      const key = String(r.stdout).trim();
+      if (key.startsWith('sk_test_')) return key;
+    }
   }
-  console.error('✗ no STRIPE_SK_TEST in env, no stripe.sk_test in keychain');
-  console.error('  fix: lumilab secrets set stripe.sk_test  (then paste sk_test_…)');
+  // ~/.lumilab/secrets.json fallback (the config wizard writes stripe_secret_key here)
+  try {
+    const secretsPath = join(process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab'), 'secrets.json');
+    if (existsSync(secretsPath)) {
+      const s = JSON.parse(readFileSync(secretsPath, 'utf-8'));
+      for (const name of ['STRIPE_SK_TEST', 'stripe_secret_key', 'stripe.sk_test']) {
+        const key = String(s[name] ?? '').trim();
+        if (key.startsWith('sk_test_')) return key;
+      }
+    }
+  } catch { /* ignore */ }
+  console.error('✗ no Stripe key in env / keychain / secrets.json');
+  console.error('  fix: lumilab config（钥匙串）或 lumilab secrets set stripe.sk_test');
   process.exit(1);
 }
 

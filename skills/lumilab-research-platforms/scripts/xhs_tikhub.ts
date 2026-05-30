@@ -46,13 +46,25 @@ function parseArgs(argv: string[]): CliArgs {
   return { keyword, venture, limit, mock };
 }
 
+// Resolve a secret across env → platform keychain → secrets.json, trying BOTH
+// the canonical UPPER name and the wizard's lowercase form (e.g. tikhub_api_key).
+// Mirrors research-keywords/providers/index.ts so config-wizard tokens are actually found.
 function loadSecret(name: string): string | undefined {
+  const lower = name.toLowerCase();
   if (process.env[name]) return process.env[name];
+  if (process.env[lower]) return process.env[lower];
+  try {
+    const kc = require('../../lumilab-config/scripts/keychain.ts');
+    if (typeof kc?.getSecret === 'function') {
+      const v = kc.getSecret(name) || kc.getSecret(lower);
+      if (v) return v;
+    }
+  } catch { /* keychain unavailable — fall through */ }
   const secretsPath = join(process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab'), 'secrets.json');
   if (!existsSync(secretsPath)) return undefined;
   try {
     const s = JSON.parse(readFileSync(secretsPath, 'utf-8'));
-    return s[name] || s.tikhub?.api_key;
+    return s[name] || s[lower] || s.tikhub?.api_key;
   } catch { return undefined; }
 }
 
@@ -72,37 +84,56 @@ function mockNotes(keyword: string, n: number) {
   }));
 }
 
-interface TikHubNote {
-  note_id?: string; id?: string;
-  display_title?: string; title?: string;
-  desc?: string;
-  user?: { nickname?: string };
-  interact_info?: { liked_count?: string; collected_count?: string; comment_count?: string; share_count?: string };
-  tag_list?: { name: string }[];
+// Xiaohongshu-App-V2-API note shape: items are { note, model_type }, counts are flat on note.
+interface TikHubNoteItem {
+  model_type?: string;
+  note?: {
+    id?: string;
+    title?: string;
+    desc?: string;
+    type?: string;
+    user?: { nickname?: string };
+    liked_count?: number | string;
+    collected_count?: number | string;
+    comments_count?: number | string;
+    shared_count?: number | string;
+    tag_info?: { name?: string }[] | unknown;
+    xsec_token?: string;
+  };
 }
 
 async function fetchTikHub(keyword: string, limit: number, apiKey: string) {
-  const url = `https://api.tikhub.io/api/v1/xiaohongshu/web/search_notes?keyword=${encodeURIComponent(keyword)}&page=1&sort_type=general`;
+  // 旧的 /api/v1/xiaohongshu/web/search_notes 已被 TikHub 弃用 → 迁到 App-V2-API（推荐）。
+  // 响应：json.data.data.items[]，每项 { note, model_type }，互动数平铺在 note 上。
+  const url = `https://api.tikhub.io/api/v1/xiaohongshu/app_v2/search_notes?keyword=${encodeURIComponent(keyword)}&page=1&sort=general`;
   const res = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`E_${res.status} · TikHub: ${res.status} ${res.statusText}${body ? ' · ' + body.slice(0, 200) : ''}`);
   }
-  const json = await res.json() as { data?: { items?: TikHubNote[] } };
-  const items = json?.data?.items ?? [];
-  return items.slice(0, limit).map((n): any => ({
-    id: n.note_id ?? n.id,
-    title: n.display_title ?? n.title ?? '',
-    desc: n.desc ?? '',
-    author: n.user?.nickname ?? '',
-    likes: Number(n.interact_info?.liked_count ?? 0),
-    collects: Number(n.interact_info?.collected_count ?? 0),
-    comments: Number(n.interact_info?.comment_count ?? 0),
-    shares: Number(n.interact_info?.share_count ?? 0),
-    tags: (n.tag_list ?? []).map(t => t.name),
-    url: `https://www.xiaohongshu.com/explore/${n.note_id ?? n.id}`,
-    captured_at: new Date().toISOString(),
-  }));
+  const json = await res.json() as { data?: { data?: { items?: TikHubNoteItem[] } } };
+  const items = json?.data?.data?.items ?? [];
+  return items
+    .filter((it) => it?.model_type === 'note' && it.note)
+    .slice(0, limit)
+    .map((it): any => {
+      const n = it.note!;
+      const tags = Array.isArray(n.tag_info) ? (n.tag_info as { name?: string }[]).map((t) => t?.name).filter(Boolean) : [];
+      const token = n.xsec_token ? `?xsec_token=${n.xsec_token}&xsec_source=pc_search` : '';
+      return {
+        id: n.id,
+        title: n.title ?? '',
+        desc: n.desc ?? '',
+        author: n.user?.nickname ?? '',
+        likes: Number(n.liked_count ?? 0),
+        collects: Number(n.collected_count ?? 0),
+        comments: Number(n.comments_count ?? 0),
+        shares: Number(n.shared_count ?? 0),
+        tags,
+        url: `https://www.xiaohongshu.com/explore/${n.id}${token}`,
+        captured_at: new Date().toISOString(),
+      };
+    });
 }
 
 async function main() {

@@ -1,7 +1,7 @@
 # SkillLens 评测概要 · Lumi Lab v1.10.0
 
 > **评测基线**: v1.0.0 Deep Review（详见 [`SKILLLENS_REPORT_v1.0.md`](./SKILLLENS_REPORT_v1.0.md)）
-> **当前版本**: v1.10.1 · 2026-05-30
+> **当前版本**: v1.10.2 · 2026-05-30
 > **状态**: **26 / 26 skill 全部跑过 agent-side Deep Review → 16 S + 10 A（87–93，平均 ~90.8），`deepReviewCertificate` 全部 `verified`**。10 个 A 是 idea-to-landing / studio / landing-mvp / config 等操作型 skill——SKILL.md 内联完整流水线/命令细节（宿主要照做），context-budget 维度因体积扣几分，**完整度优先于评分**；方法论类精简 SKILL.md + 完整 `references/full-guide.md`
 
 ---

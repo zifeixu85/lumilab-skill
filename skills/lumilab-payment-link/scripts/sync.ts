@@ -36,12 +36,24 @@ function getStripeKey(): string | null {
   if (process.env.STRIPE_SK_LIVE) return process.env.STRIPE_SK_LIVE;
   const keychainScript = join(import.meta.dir, '..', '..', 'lumilab-config', 'scripts', 'keychain.ts');
   if (existsSync(keychainScript)) {
-    for (const name of ['stripe.sk_test', 'stripe.sk_live']) {
+    // dotted + wizard ('stripe_secret_key') + canonical names — config wizard may use any.
+    for (const name of ['stripe.sk_test', 'stripe.sk_live', 'STRIPE_SK_TEST', 'STRIPE_SK_LIVE', 'stripe_secret_key']) {
       const r = spawnSync('bun', ['run', keychainScript, 'get', name]);
       const key = String(r.stdout).trim();
       if (key.startsWith('sk_test_') || key.startsWith('sk_live_')) return key;
     }
   }
+  // ~/.lumilab/secrets.json fallback (the config wizard writes stripe_secret_key here).
+  try {
+    const secretsPath = join(LUMILAB_HOME, 'secrets.json');
+    if (existsSync(secretsPath)) {
+      const s = JSON.parse(readFileSync(secretsPath, 'utf-8'));
+      for (const name of ['STRIPE_SK_TEST', 'STRIPE_SK_LIVE', 'stripe_secret_key', 'stripe.sk_test']) {
+        const key = String(s[name] ?? '').trim();
+        if (key.startsWith('sk_test_') || key.startsWith('sk_live_')) return key;
+      }
+    }
+  } catch { /* ignore */ }
   return null;
 }
 

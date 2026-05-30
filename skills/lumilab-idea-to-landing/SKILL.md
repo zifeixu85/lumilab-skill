@@ -150,9 +150,16 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 
 ### 1.2 四路分析
 
-**市场（market）**
-- 有 Tavily token：`bun run ../lumilab-research-platforms/scripts/web_tavily.ts "<idea 相关查询>" --venture <slug>`
+**市场（market）— Web 通道**
+- 有 Tavily token：`bun run ../lumilab-research-platforms/scripts/web_tavily.ts "<idea 相关查询>" --venture <slug>`（出海默认：查询用**英文**）
 - 无 token：宿主 LLM 基于自身知识写市场概况、规模/增长信号、3 条趋势
+
+**小红书信号（国内旁证）— XHS 通道（有 TikHub token 就跑，别漏）**
+- `bun run ../lumilab-research-platforms/scripts/xhs_tikhub.ts "<idea 相关中文关键词>" --venture <slug> --limit 20` → 写 `research/xhs_raw.json`。
+- **即使是出海 idea 也跑**：作为「国内市场旁证」（小红书互动量级 / 热门角度 / 用户原话）。出海当国内交叉验证，国内 idea 则是主信号。
+- 关键词用**中文**（小红书是中文平台），与 web_tavily 的英文出海查询区分开。无 token 自动 mock，不阻塞。
+- 市场报告（Phase 2）会自动把 `research/xhs_raw.json` 渲染成独立「小红书信号」章节；再把要点（top 笔记角度、量级）收一句进 `market_analysis.json` 的市场叙述。
+- ⚠️ research-platforms 是**双通道（web + xhs）**，两个 token 都有就**两个都跑**，不要只跑 web。
 
 **竞品（competitors）**
 - 调 `lumilab-research-competitor` 的方法论：直接竞品 / 替代品 / 现状方案（「用户现在用什么凑合」）三类

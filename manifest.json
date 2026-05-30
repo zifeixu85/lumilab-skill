@@ -1,7 +1,7 @@
 {
   "$schema": "https://agentskills.io/schema/manifest.v1.json",
   "name": "lumilab",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "displayName": "Lumi Lab",
   "description": "中文优先的 Skills bundle — 25 个 skill + 3 个浏览器 UI + 加密 Cloudflare 部署。把模糊创业 idea 跑成可验证的市场实验。",
   "license": "Apache-2.0",
