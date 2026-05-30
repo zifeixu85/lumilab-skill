@@ -287,7 +287,10 @@ async function deploy(opts: DeployOptions) {
   if (isPublic) {
     const setup = join(__dirname, 'setup-cf-backend.ts');
     if (existsSync(setup)) {
-      const r = spawnSync('bun', ['run', setup, projectName, opts.venture], { env: wranglerEnv, encoding: 'utf-8' });
+      // config.deploy.resend_from 配了真实验证域名才发欢迎信；否则邮箱只入库 D1。
+      const resendFrom = config.deploy?.resend_from || '';
+      const setupArgs = ['run', setup, projectName, opts.venture, ...(resendFrom ? ['--from', resendFrom] : [])];
+      const r = spawnSync('bun', setupArgs, { env: wranglerEnv, encoding: 'utf-8' });
       const out = (r.stdout || '') + (r.stderr || '');
       process.stdout.write(out.split('\n').filter((l) => /▸|✓|⚠/.test(l)).join('\n') + '\n');
       const m = out.match(/DB_NAME=([\w-]+)/); if (m) dbName = m[1];

@@ -57,8 +57,8 @@ async function ensureD1(dbName: string, token: string): Promise<string | null> {
 async function main(): Promise<void> {
   const [projectName, venture] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const fromIdx = process.argv.indexOf('--from');
-  const from = fromIdx >= 0 ? process.argv[fromIdx + 1] : 'Lumi Lab <onboarding@resend.dev>';
-  if (!projectName || !venture) { console.error('用法：setup-cf-backend.ts <project-name> <venture> [--from "..."]'); process.exit(2); }
+  const from = fromIdx >= 0 ? (process.argv[fromIdx + 1] || '') : '';
+  if (!projectName || !venture) { console.error('用法：setup-cf-backend.ts <project-name> <venture> [--from "Name <hi@your-verified-domain>"]'); process.exit(2); }
 
   const token = secret('CLOUDFLARE_API_TOKEN');
   const account = secret('CLOUDFLARE_ACCOUNT_ID');
@@ -76,13 +76,20 @@ async function main(): Promise<void> {
     console.log(r.code === 0 ? '  ▸ D1 schema 已应用' : '  ⚠ D1 schema 应用可能失败（已存在表则无害）');
   }
 
-  // PATCH Pages 项目：绑 D1 + env vars + Resend secret
+  // PATCH Pages 项目：绑 D1 + env vars。Resend 只在配了**真实验证域名**的 from 时才绑
+  // —— 否则发不出去（pages.dev / resend.dev 沙盒发不了给真订阅者），那就纯把邮箱捕获到 D1，不发欢迎信。
   const resend = secret('RESEND_API_KEY');
+  const realFrom = from && !/resend\.dev/i.test(from) && /@[\w.-]+\.\w+/.test(from);
   const env_vars: Record<string, unknown> = {
     LUMILAB_VENTURE: { value: venture, type: 'plain_text' },
-    RESEND_FROM: { value: from, type: 'plain_text' },
   };
-  if (resend) env_vars.RESEND_API_KEY = { value: resend, type: 'secret_text' };
+  if (resend && realFrom) {
+    env_vars.RESEND_FROM = { value: from, type: 'plain_text' };
+    env_vars.RESEND_API_KEY = { value: resend, type: 'secret_text' };
+    console.log(`  ▸ Resend 发信已配（from=${from}）`);
+  } else {
+    console.log('  ▸ 未配 Resend 验证域名 → 邮箱只入库 D1、不发欢迎信（验证主流程不受影响；要发信先在 Resend 验证一个自有域名再设 deploy.resend_from）');
+  }
   const patch = await cfApi(`/accounts/${account}/pages/projects/${projectName}`, token, 'PATCH', {
     deployment_configs: { production: { d1_databases: { DB: { id: dbId } }, env_vars } },
   });

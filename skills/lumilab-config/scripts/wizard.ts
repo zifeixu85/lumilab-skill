@@ -1915,12 +1915,11 @@ function renderStep6(cfg: WizardConfig): string {
 
 <div class="step-intro">
   <span class="step-intro__tag">这一步</span>
-  <span class="step-intro__text">最后一步 —— 设好验证页上线时的默认值（密码、可见性），核对一遍总览，然后就能跑你的第一个 idea 了。</span>
+  <span class="step-intro__text">最后一步 —— 验证页默认 <strong>公开 + 可被搜索/GEO 索引</strong>（用来测真实意愿，自带第一方埋点）。要私密给特定人看再设密码。核对总览就能跑第一个 idea 了。</span>
 </div>
 
 <p class="intro" style="margin-bottom: var(--space-4);">
-  Lumi 部署验证页时，会把这些默认值预填进去。
-  每次 <code>lumilab deploy</code> 时还可以覆盖。
+  Lumi 部署验证页时用这些默认值。每次 <code>lumilab deploy</code> 仍可覆盖。
 </p>
 
 <form id="form-deploy" onsubmit="return submitStep6(event)">
@@ -1928,30 +1927,32 @@ function renderStep6(cfg: WizardConfig): string {
     <legend>分享默认值</legend>
 
     <div class="row">
-      <label class="row__label" for="default_password">默认分享密码</label>
-      <div class="row__body">
-        <input type="text" id="default_password" name="default_password" value="${escapeAttr(d.default_password)}" pattern="[a-zA-Z0-9]{4,32}" required>
-        <span class="row__hint">4–32 位字母或数字。默认是 6 位数字（方便口述）。</span>
-      </div>
-    </div>
-
-    <div class="row">
-      <label class="row__label">复用</label>
-      <div class="row__body">
-        <label class="check"><input type="checkbox" id="reuse_password" name="reuse_password" ${d.reuse_password ? "checked" : ""}>每次 <code style="font-family: var(--font-mono);">lumilab deploy</code> 都预填这个密码</label>
-      </div>
-    </div>
-
-    <div class="row">
       <label class="row__label">默认可见性</label>
       <div class="row__body">
         <div class="seg" id="vis-radios">
-          ${prefRadio("default_visibility", "private", "仅密码可见", d.default_visibility)}
-          ${prefRadio("default_visibility", "public",  "公开",       d.default_visibility)}
+          ${prefRadio("default_visibility", "public",  "公开（推荐）",       d.default_visibility || "public")}
+          ${prefRadio("default_visibility", "private", "私密加密（高级）", d.default_visibility)}
         </div>
-        <span class="row__hint">仅密码可见 = 需要密码访问 · 公开 = 适合 landing page。</span>
+        <span class="row__hint"><strong>公开</strong> = 对外测真实意愿的正经模式（陌生人能访问、埋点收数据）· <strong>私密加密</strong> = AES-GCM + 密码门，给队友/投资人私密预览用。</span>
       </div>
     </div>
+
+    <details class="adv" style="margin-top: var(--space-3);">
+      <summary style="cursor:pointer; color: var(--color-ink-2); font-size: 0.9em;">私密模式选项（仅选「私密加密」时用到）</summary>
+      <div class="row" style="margin-top: var(--space-3);">
+        <label class="row__label" for="default_password">私密分享密码</label>
+        <div class="row__body">
+          <input type="text" id="default_password" name="default_password" value="${escapeAttr(d.default_password)}" pattern="[a-zA-Z0-9]{4,32}">
+          <span class="row__hint">仅在 <code>--private</code> 部署时用。4–32 位字母或数字，默认 6 位数字（方便口述）。公开模式用不到。</span>
+        </div>
+      </div>
+      <div class="row">
+        <label class="row__label">复用</label>
+        <div class="row__body">
+          <label class="check"><input type="checkbox" id="reuse_password" name="reuse_password" ${d.reuse_password ? "checked" : ""}>私密部署时预填这个密码</label>
+        </div>
+      </div>
+    </details>
   </fieldset>
 
   <fieldset>

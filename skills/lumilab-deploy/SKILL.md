@@ -3,7 +3,7 @@ name: lumilab-deploy
 description: |
   One-command deploy of a venture's fake-door landing to Cloudflare Pages. DEFAULT = public, indexable validation page — so real strangers from SEO/GEO/小红书 can visit and you measure真实意愿（这是「对外测市场意愿」的正经模式）。Optional --private = client-side AES-GCM + password gate (advanced, for showing teammates/investors). Uses wrangler CLI; generates QR. Supports rotate-password and undeploy. Use when user types /lumilab deploy, /lumilab undeploy, or /lumilab rotate-password.
   关键词：deploy / 部署 / cloudflare pages / wrangler / 公开验证页 / SEO / 私密加密分享 / 密码门 / 一键部署 / 二维码 / 公网链接
-version: 1.6.0
+version: 1.6.1
 metadata:
   hermes:
     tags: [deploy, cloudflare, encryption, aes-gcm, password-gate]
@@ -74,6 +74,15 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 私密模式（--private）：步骤 2 换成 PBKDF2(密码,1M)→AES-GCM-256 加密整页 +
 生成密码门 wrapper HTML，其余相同；输出 URL + 密码（单独告诉访问者）。
 ```
+
+## 第一方埋点 + 欢迎邮件（公开模式自带）
+
+公开部署自动注入第一方埋点（`track.js` + CF Pages Function `/api/track` → 你自己的 **CF D1**），收 访问/点击/留资/付费 + UTM 渠道归因 + 国家（边缘免费拿）+ 爬虫过滤。`scripts/pull-signals.ts <venture>` 拉成漏斗喂 Studio。
+
+**欢迎邮件（Resend，可选）**：留邮箱后自动回一封欢迎信 —— 但**发信必须有验证域名**（任何邮件服务的行业要求）：
+- 发信域名 = FROM 地址的域名，**跟 landing 在 `xxx.pages.dev` 无关**；用户只要有**任意一个自有域名**，在 Resend 验证一次（加 SPF/DKIM DNS），设 `config.json` 的 `deploy.resend_from = "Name <hi@your-domain>"` 即可。
+- **`pages.dev` 不能验证**（用户不控制其 DNS），所以发不了 `@pages.dev` 的信。
+- **没配域名也没关系**：邮箱照样**入库 D1**（可导出/手动发），只是不自动回欢迎信 —— 验证主流程完全不受影响。`deploy.resend_from` 未配（或填 resend.dev 沙盒）时自动跳过发信、只捕获。
 
 ## 密码门 HTML 包装层
 
