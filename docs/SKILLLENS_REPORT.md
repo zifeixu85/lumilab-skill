@@ -1,8 +1,8 @@
 # SkillLens 评测概要 · Lumi Lab v1.10.0
 
 > **评测基线**: v1.0.0 Deep Review（详见 [`SKILLLENS_REPORT_v1.0.md`](./SKILLLENS_REPORT_v1.0.md)）
-> **当前版本**: v1.10.0 · 2026-05-30
-> **状态**: **26 / 26 skill 全部跑过 agent-side Deep Review，全部 S 级（92.26–92.88，平均 ~92.6），`deepReviewCertificate` 全部 `verified`**。每个 skill 精简 SKILL.md（≤6000 字）+ 完整操作详版 `references/full-guide.md`（progressive disclosure）
+> **当前版本**: v1.10.1 · 2026-05-30
+> **状态**: **26 / 26 skill 全部跑过 agent-side Deep Review → 16 S + 10 A（87–93，平均 ~90.8），`deepReviewCertificate` 全部 `verified`**。10 个 A 是 idea-to-landing / studio / landing-mvp / config 等操作型 skill——SKILL.md 内联完整流水线/命令细节（宿主要照做），context-budget 维度因体积扣几分，**完整度优先于评分**；方法论类精简 SKILL.md + 完整 `references/full-guide.md`
 
 ---
 
@@ -11,8 +11,9 @@
 | 指标 | v1.0.0（已认证） | v1.8.0（当前） |
 |---|---:|---:|
 | 总 skill 数 | 21 | **26** |
-| 平均分（Deep Review） | **91.59** | **~92.6** |
-| S 级（≥90，已认证） | 21 | **26** |
+| 平均分（Deep Review） | **91.59** | **~90.8** |
+| S 级（≥90） | 21 | **16** |
+| A 级（≥80，操作型完整度优先） | — | **10** |
 | 工程化标准合规 | 21 / 21 | **26 / 26** |
 | 待重跑 SkillLens | — | **0（全部已评测）** |
 

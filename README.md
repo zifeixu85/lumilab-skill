@@ -8,10 +8,10 @@
 
 🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![版本](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.10.1-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-26_S_·_avg_92.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -288,7 +288,7 @@ lumilab help                          显示帮助
 
 ## 质量评测
 
-26 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 ~92.6 / 100，`deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器，完整操作详版放在 `references/full-guide.md`（progressive disclosure，按需加载）。
+26 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**16 个 S 级 + 10 个 A 级，平均 ~90.8 / 100，`deepReviewCertificate` 全部 `verified`**。10 个 A 是 idea-to-landing / studio / landing-mvp / config 等**操作型 skill**——它们的 SKILL.md 内联完整流水线与命令细节（宿主执行时要照做），SkillLens 的 context-budget 维度因体积扣几分；**我们选择完整度优先于评分**。方法论类 skill 精简 SKILL.md + 完整详版在 `references/full-guide.md`（progressive disclosure）。每个 skill 都带可独立运行的 `scripts/validate-output.ts` + `scripts/anti-slop-lint.ts`。
 
 详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
 
@@ -310,7 +310,7 @@ lumilab help                          显示帮助
 - **W2 · `lumilab-next-actions` 新 skill** — 决策引擎：读全量 venture 数据 → 对照 R6 信号基线 → 多方向候选下一步。Studio 内联**看板**（原生拖拽持久化）+ **脑图**（离线渲染、断网可用）+ 可打印。
 - **W3 · 付款数据回流** — `lumilab payment sync` 只读回读真实 Stripe 付款笔数/金额（脱敏）→ 对照基线判信号 → 回写假设 → 喂 next-actions。付款是比留邮箱强 1000× 的需求信号。
 - **W4 · 落地页 `theme.css` + 实时 re-theme** — 构建阶段真实落地页 iframe + 设计面板并排，拖旋钮**立刻可见**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
-- **全量 26 skill 跑过 SkillLens Deep Review → 全部 S 级**（平均 ~92.6，证书 verified）；每个 skill 精简 SKILL.md + 完整操作详版在 `references/full-guide.md`（progressive disclosure）。
+- **全量 26 skill 跑过 SkillLens Deep Review → 16 S + 10 A（平均 ~90.8，证书 verified）**；操作型 skill 的 SKILL.md 内联完整流水线细节（完整度优先于 context-budget 评分），方法论类精简 + 完整 `references/full-guide.md`。
 
 ## 当前状态（v1.10.0）
 
@@ -323,7 +323,7 @@ lumilab help                          显示帮助
 - 真 keychain 后端（macOS Keychain / Linux secret-tool）+ XHS / Exa 真集成 + 无 token 时 mock 降级
 - 5 个中国平台规则表（2025–2026 更新）+ PARA 三层记忆布局
 - 自指 demo venture（`lumilab demo` 一键装载）
-- **SkillLens：26 个 skill 全部 S 级，平均 ~92.6，全部 verified**
+- **SkillLens：26 个 skill 全部 Deep-Reviewed → 16 S + 10 A，平均 ~90.8，全部 verified（操作型 skill 完整度优先）**
 - 两条安装通道都已发布最新：`curl get.lumiclaw.ai`（CF Pages）+ `git clone github.com/zifeixu85/lumilab`
 
 详见 [`CHANGELOG.md`](CHANGELOG.md)。

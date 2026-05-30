@@ -6,6 +6,24 @@
 
 ---
 
+## [1.10.1] · 2026-05-30 · 恢复操作型 skill 的完整流水线细节
+
+> 1.10.0 的 SkillLens S 化把 SKILL.md 砍到 ≤6000 字时，**对 14 个操作型 skill 矫枉过正**——
+> 把执行关键的流水线/命令/schema 细节挪进了 `references/full-guide.md`，宿主不一定会去加载，
+> 导致编排可能漏步（如 idea-to-landing 不自动跑 research-keywords、不写假设）。本版**把完整操作细节
+> 恢复回 SKILL.md 主文件**。完整度优先于评分。
+
+### Changed
+- **14 个操作型 skill 恢复完整 SKILL.md**（idea-to-landing / studio / landing-mvp / deploy / config /
+  design-direction / payment-link / hypothesis-ledger / research-platforms / research-keywords /
+  content-repurpose / weekly-sop-runner / metrics / home）：内联完整 phase→skill 编排、命令、schema、
+  分支决策、边界；删除冗余的 `references/full-guide.md`。studio/landing-mvp/payment-link/design-direction
+  并补上 W1–W4 文档（常驻服务 / theme.css / payment sync / re-theme）。
+- **11 个方法论 skill 保持精简 SKILL.md + 完整 `references/full-guide.md`**（progressive disclosure，
+  框架完整、深度详版随包发布，按需加载）。
+- SkillLens 重评：**16 S + 10 A**（87–93，平均 ~90.8，证书 verified）。10 个 A 是操作型 skill——
+  完整流水线细节让 context-budget 维度扣几分，这是刻意的「完整度 > 评分」取舍。
+
 ## [1.10.0] · 2026-05-30 · 决赛优化 W1–W4 + 全量 SkillLens S
 
 > 决赛优化：4 条工作流 + 新增第 26 个 skill `lumilab-next-actions` + 全量 26 skill 升 SkillLens S 级。**26 skill**。

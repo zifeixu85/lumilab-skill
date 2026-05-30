@@ -6,7 +6,7 @@
 #
 # 自定义（测试 / 私有镜像）：
 #   LUMILAB_BASE_URL=https://你的镜像 curl -fsSL https://get.lumiclaw.ai | bash
-#   LUMILAB_VERSION=1.10.0           curl -fsSL https://get.lumiclaw.ai | bash
+#   LUMILAB_VERSION=1.10.1           curl -fsSL https://get.lumiclaw.ai | bash
 #
 # 它做什么：检测系统 → 下载版本化 tarball → 解包 → 跑里面的 install.sh --yes
 # 不需要 git、不暴露源码仓库。用户数据（~/.lumilab/data 等）由 install.sh 保留。

@@ -8,10 +8,10 @@ English ｜ [简体中文](README.md)
 
 🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![Version](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.1-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-26_S_·_avg_92.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
 
 ---
 
@@ -248,7 +248,7 @@ A super prompt is text. Lumi Lab is a workspace.
 
 ## Quality
 
-All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **all 26 at S grade, avg ~92.6 / 100, all `deepReviewCertificate` `verified`**. Every skill ships a runnable `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts` copy checker. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
+All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **16 at S, 10 at A, avg ~90.8 / 100, all `deepReviewCertificate` `verified`**. The 10 A's are operational skills (idea-to-landing / studio / landing-mvp / config…) whose SKILL.md carries the full pipeline + commands inline — they lose a few context-budget points by size; **we chose completeness over score**. Methodology skills keep a lean SKILL.md + full `references/full-guide.md`. Every skill ships a runnable `scripts/validate-output.ts` + `scripts/anti-slop-lint.ts`. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
 
 ---
 
@@ -268,7 +268,7 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - **W2 · `lumilab-next-actions` skill** — decision engine: reads all venture data → R6 signal baselines → multi-direction next-step candidates. Inline **kanban** (native drag, persists) + **mindmap** (offline, works without network) + printable.
 - **W3 · Payment loop** — `lumilab payment sync` read-only pulls real Stripe paid count/amount (de-identified) → scores against baselines → writes back to hypotheses → feeds next-actions.
 - **W4 · Landing `theme.css` + live re-theme** — build stage puts the real landing in an iframe beside a design panel; drag a dial → the page **changes instantly**; "Apply" deterministically rewrites `theme.css` (no LLM).
-- **All 26 skills at SkillLens S grade** (avg ~92.6, verified); each SKILL.md is lean with the full operational guide in `references/full-guide.md` (progressive disclosure).
+- **All 26 skills SkillLens Deep-Reviewed → 16 S + 10 A** (avg ~90.8, verified); operational skills keep the full pipeline inline (completeness over context-budget score), methodology skills stay lean + full `references/full-guide.md`.
 
 ## Status (v1.10.0)
 
