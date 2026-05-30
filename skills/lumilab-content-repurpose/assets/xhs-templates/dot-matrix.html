@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>点阵封面</title>
+<!-- Lumi Lab · 小红书封面 · dot-matrix（点阵，干净极客/瑞士相邻）
+     改编自 lieflat-xhs-cover/dot-matrix（MIT），OKLCH 重做。
+     占位：{{KICKER}} {{TITLE}} {{SUBTITLE}} {{TAG1}} {{TAG2}} {{TAG3}} {{META}}
+     安全边界：标题 data-fit；副标题 line-clamp；居中 stage。配色可被 design_direction.json 覆盖。 -->
+<style>
+:root{--paper:oklch(96% 0.006 90);--ink:oklch(18% 0.02 60);--ink-2:oklch(32% 0.018 60);--muted:oklch(48% 0.016 60);
+--dot:oklch(18% 0.02 60/.14);--accent:oklch(55% 0.16 38);--accent-soft:color-mix(in oklch,var(--accent) 14%,transparent);
+--sans:"PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;--mono:"SFMono-Regular",Menlo,Consolas,monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;align-items:center;justify-content:center;background:#1a1a1a;padding:24px}
+.card{position:relative;width:600px;height:800px;overflow:hidden;background:var(--paper);color:var(--ink);
+padding:96px 80px 100px;display:flex;flex-direction:column;font-family:var(--sans)}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+background-image:radial-gradient(var(--dot) 1.5px,transparent 1.5px);background-size:22px 22px}
+.card>*{position:relative;z-index:1}
+.top{flex:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.kicker{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dotmark{display:flex;gap:5px;flex:none}.dotmark i{width:9px;height:9px;border-radius:50%;background:var(--accent)}.dotmark i:nth-child(2){opacity:.5}.dotmark i:nth-child(3){opacity:.22}
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.title{font-weight:700;line-height:1.16;letter-spacing:-.01em;overflow:hidden;overflow-wrap:anywhere}
+.title b{color:var(--accent);font-weight:700}
+.subtitle{font-size:20px;line-height:1.6;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-family:var(--mono);font-size:13px;color:var(--ink-2);background:var(--accent-soft);padding:6px 12px;border-radius:8px;white-space:nowrap}
+.foot{flex:none;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style></head>
+<body>
+<article class="card">
+  <div class="top"><span class="kicker">{{KICKER}}</span><span class="dotmark"><i></i><i></i><i></i></span></div>
+  <div class="stage">
+    <h1 class="title" data-fit data-fit-max="58" data-fit-min="30" data-fit-maxh="220">{{TITLE}}</h1>
+    <p class="subtitle">{{SUBTITLE}}</p>
+    <div class="tags"><span class="tag">{{TAG1}}</span><span class="tag">{{TAG2}}</span><span class="tag">{{TAG3}}</span></div>
+  </div>
+  <div class="foot">{{META}}</div>
+</article>
+<script>(function(){function ok(e,h){return e.scrollWidth<=e.clientWidth+.5&&(!h||e.scrollHeight<=h+.5)}
+function fit(e){var mn=+(e.dataset.fitMin||16),mx=+(e.dataset.fitMax||parseFloat(getComputedStyle(e).fontSize)),h=e.dataset.fitMaxh?+e.dataset.fitMaxh:0,lo=mn,hi=mx,b=mn;for(var i=0;i<26;i++){var m=(lo+hi)/2;e.style.fontSize=m+'px';if(ok(e,h)){b=m;lo=m}else hi=m}e.style.fontSize=b+'px'}
+document.querySelectorAll('[data-fit]').forEach(fit);document.documentElement.setAttribute('data-fitted','1')})();</script>
+</body></html>

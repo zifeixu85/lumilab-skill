@@ -145,6 +145,50 @@ async function generateQrPng(url: string, outputPath: string) {
   return true;
 }
 
+// P0.2 SEO/GEO：把 canonical / og:url / sitemap 改写成真实部署 URL；去 noindex；robots 允许收录。
+function finalizeSeo(deployDir: string, url: string): void {
+  const idx = join(deployDir, 'index.html');
+  if (existsSync(idx)) {
+    let h = readFileSync(idx, 'utf-8');
+    h = h.replace(/<meta[^>]+name=["']robots["'][^>]*noindex[^>]*>/ig, ''); // indexable：去掉任何 noindex
+    if (/<link[^>]+rel=["']canonical["']/i.test(h)) h = h.replace(/(<link[^>]+rel=["']canonical["'][^>]*href=["'])[^"']*(["'])/i, `$1${url}/$2`);
+    else h = h.replace(/<head>/i, `<head>\n  <link rel="canonical" href="${url}/">`);
+    if (/property=["']og:url["']/i.test(h)) h = h.replace(/(property=["']og:url["'][^>]*content=["'])[^"']*(["'])/i, `$1${url}/$2`);
+    writeFileSync(idx, h);
+  }
+  const sm = join(deployDir, 'sitemap.xml');
+  if (existsSync(sm)) { let x = readFileSync(sm, 'utf-8'); x = x.replace(/<loc>[^<]*<\/loc>/i, `<loc>${url}/</loc>`); writeFileSync(sm, x); }
+  writeFileSync(join(deployDir, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${url}/sitemap.xml\n`);
+  const idxh = existsSync(idx) ? readFileSync(idx, 'utf-8') : '';
+  const warn: string[] = [];
+  if (/noindex/i.test(idxh)) warn.push('仍含 noindex');
+  if (!/rel=["']canonical["']/i.test(idxh)) warn.push('缺 canonical');
+  if (!existsSync(sm)) warn.push('缺 sitemap.xml');
+  if (warn.length) console.warn('  ⚠ SEO 自检：' + warn.join('；'));
+  else console.log(`  🔎 SEO/GEO：canonical/og:url/sitemap → ${url}，robots 允许收录`);
+}
+
+// P0.3 第一方埋点：拷 track.js + 注入 <script> + 写 CF Pages Function functions/api/track.ts。
+function injectAnalytics(deployDir: string, venture: string, _url: string): void {
+  const tplDir = join(import.meta.dir, '..', 'templates');
+  try {
+    writeFileSync(join(deployDir, 'track.js'), readFileSync(join(tplDir, 'track.js'), 'utf-8'));
+  } catch { return; } // 模板缺失则跳过埋点，绝不阻塞部署
+  const idx = join(deployDir, 'index.html');
+  if (existsSync(idx)) {
+    let h = readFileSync(idx, 'utf-8');
+    if (!h.includes('/track.js')) {
+      const tag = `<script defer src="/track.js" data-venture="${venture}"></script>`;
+      h = h.includes('</body>') ? h.replace(/<\/body>/i, `  ${tag}\n</body>`) : h + '\n' + tag;
+      writeFileSync(idx, h);
+    }
+  }
+  const fnDir = join(deployDir, 'functions', 'api');
+  mkdirSync(fnDir, { recursive: true });
+  try { writeFileSync(join(fnDir, 'track.ts'), readFileSync(join(tplDir, 'track-function.ts'), 'utf-8')); } catch { /* skip */ }
+  console.log('  📈 第一方埋点已注入：track.js + functions/api/track（数据落你自己的 CF D1）');
+}
+
 async function deploy(opts: DeployOptions) {
   const config = loadConfig();
   const ventureDir = join(DATA_ROOT, 'ventures', opts.venture);
@@ -160,8 +204,9 @@ async function deploy(opts: DeployOptions) {
   console.log(`\n📦 Deploying venture: ${opts.venture}`);
   console.log(`   部署内容：${sourceLabel}\n`);
 
-  // Step 1: Determine password
-  const isPublic = opts.public ?? false;
+  // Step 1: Determine password。默认公开（去密码门）；私密加密是高级选项。
+  const isPublic = opts.public ?? true;
+  const allowIndex = isPublic ? (opts.indexable ?? true) : false;  // 公开默认可索引
   let password: string | undefined;
   if (!isPublic) {
     password = opts.password ?? config.deploy?.default_password;
@@ -196,8 +241,7 @@ async function deploy(opts: DeployOptions) {
     //   - HTML 注入 <meta name="robots" content="noindex,nofollow">
     //   - Cloudflare _headers 文件加 X-Robots-Tag: noindex
     //   - 写一个 robots.txt 兜底
-    // 显式 --indexable 时跳过（v2 SEO 上线模式）
-    const allowIndex = opts.indexable ?? false;
+    // 公开默认可索引（验证页要被搜到）；--noindex 时才注入 noindex 兜底。allowIndex 已在函数顶部算好。
     if (!allowIndex) {
       const indexHtml = join(deployDir, 'index.html');
       if (existsSync(indexHtml)) {
@@ -220,6 +264,13 @@ async function deploy(opts: DeployOptions) {
 
   // Step 3: wrangler deploy
   const projectName = `${opts.venture}-${process.env.USER ?? 'user'}`.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 58);
+  const url = `https://${projectName}.pages.dev`;
+
+  // 公开可索引：把 canonical / og:url / sitemap 改写成真实部署 URL + 本地 SEO 自检（P0.2）
+  if (isPublic && allowIndex) finalizeSeo(deployDir, url);
+  // 公开：注入第一方埋点（track.js + CF Pages Function /functions/api/track），私密模式不埋（P0.3）
+  if (isPublic) injectAnalytics(deployDir, opts.venture, url);
+
   const cfToken = getCloudflareToken();
   const wranglerEnv = { ...process.env, CLOUDFLARE_API_TOKEN: cfToken };
 
@@ -231,10 +282,23 @@ async function deploy(opts: DeployOptions) {
     { env: wranglerEnv, stdio: 'ignore' }
   ); // 已存在会非零退出，无害；真失败由下面的 deploy 兜底报错
 
+  // 公开模式：配第一方埋点后端（D1 + 绑定 + Resend 密钥），best-effort，失败不阻塞（Function 无绑定时只是不落库）。
+  let dbName = '';
+  if (isPublic) {
+    const setup = join(__dirname, 'setup-cf-backend.ts');
+    if (existsSync(setup)) {
+      const r = spawnSync('bun', ['run', setup, projectName, opts.venture], { env: wranglerEnv, encoding: 'utf-8' });
+      const out = (r.stdout || '') + (r.stderr || '');
+      process.stdout.write(out.split('\n').filter((l) => /▸|✓|⚠/.test(l)).join('\n') + '\n');
+      const m = out.match(/DB_NAME=([\w-]+)/); if (m) dbName = m[1];
+    }
+  }
+
   console.log(`  ☁️  wrangler pages deploy → ${projectName}.pages.dev`);
   const wranglerResult = spawnSync(
     'wrangler',
-    ['pages', 'deploy', deployDir, '--project-name', projectName, '--commit-dirty=true'],
+    // --branch main：部署到生产别名（否则 functions/ 不编译到生产，/api/track 404）。
+    ['pages', 'deploy', deployDir, '--project-name', projectName, '--branch', 'main', '--commit-dirty=true'],
     {
       env: wranglerEnv,
       stdio: 'inherit',
@@ -248,7 +312,6 @@ async function deploy(opts: DeployOptions) {
     process.exit(1);
   }
 
-  const url = `https://${projectName}.pages.dev`;
   console.log(`\n  ✅ Deployed: ${url}`);
 
   // Step 4: Generate QR
@@ -313,16 +376,19 @@ async function deploy(opts: DeployOptions) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error('Usage: bun run deploy.ts <venture-name> [--public] [--indexable] [--password=xxxxxx] [--target landing|studio]');
-    console.error('  默认：私有 + 加密 + 密码门');
-    console.error('  --public：公开（noindex 兜底，搜索引擎不收录）');
-    console.error('  --public --indexable：完全开放（最终上线模式）');
+    console.error('Usage: bun run deploy.ts <venture-name> [--private] [--noindex] [--password=xxxxxx] [--target landing|studio]');
+    console.error('  默认：公开验证页 + 可被搜索/GEO 索引（对外测真实意愿的正经模式）');
+    console.error('  --noindex：公开但不被搜索引擎收录（只发链接，不做 SEO）');
+    console.error('  --private：私密分享（AES-GCM 加密 + 密码门，高级选项，给队友/投资人看用）');
     console.error('  --target studio：部署 Studio 作战室（默认 landing 验证页）');
     process.exit(1);
   }
   const venture = args[0];
-  const isPublic = args.includes('--public');
-  const indexable = args.includes('--indexable');
+  // 默认公开（去密码门）；私密加密降级为 --private 高级选项。--public 保留作向后兼容（等价默认）。
+  const isPrivate = args.includes('--private');
+  const isPublic = !isPrivate;
+  // 公开默认可索引（验证需要被搜到）；--noindex 显式关闭。私密模式无所谓索引。
+  const indexable = isPublic && !args.includes('--noindex');
   const passwordArg = args.find(a => a.startsWith('--password='));
   const password = passwordArg ? passwordArg.split('=')[1] : undefined;
   // --target landing|studio （也接受 --target=landing 写法）

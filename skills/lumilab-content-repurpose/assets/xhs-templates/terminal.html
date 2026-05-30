@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>终端封面</title>
+<!--
+  Lumi Lab · 小红书封面模板 · terminal（终端）
+  改编自 Lieflat XHS Cover 的 terminal 模板（MIT License, https://github.com/larashero3-dotcom/lieflat-html-design）
+  —— 重做成 OKLCH token + Lumi Lab 内容槽 + design_direction 可覆盖。保留 MIT 署名。
+  适合：面向开发者/技术副业的封面、CLI/release-note 调性。画布 600x800（3:4）→ 1080x1440 @2x。
+  ★ 安全边界：标题 data-fit 自动缩放；命令行超长省略；副标题最多 3 行；光标随字号缩放。
+  占位：{{FILE}} {{PROMPT}} {{CMD}} {{TITLE}} {{SUBTITLE}} {{TAG}} {{META}}
+  注：{{TITLE}} 里可用 <span class="hl">…</span> 给关键词加 accent 高亮。
+-->
+<style>
+:root{
+  --frame: oklch(26% 0.006 60);
+  --paper: oklch(91% 0.008 90);
+  --paper-hot: oklch(95% 0.008 90);
+  --ink:   oklch(28% 0.01 60);
+  --soft:  oklch(28% 0.01 60 / 0.58);
+  --faint: oklch(28% 0.01 60 / 0.34);
+  --line:  oklch(28% 0.01 60 / 0.12);
+  --accent: oklch(52% 0.15 38);
+  --ok: oklch(50% 0.12 150);
+  --mono:  "SFMono-Regular",Consolas,Menlo,Monaco,"PingFang SC","Noto Sans SC",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;align-items:center;justify-content:center;background:#111;padding:24px;font-family:var(--mono)}
+.card{position:relative;width:600px;height:800px;overflow:hidden;border-radius:10px;
+  background:var(--paper);color:var(--ink);display:flex;flex-direction:column;
+  box-shadow:0 24px 60px oklch(0% 0 0 / 0.4)}
+.bar{background:var(--frame);height:44px;display:flex;align-items:center;gap:8px;padding:0 18px;flex:none}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.dot.r{background:oklch(64% 0.2 25)} .dot.y{background:oklch(80% 0.15 85)} .dot.g{background:oklch(72% 0.16 150)}
+.file{margin-left:14px;font-size:13px;letter-spacing:.04em;color:oklch(82% 0.01 90);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+.body{flex:1;padding:60px 56px;display:flex;flex-direction:column;min-height:0}
+.line{font-size:16px;line-height:1.9;color:var(--soft);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}  /* 命令过长省略，不溢出 */
+.line .p{color:var(--ok)} .line .c{color:var(--ink);font-weight:600}
+
+.titlewrap{margin-top:34px;flex:none}
+.title{font-weight:700;line-height:1.16;letter-spacing:-.01em;color:var(--ink);
+  overflow:hidden;overflow-wrap:anywhere}
+.title .hl{color:var(--accent)}
+.cursor{display:inline-block;width:.16em;height:.9em;margin-left:.08em;vertical-align:baseline;
+  background:var(--accent)}  /* em 单位 → 随标题字号缩放 */
+
+.sub{margin-top:22px;font-size:19px;line-height:1.65;color:var(--soft);max-width:34ch;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.spacer{flex:1;min-height:16px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:14px;
+  padding:0 56px 52px;font-size:13px;letter-spacing:.06em;color:var(--faint)}
+.foot .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tag{color:var(--paper-hot);background:var(--ink);padding:6px 14px;border-radius:6px;font-weight:600;
+  white-space:nowrap;flex:none}
+</style>
+</head>
+<body>
+  <article class="card">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">{{FILE}}</span></div>
+    <div class="body">
+      <div class="line"><span class="p">{{PROMPT}}</span> <span class="c">{{CMD}}</span></div>
+      <div class="titlewrap">
+        <h1 class="title" data-fit data-fit-max="62" data-fit-min="32" data-fit-maxh="250">{{TITLE}}<span class="cursor"></span></h1>
+      </div>
+      <p class="sub">{{SUBTITLE}}</p>
+      <div class="spacer"></div>
+    </div>
+    <div class="foot"><span class="m">{{META}}</span><span class="tag">{{TAG}}</span></div>
+  </article>
+  <script>
+  /* 安全边界 + 密度自适应：[data-fit] 二分缩放到不溢出（宽 + 可选高）。短放大填充、长缩小不溢出。 */
+  (function(){
+    function ok(el,h){return el.scrollWidth<=el.clientWidth+0.5 && (!h || el.scrollHeight<=h+0.5);}
+    function fit(el){
+      var min=+(el.dataset.fitMin||16),
+          max=+(el.dataset.fitMax||parseFloat(getComputedStyle(el).fontSize)),
+          h=el.dataset.fitMaxh?+el.dataset.fitMaxh:0, lo=min, hi=max, best=min;
+      for(var i=0;i<26;i++){var m=(lo+hi)/2; el.style.fontSize=m+'px'; if(ok(el,h)){best=m;lo=m;}else hi=m;}
+      el.style.fontSize=best+'px';
+    }
+    document.querySelectorAll('[data-fit]').forEach(fit);
+    document.documentElement.setAttribute('data-fitted','1');
+  })();
+  </script>
+</body>
+</html>

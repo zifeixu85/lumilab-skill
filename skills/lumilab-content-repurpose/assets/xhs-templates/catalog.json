@@ -1,0 +1,74 @@
+{
+  "_comment": "小红书封面 HTML 模板库（默认走 HTML 渲染 → Puppeteer/Playwright 截图 3:4，0 崩字、可控）。按 Lumi Lab 产品调性（独立开发者验证工具：编辑/瑞士/终端，反 slop）从两个参考库精选，非全搬。所有模板可被 design_direction.json 的配色覆盖（CSS 变量 --accent / --paper / --ink）。",
+  "canvas": { "css": "600x800", "export": "1080x1440", "ratio": "3:4", "deviceScaleFactor": 2 },
+  "safe_area": { "side": 80, "top": 96, "bottom": 100, "note": "正文与关键元素留在安全区内（小红书底部有 UI 遮挡）" },
+  "typography": { "stance": "越大越细：display weight 500-600 + 宽字距；小字(kicker/meta) mono 大写 + 宽字距(+.18em)。全部用系统字体（PingFang/Noto Sans + 等宽），不托管/不依赖宋体等衬线字体（跨平台稳定）。", "ban": "不用 700-900 重体大标题配过紧负字距——会塌成廉价 infographic banner。" },
+  "templates": [
+    {
+      "id": "editorial",
+      "name": "编辑杂志",
+      "file": "editorial.html",
+      "mode": "editorial",
+      "best_for": "产品思考 / AI 随笔 / 复盘 / 慢节奏叙事封面",
+      "source": "Lumi Lab 原创（受 guizang Editorial 模式启发，未抄代码）",
+      "license": "Lumi Lab"
+    },
+    {
+      "id": "swiss-data",
+      "name": "瑞士数据",
+      "file": "swiss-data.html",
+      "mode": "swiss",
+      "best_for": "产品更新 / 验证数据 / 红蓝海对比 / 工程化、量化的内容",
+      "source": "Lumi Lab 原创（受 guizang Swiss International 模式启发，未抄代码）",
+      "license": "Lumi Lab"
+    },
+    {
+      "id": "terminal",
+      "name": "终端",
+      "file": "terminal.html",
+      "mode": "terminal",
+      "best_for": "面向开发者/技术副业的封面、code/CLI 调性、release note",
+      "source": "改编自 lieflat-xhs-cover/terminal（MIT），重做成 OKLCH token",
+      "license": "MIT (Lieflat) — 见 README 署名"
+    },
+    {
+      "id": "campaign-long",
+      "name": "活动长图",
+      "file": "campaign-long.html",
+      "mode": "longform",
+      "ratio": "long（高随内容，--ratio long）",
+      "best_for": "招募/促销/触达：核心吸引文案铺开 + 底部二维码或私聊 CTA（验证触达）",
+      "slots": "KICKER/TITLE/SUBTITLE/POINTS_HTML/HIGHLIGHT/CTA_LINE/QR_IMG/CONTACT/META",
+      "source": "Lumi Lab 原创",
+      "license": "Lumi Lab"
+    }
+  ],
+  "platform_ratio": {
+    "小红书封面": "3:4（默认）",
+    "朋友圈配图": "复用小红书 3:4 原图（不另生成）；特意要方图用 editorial/terminal 出 1:1，别用 swiss-data",
+    "活动长图": "campaign-long + --ratio long（高随内容）"
+  },
+  "templates_extra": [
+    { "id": "consulting-report", "file": "consulting-report.html", "best_for": "严肃数据/报告调性，很贴验证场景", "slots": "KICKER/TITLE/FINDING/S1-3_LABEL/S1-3_VALUE/META", "source": "改编自 lieflat (MIT)" },
+    { "id": "dot-matrix", "file": "dot-matrix.html", "best_for": "干净极客、瑞士相邻", "slots": "KICKER/TITLE/SUBTITLE/TAG1-3/META", "source": "改编自 lieflat (MIT)" },
+    { "id": "clean-review", "file": "clean-review.html", "best_for": "极简产品评测", "slots": "VERDICT/KICKER/TITLE/TAKEAWAY/R1-2_K/R1-2_V/META", "source": "改编自 lieflat (MIT)" }
+  ],
+  "rejected": {
+    "sunrise": "太软/生活方式，偏离严肃验证工具调性",
+    "shiny-tiles": "太花哨、接近 AI slop",
+    "rain-notes": "氛围/生活方式，低频",
+    "story-field": "电影感/档案，lieflat 自己也标低频，偏离",
+    "pixel-report": "复古像素游戏感，太玩味（除非 venture 是游戏）",
+    "geek-report": "与 terminal 调性重叠，先不重复"
+  },
+  "borrowed_features": [
+    "Puppeteer/Playwright 截图：CSS 画布 600x800 → 导出 1080x1440 @2x（lieflat capture-xhs-card.mjs 思路）",
+    "小红书安全区：side 72-96 / top 72-112 / bottom 80-120（guizang platform-specs）",
+    "越大越细的排版纪律 + 反 slop 规则：无 blob/bokeh/装饰渐变/随机 SVG 圆（guizang style-system，与我们既有 anti-slop 一致）",
+    "标题压缩：长 topic → 缩略成缩略可读的封面标题（guizang title-shortener 思路）",
+    "缩略图可读性 QA：导出后按拇指大小检查（lieflat/guizang qa-checklist）"
+  ],
+  "lumilab_additions": [
+    "design_direction.json 配色继承：封面 --accent/--paper/--ink 可被 venture 选定的设计方向覆盖 → 小红书封面与 landing 视觉一致（参考库没有这个）"
+  ]
+}

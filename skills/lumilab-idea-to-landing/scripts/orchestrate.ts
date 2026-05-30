@@ -19,7 +19,9 @@ import { homedir } from "os";
 
 const HELP = `lumilab-idea-to-landing orchestrator
   orchestrate.ts init "<one-sentence idea>"   create venture + detect tokens
-  orchestrate.ts status <venture-dir>          report pipeline progress`;
+  orchestrate.ts status <venture-dir>          report pipeline progress
+  orchestrate.ts coach-brief <venture> --positioning .. --icp .. --hook .. --risk .. --test ..
+                                               写 yc_brief.md（教练梳理结论）+ 种风险假设`;
 
 function slugify(idea: string): string {
   // 中文 idea：取前几个词做 ascii slug，不行就用 hash
@@ -170,6 +172,81 @@ function cmdStatus(ventureDir: string) {
   }, null, 2));
 }
 
+// ── coach-brief：把 coach-yc 轻量一轮的 5 字段结论确定性落成 yc_brief.md ──
+// 格式与 lumilab-studio/render.ts parseCoachBrief 对齐 → 想法澄清页直接渲染「教练梳理结论」。
+// 同时把「最高风险假设 + 第一个验证动作」种进 hypotheses.yaml（best-effort），让下游闭环更准。
+function flag(rest: string[], name: string): string | undefined {
+  const i = rest.indexOf(name);
+  return i >= 0 ? rest[i + 1] : undefined;
+}
+
+function cmdCoachBrief(rest: string[]) {
+  const ventureDir = rest.find((a) => !a.startsWith("--") && (a.includes("/") || existsSync(join(venturesRoot(), a))));
+  const slug = rest.find((a) => !a.startsWith("--"));
+  const dir = ventureDir && ventureDir.includes("/") ? ventureDir : join(venturesRoot(), slug ?? "");
+  if (!dir || !existsSync(dir)) {
+    console.error(JSON.stringify({ ok: false, code: "E_NODIR", error: `venture 不存在：${dir}` }));
+    process.exit(2);
+  }
+  const positioning = flag(rest, "--positioning");
+  const icp = flag(rest, "--icp");
+  const hook = flag(rest, "--hook");
+  const risk = flag(rest, "--risk");
+  const test = flag(rest, "--test");
+  if (!positioning && !icp && !hook && !risk && !test) {
+    console.error('用法：orchestrate.ts coach-brief <venture> --positioning "..." --icp "..." --hook "..." --risk "..." --test "..."');
+    process.exit(2);
+  }
+  const now = new Date().toISOString();
+  const lines = [
+    `# YC Brief — ${dir.split("/").filter(Boolean).pop()}`,
+    "",
+    "> coach-yc 轻量一轮（YC 6 forcing questions）的结论。想法澄清页据此渲染「教练梳理结论」。",
+    "",
+    positioning ? `**一句话定位**：${positioning}` : "",
+    icp ? `**目标用户**：${icp}` : "",
+    hook ? `**核心钩子**：${hook}` : "",
+    risk ? `**最高风险假设**：${risk}` : "",
+    test ? `**第一个验证动作**：${test}` : "",
+    "",
+    `_生成：${now}_`,
+  ].filter((l) => l !== "");
+  writeFileSync(join(dir, "yc_brief.md"), lines.join("\n") + "\n");
+
+  // best-effort 种一条「最高风险假设」进 hypotheses.yaml（已存在同 fact 则跳过）
+  let seeded = false;
+  if (risk) {
+    try {
+      const hp = join(dir, "hypotheses.yaml");
+      const prev = existsSync(hp) ? readFileSync(hp, "utf-8") : "";
+      if (!prev.includes(risk.slice(0, 24))) {
+        const id = `h-coach-${Date.now().toString(36).slice(-4)}`;
+        const entry = [
+          `- id: ${id}`,
+          `  fact: ${JSON.stringify(risk)}`,
+          `  status: active`,
+          `  test_status: untested`,
+          `  confidence: low`,
+          `  source: coach-yc`,
+          test ? `  test_method: ${JSON.stringify(test)}` : `  test_method: ""`,
+          `  created_at: "${now}"`,
+          "",
+        ].join("\n");
+        writeFileSync(hp, (prev.trimEnd() ? prev.trimEnd() + "\n" : "") + entry);
+        seeded = true;
+      }
+    } catch { /* hypotheses 种子 best-effort，不阻塞 */ }
+  }
+
+  // 重渲 studio，让澄清页立刻显示教练结论
+  try {
+    const renderScript = join(import.meta.dir, "..", "..", "lumilab-studio", "scripts", "render.ts");
+    if (existsSync(renderScript)) Bun.spawnSync(["bun", "run", renderScript, dir], { stdout: "ignore", stderr: "ignore" });
+  } catch { /* best-effort */ }
+
+  console.log(JSON.stringify({ ok: true, wrote: join(dir, "yc_brief.md"), hypothesis_seeded: seeded }, null, 2));
+}
+
 const [, , cmd, ...rest] = process.argv;
 if (cmd === "--help" || cmd === "-h" || !cmd) {
   console.log(HELP);
@@ -178,6 +255,7 @@ if (cmd === "--help" || cmd === "-h" || !cmd) {
 switch (cmd) {
   case "init": cmdInit(rest.join(" ")); break;
   case "status": cmdStatus(rest[0]); break;
+  case "coach-brief": cmdCoachBrief(rest); break;
   default:
     console.error(JSON.stringify({ ok: false, code: "E_CMD", error: `unknown command: ${cmd}` }));
     console.error(HELP);

@@ -204,6 +204,10 @@ async function main(): Promise<void> {
 
   const p = writeSummary(slug, summary);
   writeLedgerEvidence(slug, summary);
+  // 记一次 Stripe 只读消耗（成本 0）到 usage.json。best-effort。
+  if (summary.source === 'stripe') {
+    try { require('../../lumilab-config/scripts/usage.ts').recordService(slug, 'stripe'); } catch { /* usage 可选 */ }
+  }
   reRender(slug);
 
   const cvr = summary.sessions.length ? (summary.count_paid / summary.sessions.length) : 0;

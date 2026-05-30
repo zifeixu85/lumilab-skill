@@ -3,7 +3,7 @@ name: lumilab-content-repurpose
 description: |
   Multi-platform content repurposing for venture validation. Takes one source content (idea, story, insight) and generates 5 platform-specific versions following each platform's hard constraints. Deep support for 小红书 / 微信公众号 / X. Template-based for 抖音 / 朋友圈 (Phase 0 lighter, Phase 1 enrich). Reads platform rules from memory/resources/platform-rules/. Use when user types /lumilab content or /lumilab build-assets.
   关键词：多平台内容 / 一稿七发 / 跨平台改写 / 内容矩阵 / 小红书 / 公众号 / 抖音 / 朋友圈 / X / 内容工厂 / 自媒体
-version: 1.5.0
+version: 1.7.0
 metadata:
   hermes:
     tags: [content, xiaohongshu, wechat, douyin, x, repurpose]
@@ -21,6 +21,7 @@ metadata:
     - "github.com/revfactory/viral-copywriting"
   outputs:
     - "data/ventures/<name>/content/xhs/<slug>.md (深度)"
+    - "data/ventures/<name>/content/xhs/<slug>-cover.png (封面图 1080×1440，HTML 模板渲染，含 .html 可重渲)"
     - "data/ventures/<name>/content/wechat-mp/<slug>.md (深度，含排版)"
     - "data/ventures/<name>/content/x-twitter/<slug>.md (深度，thread 格式)"
     - "data/ventures/<name>/content/douyin/<slug>.md (模板)"
@@ -151,6 +152,42 @@ memory/resources/platform-rules/wechat-moments.md  ← 6 行结构
 ✓ 无外链
 ✓ 违禁词扫描：通过
 ```
+
+### 封面配图：两步流程（HTML 确认文案 → 再 AI 出图）
+
+小红书首图（封面）**不要让用户拿干文字**，用 `assets/xhs-templates/` 的 HTML 模板渲染成真图。两步：
+
+**第一步 · HTML 渲染（确认文案，0 崩字、免费）**——把封面文案/数据填进模板，截图成 1080×1440：
+
+```bash
+# 1) 把封面取值写成 card.json（占位见所选模板，下例 swiss-data 用于「验证结果/数据」类封面）
+#    swiss-data 槽：KICKER/TITLE/HERO_NUM/HERO_LABEL/R1_LABEL,R1_VALUE,R1_PCT/...(R2,R3)/META
+#    数据从 venture 真实信号取：payment/summary.json、usage.json、market_analysis.json 的关键词/红蓝海
+# 2) 渲染（自动继承该 venture 的 design_direction.json 配色 → 封面与 landing 视觉一致）
+bun run scripts/render-xhs-card.ts --venture <slug> --template swiss-data --in /tmp/card.json --out <slug>-cover
+# → content/xhs/<slug>-cover.png（1080×1440，3:4）+ 同名 .html（可改文案重渲）
+```
+
+- **模板选择**：`swiss-data`（验证数据/红蓝海/结果）已接通；`editorial`（产品思考/复盘）、`terminal`（开发者向）也在库里；更多见 `assets/xhs-templates/catalog.json`。**先让用户确认图上文案准确**，错了改 card.json 重渲，不花任何成本。
+- **第二步 · AI 出底图（可选，确认文案后才跑）**：
+
+```bash
+# EvoLink 网关，默认 gpt-image-2（中文大字弱 → 出底图/氛围，文字仍留在第一步 HTML 层叠上去）
+bun run scripts/imagegen.ts --venture <slug> --prompt "<英文画面描述：氛围/质感，无文字>" --out <slug>-bg
+# 中文大字直出更稳时切：--model doubao-seedream-5.0-lite
+# → content/xhs/<slug>-bg.png（异步：提交→轮询→下载落地）。缺 EVOLINK_API_KEY 则跳过，纯 HTML 封面即可。
+```
+- 模板内置**安全边界**（长文案自动缩放不溢出、稀疏内容居中不发空），见 `assets/xhs-templates/README.md`。
+
+### 朋友圈配图 & 活动长图
+
+- **朋友圈配图 = 直接复用小红书封面**（同一张 3:4，不另生成）。朋友圈单图显示 3:4 没问题，零额外工作。若特意要方图，用**内容轻**的模板（editorial/terminal）出 `--ratio 1:1`，**别用 swiss-data**（数据密会裁标题）。
+- **活动长图（招募/促销/触达）= `campaign-long` 模板 + `--ratio long`**：与封面不同，这是**高随内容的长图**，把核心吸引文案铺开（钩子标题 → 3-5 条卖点 → 强信号 → 底部 CTA），底部放**二维码**（`QR_IMG` 给图片路径/URL）或**私聊联系方式**（`QR_IMG` 留空则只显示 `CONTACT` + `CTA_LINE`）做验证触达。
+  ```bash
+  bun run scripts/render-xhs-card.ts --venture <slug> --template campaign-long --in /tmp/camp.json --ratio long --out campaign
+  # camp.json：KICKER/TITLE/SUBTITLE/POINTS_HTML(若干 <li class='pt'>…</li>)/HIGHLIGHT/CTA_LINE/QR_IMG/CONTACT/META
+  # → content/xhs/campaign.png（1080×高随内容）。脚本自动两步测高（dump-dom 读 <title> 的高度）再整图截。
+  ```
 
 ### content/wechat-mp/<slug>.md（公众号 HTML + 排版）
 

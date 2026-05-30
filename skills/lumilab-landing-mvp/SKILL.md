@@ -3,7 +3,7 @@ name: lumilab-landing-mvp
 description: |
   Fake-door validation page generator for C-end venture ideas. The landing is NOT a marketing page — it is a validation instrument that measures real purchase intent: a real, visible buy-style CTA → fake-door modal → email capture, with lightweight conversion tracking (cta_click / email_submit). Generates semantic HTML5 + standalone styles.css + inline tracking JS + validation_setup.md. Enforces 6-phase non-skippable pipeline (Research → Content Extraction → Image Catalog → Build → Verify → Deploy-ready). Anti-Slop banned words + banned visual patterns + 8-rule quality gate (incl. fake-door gate + SEO/GEO gate). Output reflects design_direction.json. Use when user types /lumilab build-assets or /lumilab landing, after design-direction page submitted.
   关键词：fake-door / 验证页 / 假门 / 购买意愿 / landing page / 落地页 / 邮件收集 / 立即购买 / CTA / 转化追踪 / cta_click / 价值主张 / Anti-Slop / editorial / brutalist
-version: 2.0.0
+version: 2.1.0
 metadata:
   hermes:
     tags: [landing-page, anti-slop, copywriting]
@@ -132,6 +132,12 @@ fake-door 不能骗钱、不能假装能买：
 | 访问量 UV | 独立访客数 | 分母，没流量就没信号 |
 | 主 CTA 点击率 | `cta_click` / UV | **核心意愿信号**——有多少人想买 |
 | 邮箱留资率 | `email_submit` / UV | **强意愿信号**——愿意留下联系方式等上线 |
+| 真付费率 | `payment_paid` / UV | **最强信号**——愿意掏钱（比留邮箱强一档） |
+
+> **下一步（更强信号）**：landing 上线后，把假门「立即购买」换成 **Stripe 真 checkout**（`lumilab-payment-link`）——
+> 「愿意付钱」是比「留邮箱」强一档的验证信号。部署成 **公开页**（`lumilab-deploy` 默认）后，
+> 第一方埋点（CF Function + D1）自动收 访问/点击/留资/付费 + UTM 渠道归因 + 国家，喂 Studio 验证信号面板。
+> 这些下一步在 Studio 概览页「完成后的下一步」面板里有可复制入口。
 
 **判断基准（经验值，不是定律，按品类调整）**：
 - 主 CTA 点击率 **> 8%** 算强意愿信号；3%–8% 算中性，需要看别的桶；< 3% 偏弱。

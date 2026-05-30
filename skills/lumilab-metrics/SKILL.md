@@ -3,7 +3,7 @@ name: lumilab-metrics
 description: |
   AARRR Pirate Metrics + Sean Ellis North Star + leading vs lagging + Amplitude/PostHog event schema. Cohort retention curve reading. Lumi-Lab overlay with Chinese-first event naming and Anti-Slop for vanity metrics. Use when the user asks which metrics to track, can't tell if a product is healthy from GA data, needs an event schema before MVP launch, or wants to read a cohort retention curve.
   关键词：metrics / AARRR / 海盗指标 / north star / leading / lagging / vanity / retention curve / event schema / PostHog / Amplitude
-version: 1.5.0
+version: 1.6.0
 metadata:
   hermes:
     tags: [aarrr, north-star, retention, amplitude, posthog]
@@ -51,6 +51,8 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 4. 区分 vanity vs actionable 的标准
 
 不解决埋点工具选型问题（PostHog / Amplitude / 自建 ClickHouse 你自选），解决**测什么、怎么命名、怎么读**。
+
+> **接 Lumi Lab 第一方埋点**：公开验证页（`lumilab-deploy` 默认）自带第一方埋点（CF Function + D1，收 访问/点击/留资/付费 + UTM 渠道归因 + 国家）。`lumilab-deploy/scripts/pull-signals.ts <venture>` 拉成 `studio/validation-signals.json`，Studio 概览页「验证信号」漏斗面板渲染它。本 skill 解读这份漏斗（每级转化率、按渠道/国家切、对照基线判强弱），不另造埋点。
 
 ## 何时调用
 

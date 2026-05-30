@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>极简评测封面</title>
+<!-- Lumi Lab · 小红书封面 · clean-review（极简评测，留白多）
+     改编自 lieflat-xhs-cover/clean-review（MIT），OKLCH 重做。
+     占位：{{VERDICT}} {{KICKER}} {{TITLE}} {{TAKEAWAY}} {{R1_K}} {{R1_V}} {{R2_K}} {{R2_V}} {{META}}
+     安全边界：标题 data-fit；takeaway line-clamp；居中 stage。配色可被 design_direction.json 覆盖。 -->
+<style>
+:root{--paper:oklch(99% 0.003 90);--ink:oklch(16% 0.015 60);--muted:oklch(50% 0.012 60);--line:oklch(16% 0.015 60/.12);
+--accent:oklch(55% 0.16 38);--sans:"PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;--mono:"SFMono-Regular",Menlo,Consolas,monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;align-items:center;justify-content:center;background:#1a1a1a;padding:24px}
+.card{position:relative;width:600px;height:800px;overflow:hidden;background:var(--paper);color:var(--ink);
+padding:96px 80px 100px;display:flex;flex-direction:column;font-family:var(--sans)}
+.top{flex:none}
+.verdict{display:inline-block;font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--paper);
+background:var(--accent);padding:6px 14px;border-radius:999px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.kicker{margin-top:18px;font-family:var(--mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.title{font-weight:600;line-height:1.18;letter-spacing:-.01em;overflow:hidden;overflow-wrap:anywhere}
+.takeaway{font-size:21px;line-height:1.6;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rows{display:flex;flex-direction:column;gap:0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row__k{font-size:15px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.row__v{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink);white-space:nowrap;flex:none}
+.foot{flex:none;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style></head>
+<body>
+<article class="card">
+  <div class="top"><span class="verdict">{{VERDICT}}</span><div class="kicker">{{KICKER}}</div></div>
+  <div class="stage">
+    <h1 class="title" data-fit data-fit-max="56" data-fit-min="30" data-fit-maxh="200">{{TITLE}}</h1>
+    <p class="takeaway">{{TAKEAWAY}}</p>
+    <div class="rows">
+      <div class="row"><span class="row__k">{{R1_K}}</span><span class="row__v">{{R1_V}}</span></div>
+      <div class="row"><span class="row__k">{{R2_K}}</span><span class="row__v">{{R2_V}}</span></div>
+    </div>
+  </div>
+  <div class="foot">{{META}}</div>
+</article>
+<script>(function(){function ok(e,h){return e.scrollWidth<=e.clientWidth+.5&&(!h||e.scrollHeight<=h+.5)}
+function fit(e){var mn=+(e.dataset.fitMin||16),mx=+(e.dataset.fitMax||parseFloat(getComputedStyle(e).fontSize)),h=e.dataset.fitMaxh?+e.dataset.fitMaxh:0,lo=mn,hi=mx,b=mn;for(var i=0;i<26;i++){var m=(lo+hi)/2;e.style.fontSize=m+'px';if(ok(e,h)){b=m;lo=m}else hi=m}e.style.fontSize=b+'px'}
+document.querySelectorAll('[data-fit]').forEach(fit);document.documentElement.setAttribute('data-fitted','1')})();</script>
+</body></html>

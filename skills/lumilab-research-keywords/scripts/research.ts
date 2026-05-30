@@ -261,13 +261,19 @@ async function main(): Promise<void> {
   let source: string;
   let notice = '';
 
-  if (args.mock || tokenless) {
+  if (args.mock) {
+    // 显式 --mock：仅测试 / 纯离线 demo。
     metrics = mockMetrics(args.seed, country, language);
     source = 'mock';
-    notice = args.mock
-      ? '⚠️  --mock 启用，未走真实 provider'
-      : `⚠️  未配置 ${provider.name} token，回退 mock 数据。在 lumilab config 或 ~/.lumilab/secrets.json 配置后启用真查询。`;
+    notice = '⚠️  --mock 启用（占位数据，仅测试）';
     console.error(notice);
+  } else if (tokenless) {
+    // 无 keyword API token → 不当「假数据」用，而是「启发式量级估计 + 宿主 agent 核对」。
+    // 搜索量是精确数字，agent 无法凭空知道；但红蓝海/相对需求的方向判断，agent 凭自身知识可校正。
+    metrics = mockMetrics(args.seed, country, language);
+    source = 'agent-estimate';
+    notice = `无 ${provider.name} token → 搜索量为基于种子词的**启发式量级估计**（非精确值），红蓝海为**相对**判断。宿主 agent 应据自身知识核对量级、修正明显偏差，再把方向性结论写进 market_analysis.json。要精确数据就配 DataForSEO / Keywords Everywhere token。`;
+    console.error('⚠️  ' + notice);
   } else {
     try {
       const seedSet = new Set(args.seed.map((s) => s.toLowerCase()));
@@ -277,10 +283,11 @@ async function main(): Promise<void> {
       source = provider.name;
     } catch (e) {
       console.error(`✗ ${(e as Error).message}`);
-      console.error('  回退 mock 数据。');
+      // 调用失败也不当「假数据」——降级为启发式估计 + agent 核对，标清楚来源。
+      console.error('  → 降级为启发式量级估计（agent 核对），非 mock。');
       metrics = mockMetrics(args.seed, country, language);
-      source = 'mock';
-      notice = `⚠️  真查询失败：${(e as Error).message}`;
+      source = 'agent-estimate';
+      notice = `${provider.name} 查询失败（${(e as Error).message}）→ 搜索量降级为启发式估计，宿主 agent 应核对方向。`;
     }
   }
 
@@ -306,6 +313,12 @@ async function main(): Promise<void> {
   writeFileSync(landscapePath, buildLandscape(args.venture, scored, source, notice));
   writeFileSync(csvPath, buildCsv(scored));
   writeFileSync(jsonlPath, buildJsonl(scored));
+
+  // 记一次消耗（真 provider → 计成本；agent-estimate/mock → 0 外部成本）。best-effort。
+  try {
+    const u = require('../../lumilab-config/scripts/usage.ts');
+    if (typeof u?.recordService === 'function') u.recordService(args.venture, source);
+  } catch { /* usage 账本可选 */ }
 
   console.log(`✓ ${scored.length} 个关键词 · source=${source} · serp_probe=${serpEnabled ? 'on' : 'off'}`);
   console.log(`  → ${landscapePath}`);

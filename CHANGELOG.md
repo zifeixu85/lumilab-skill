@@ -6,6 +6,89 @@
 
 ---
 
+## [1.13.0] · 2026-05-31 · 对外验证闭环 + 脊柱接线（P0–P2 一次性落地）
+
+> 把「生成验证页 → 公开发出去 → 收到你自己掌控的访问/点击/转化数据 → 喂回 Studio/metrics」这条闭环跑通，
+> 并把之前盘出的脊柱断节 + 孤岛全接上。方案见 docs/planning/PLAN_OUTBOUND_VALIDATION_2026-05-31.md。
+
+### Added · 对外验证闭环
+- **第一方埋点（数据全在你自己 CF 账号）**：公开页注入 `track.js`（page_view/cta/留资/scroll/dwell beacon，UTM 归因，无 cookie）+ CF Pages Function `functions/api/track`（边缘免费拿 country，UA 过滤爬虫）→ 写 D1（事件 + 邮箱）。`setup-cf-backend.ts` 自动建 D1 + 绑定。`pull-signals.ts` 拉成漏斗。
+- **Resend 订阅欢迎邮件**：email_submit → D1 + 调 Resend 发欢迎邮件（配 key + 验证域名即用）。
+- **Studio「验证信号」漏斗面板**：访问 → 点 CTA → 留邮箱 → 真付费 + 渠道归因（哪个渠道带来且转化），读 `validation-signals.json`。metrics 接活解读它。
+- **完成后的下一步面板**：landing 生成后概览页给 部署/换 Stripe 真付费/出内容配图/冷启动/复盘 的可复制入口（花钱·对外标「需确认」）—— payment-link / launch-strategy / next-actions 等孤岛接回脊柱。
+
+### Added · 内容配图系统
+- **小红书/朋友圈/活动长图配图**：7 个 HTML 模板（swiss-data/editorial/terminal/campaign-long/consulting-report/dot-matrix/clean-review）+ `render-xhs-card.ts`（填模板→注 design_direction 配色→系统 Chrome 截图，比例 3:4/1:1/4:5/9:16/long）+ 安全边界（长不溢出、短不发空）。
+- **AI 出图第二步**：`imagegen.ts`（EvoLink 网关，默认 gpt-image-2，可切 doubao-seedream-5.0-lite，异步出底图）。
+- **Studio 内容画廊**：缩略展示 content/xhs 封面 + 下载 + 文案复制。
+
+### Changed
+- **deploy 默认公开验证页**（去密码门）：可被 SEO/GEO 索引，canonical/og:url/sitemap 改写成真实 URL；私密加密+密码门降级为 `--private` 高级选项。
+- **idea-to-landing Phase 3.5 产品定位**：选定方向后自动跑 product-positioning → product_definition.md（一句话定位+差异化+抗替代），补「方向直接跳 landing」断节。
+- 版本：deploy 1.6 · studio 2.4 · landing-mvp 2.1 · metrics 1.6 · content-repurpose 1.7 · idea-to-landing 1.8 · config（usage 加 evolink）。test-finals 35/35。
+
+### 上线前提（凭证）
+- 埋点 D1 持久化需 CF token 含 **D1 权限**（Pages 权限即可部署，但建 D1/绑定要 D1 权限）。Resend 发非账户邮箱需**验证域名** + 设 RESEND_FROM。
+
+## [1.12.1] · 2026-05-30 · 修教练→流水线断链（coach-yc 跑完没接回产品流程）
+
+> 实测：直接说「我有个 idea …」时，宿主路由到 coach-yc 做了很好的 6 问梳理，但**停在对话里**——
+> 没建 venture、没存 yc_brief、没接回调研。根因：1.12.0 的教练岔路写在 idea-to-landing 的 Phase 0 里，
+> 假设它是入口；但 coach-yc 会被「我有个 idea」直接命中、绕过流水线，而 coach-yc 自己没有接回的硬步骤。
+
+### Fixed
+- **coach-yc 加「接回流水线」硬收尾**（写进精简 SKILL.md，保证宿主一定加载）：6 问梳理完**必须**
+  ① `orchestrate.ts init`（无 venture 时建一个）② `orchestrate.ts coach-brief`（落 yc_brief.md + 种风险假设）
+  ③ 明确把控制权交回 idea-to-landing Phase 1 跑调研（不让用户重述 idea）。修复「教练跑完就停手」的断链。
+- **路由澄清**：coach-yc description 标明它是 idea-to-landing 流水线的「想法澄清步、非终点」；
+  idea-to-landing description 标明自己是「从 idea 到 landing 的默认入口（含可选教练澄清）」。两边互指，减少入口竞争歧义。
+- coach-yc 1.5.0 → 1.6.0（body 仍 5333 字 ≤6000，SkillLens S 不受影响）；idea-to-landing → 1.7.1。
+
+## [1.12.0] · 2026-05-30 · Studio 透明度三件套（教练澄清 / 调研足迹 / 消耗看板）
+
+> 三个产品优化方向：① 想法澄清阶段太干，可否 opt-in 让 coach 教练先梳理 idea？② 调研页没说用了哪些
+> 服务、搜了什么。③ 每个 venture 想看 token / 成本消耗。核心都是「让 Studio 各页诚实展示这一轮发生了
+> 什么、花了什么」。延续「宿主代搜」的哲学：能精确算的精确算，算不到的标清楚是估算。
+
+### Added
+- **教练澄清岔路（opt-in，不破坏 analysis-first）**：Phase 0 intake 多一个一次性选择「直接调研（默认）/
+  先用教练梳理一轮」。选教练 → 跑 coach-yc **轻量一轮**（YC 6 问一次性问完、≤1 次交互）→
+  `orchestrate.ts coach-brief` 确定性落 `yc_brief.md`（一句话定位 / ICP / 核心钩子 / 最高风险假设 /
+  第一个验证动作）+ 把风险假设种进 `hypotheses.yaml`(`source: coach-yc`) → 想法澄清页渲染「教练梳理结论」卡片。
+  教练是**增强不替代**：没跑也照常自动推断兜底；跑了下游调研/假设/方向都更锋利。深聊仍走 founder-coach（另一条 opt-in 深线）。
+- **调研足迹面板**（Studio 研究页）：展示本轮用了哪些服务、每个搜了什么 query/keyword、拿回多少条，
+  带可信度徽章（真实 API / 宿主代搜·web / 宿主知识 / 启发式估计 / mock）。数据来自已持久化的 `source` 字段，零新增。
+- **消耗看板**（`usage.json` 账本）：① 外部服务成本**精确计量**（调用处累加 Tavily/TikHub/DataForSEO 已知单价；
+  走宿主代搜 = 0 外部成本，量化「零 key 也能跑」）；② 宿主 LLM token **混合统计**——宿主每 phase 后自报优先
+  (`record-llm`, source: host-reported)，没自报就按产物体量估算兜底(source: estimated)，徽章标清来源。
+  显示在 Studio 概览页 +**每个 venture 首页卡片的消耗行**（≈$X 外部 · ~Yk token · N 代搜）。
+
+### Changed
+- `recordService` 接进 web_tavily / xhs_tikhub / ingest_agent_results / research-keywords / payment sync，调用即记账（best-effort，绝不阻塞）。
+- 版本：config 1.5→1.6 · studio 2.0→2.1 · home 1.5→1.6 · idea-to-landing 1.6→1.7 · payment-link 0.2→0.2.1 · research-platforms/keywords →1.6.1。
+
+## [1.11.0] · 2026-05-30 · 宿主代搜兜底（无 key 也产真实数据，不落 mock）
+
+> 用户提问：用户若一个 API key 都没有，能否保障最基础的数据可用性？尤其当他接的是自己的 AI Agent 产品时，
+> 能不能用宿主 agent 自己的搜索能力 / 知识产出真实反馈，而不是直接给 mock。本版把研究层从「无 key → mock」
+> 改为「无 key → 宿主代搜」，让裸装零 key 也能跑出真实数据。
+
+### Added
+- **「宿主代搜 / agent-as-provider」tier**（research-platforms）：无外置 API key 时不再落 mock，而是把检索
+  交还宿主 agent。新增 `scripts/agent_handoff.ts`（`emitAgentPending()` 写 `source: agent-pending` 检索清单 +
+  打印 `⟁ AGENT_SEARCH_NEEDED` 指令块）+ `scripts/ingest_agent_results.ts`（把宿主代搜/代答结果校验 + 归一成
+  canonical schema，`source: agent-web`/`agent-knowledge`，下游 0 改动）。
+- **决策树**（research-platforms SKILL.md）：宿主有 web 工具 → `--mode web` 真搜（带真实 URL）；无 web 工具 →
+  `--mode knowledge` 用训练知识作答（url 可空，内容须真）。ingest 守卫：空/占位/无 URL 输入 `exit 3`，**绝不静默落假数据**。
+
+### Changed
+- **web_tavily.ts / xhs_tikhub.ts**：缺 key 或 key 调用失败 → 走宿主代搜兜底（非 mock）。`--mock` 仅保留作测试。
+- **research-keywords**：无 token → `source: agent-estimate`（搜索量为启发式量级估计 + 宿主 agent 据知识核对方向，
+  红蓝海为相对判断），而非 mock 假数据——因搜索量是精确数字、agent 无法凭空知，故诚实标为「估计」。
+- **idea-to-landing Phase 1**：编排说明加入宿主代搜决策树；无 token 时由宿主 agent 用自身能力补全真实数据。
+- **validate-output.ts**：`SOURCE_ENUM` 增加 `agent-pending` / `agent-web` / `agent-knowledge`。
+- 三个研究 skill（research-platforms / research-keywords / idea-to-landing）版本 1.5.0 → 1.6.0。
+
 ## [1.10.2] · 2026-05-30 · 修真实数据源（secret 解析 / TikHub 端点 / XHS 接进流水线）
 
 > 用户在 Codex 实测时发现：配了 Tavily/TikHub 却仍回退 mock；修好 token 后又发现小红书端点已弃用，

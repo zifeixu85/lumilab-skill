@@ -59,6 +59,12 @@ interface PhaseMap {
   '4-landing': boolean;
   '5-retro': boolean;
 }
+interface VentureCost {
+  external_usd: number;
+  tokens: number;
+  agent_calls: number;
+  llm_source: string;
+}
 interface VentureStatus {
   slug: string;
   idea: string;
@@ -66,6 +72,20 @@ interface VentureStatus {
   progress: string;
   updated_at: string;
   deployed: boolean;
+  cost?: VentureCost;
+}
+
+function fmtK(n: number): string { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n); }
+
+// 读 venture 消耗汇总（外部精确 + LLM 自报/估算）。best-effort，缺 config 也不报错。
+function readVentureCost(slug: string): VentureCost | undefined {
+  try {
+    const u = require('../../lumilab-config/scripts/usage.ts');
+    if (typeof u?.summarize !== 'function') return undefined;
+    const s = u.summarize(slug, { estimateIfMissing: true });
+    if (!s || (s.external_calls === 0 && s.llm.total === 0)) return undefined;
+    return { external_usd: s.external_cost_usd, tokens: s.llm.total, agent_calls: s.agent_calls, llm_source: s.llm.source };
+  } catch { return undefined; }
 }
 interface HomeStatus {
   onboarded: boolean;
@@ -192,6 +212,7 @@ function scanVenture(ventureDir: string, slug: string, deployedSlugs: Set<string
     progress: `${done}/6`,
     updated_at: newestMtime(ventureDir),
     deployed: deployedSlugs.has(slug),
+    cost: readVentureCost(slug),
   };
 }
 
@@ -445,6 +466,7 @@ function renderVentures(status: HomeStatus): string {
         </header>
         <p class="venture-idea">${esc(truncate(v.idea, 72))}</p>
         ${renderPhaseBar(v.phases)}
+        ${v.cost ? `<p class="venture-cost">${v.cost.external_usd > 0 ? '≈$' + v.cost.external_usd.toFixed(3) + ' 外部' : '$0 外部'}${v.cost.tokens > 0 ? ` · ~${fmtK(v.cost.tokens)} token${v.cost.llm_source !== 'host-reported' ? '（估）' : ''}` : ''}${v.cost.agent_calls > 0 ? ` · <b>${v.cost.agent_calls} 代搜</b>` : ''}</p>` : ''}
         <footer class="venture-card__foot">
           <span class="venture-status venture-status--${st.tone}">${esc(st.label)}</span>
           ${deployedBadge}
@@ -838,6 +860,13 @@ body::before {
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
+.venture-cost {
+  font-size: 11px;
+  color: var(--mute);
+  font-family: var(--mono, ui-monospace, Menlo, monospace);
+  letter-spacing: -0.01em;
+}
+.venture-cost b { color: var(--moss); font-weight: 600; }
 .venture-card {
   background: var(--surface);
   box-shadow: var(--shadow-card);

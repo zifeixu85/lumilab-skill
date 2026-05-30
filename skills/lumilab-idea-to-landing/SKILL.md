@@ -1,9 +1,9 @@
 ---
 name: lumilab-idea-to-landing
 description: |
-  One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Use when the user gives a startup idea, says "帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast.
+  One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Phase 0 intake 提供可选的「先用 coach-yc 教练梳理一轮」岔路（opt-in，梳理完接回本流水线调研）。Use when the user gives a startup idea, says "我有个 idea / 帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast —— 这是从 idea 一路到 landing 的默认入口（含可选教练澄清）。
   关键词：idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 方向建议 / landing 生成 / SEO / GEO / orchestrator / 自动流水线 / idea to landing / 想法落地 / 轻量验证
-version: 1.5.0
+version: 1.8.0
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:
@@ -111,18 +111,34 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 
 读用户那句话。**如果已经包含「做什么 + 给谁」两点 → 直接跳到 Phase 1，0 提问。**
 
-只有缺关键信息时，发**一次** AskUserQuestion（决策简报式，全部可跳过），最多 4 个字段：
+只有缺关键信息时，发**一次** AskUserQuestion（决策简报式，全部可跳过）：
 
 ```
 我准备帮你跑一轮市场分析。你可以补充几点，也可以直接跳过 —— 跳过我就自己推断。
 
+· 怎么开始？　[直接调研（推荐，默认）] [先用教练梳理一轮]
 · 目标市场？　[出海 / 海外（推荐，默认）] [国内]
 · 目标用户大概是谁？（一句话，或「你来推断」）
 · 你希望用户用它完成什么？（或「你来推断」）
 · 有没有特别想验证的点？（或「没有，你来定」）
 ```
 
-用 AskUserQuestion 时，每个选项给「我自己推断」作为一等选项，并标为推荐。**不要逼用户打字。**
+用 AskUserQuestion 时，每个选项给「我自己推断 / 直接调研」作为一等选项，并标为推荐。**不要逼用户打字。**
+
+#### ⭐ 教练梳理岔路（可选，opt-in —— 选了才走，不破坏「analysis-first」）
+
+「怎么开始」选 **直接调研** = 当前默认行为（零摩擦，直接 Phase 1）。选 **先用教练梳理一轮** 时：
+
+1. **跑 coach-yc 轻量一轮**（不是多轮深聊）：把 YC 6 forcing questions 一次性列给用户（① 为谁解决什么 ② 现在怎么凑合 ③ 为什么是现在 ④ 怎么拿前 100 用户 ⑤ 最大未验证假设 ⑥ 下一步怎么算成功）。用户答想答的，**其余你推断补全**，≤1 次交互——不逐步追问。
+2. **落成 yc_brief.md**（确定性，保证澄清页能渲染）：
+   ```bash
+   bun run scripts/orchestrate.ts coach-brief <slug> \
+     --positioning "一句话定位" --icp "目标用户" --hook "核心钩子" \
+     --risk "最高风险假设" --test "第一个验证动作"
+   ```
+   它会写 `yc_brief.md` + 把「最高风险假设」种进 `hypotheses.yaml`（`source: coach-yc`）+ 重渲 studio → **想法澄清页立刻显示「教练梳理结论」卡片**。
+3. **带着更锋利的 brief 继续 Phase 1**：教练是**增强不是替代**——即使没跑教练，自动推断照常兜底；跑了教练，下游调研/假设/方向都从这份更清晰的定位出发，质量更高。
+4. 用户**深度卡住**（「陪我深聊 / 一步步想清楚 / 假设挂了不知怎么办」）时才升级到 `lumilab-founder-coach` 的多轮苏格拉底，那是另一条 opt-in 深线，不在这里默认。
 
 #### ⭐ 目标市场与语言（出海优先 —— 这是 Lumi Lab 当前默认）
 
@@ -152,12 +168,17 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 
 **市场（market）— Web 通道**
 - 有 Tavily token：`bun run ../lumilab-research-platforms/scripts/web_tavily.ts "<idea 相关查询>" --venture <slug>`（出海默认：查询用**英文**）
-- 无 token：宿主 LLM 基于自身知识写市场概况、规模/增长信号、3 条趋势
+- **无 token → 宿主代搜，不落 mock**：脚本会写 `web_tavily.json` 标 `source: agent-pending` 并打印 `⟁ AGENT_SEARCH_NEEDED`。你（宿主 agent）**必须接手补全真实数据**：有 web 工具就真搜，没有就用自身知识，然后回写——
+  ```bash
+  # 把你搜到/答出的真实结果写成 [{title,url,text,score?}] → /tmp/web.json
+  bun run ../lumilab-research-platforms/scripts/ingest_agent_results.ts --venture <slug> --channel web --mode web --query "<查询>" --in /tmp/web.json
+  ```
+  无 web 工具时用 `--mode knowledge`（url 可空，但内容必须是真知识，绝不编造）。详见 research-platforms SKILL.md「宿主代搜」节。
 
 **小红书信号（国内旁证）— XHS 通道（有 TikHub token 就跑，别漏）**
 - `bun run ../lumilab-research-platforms/scripts/xhs_tikhub.ts "<idea 相关中文关键词>" --venture <slug> --limit 20` → 写 `research/xhs_raw.json`。
 - **即使是出海 idea 也跑**：作为「国内市场旁证」（小红书互动量级 / 热门角度 / 用户原话）。出海当国内交叉验证，国内 idea 则是主信号。
-- 关键词用**中文**（小红书是中文平台），与 web_tavily 的英文出海查询区分开。无 token 自动 mock，不阻塞。
+- 关键词用**中文**（小红书是中文平台），与 web_tavily 的英文出海查询区分开。**无 token → 同样走宿主代搜**（`--channel xhs`，用你的能力补真实社区讨论），不落 mock、不阻塞。
 - 市场报告（Phase 2）会自动把 `research/xhs_raw.json` 渲染成独立「小红书信号」章节；再把要点（top 笔记角度、量级）收一句进 `market_analysis.json` 的市场叙述。
 - ⚠️ research-platforms 是**双通道（web + xhs）**，两个 token 都有就**两个都跑**，不要只跑 web。
 
@@ -175,7 +196,7 @@ bun run scripts/orchestrate.ts init "<用户的一句话 idea>"
 - **⭐ 关键词必须英文化**：idea 多半是中文，但我们看的是 Google 海外搜索量。先把 idea 的**产品关键词翻成地道的当地英文**（不是直译中式英语 —— 用海外用户真会搜的词，例如「找回走失宠物」→ `lost pet finder`/`find lost dog`/`pet recovery service`），给 5-8 个英文 seed。
   - 出海（默认）：`bun run ../lumilab-research-keywords/scripts/research.ts --seed="<英文关键词,逗号分隔>" --country=us --language=en --venture <slug>`
   - 国内（用户明确选）：`--country=cn --language=zh`，seed 用中文
-  - 无 token：`--mock`，或宿主 LLM 基于自身知识给定性判断
+  - 无 token：脚本自动降级为**启发式量级估计**（`source: agent-estimate`，非 mock）。你（宿主 agent）据自身知识**核对量级、修正明显偏差**，把方向性的红蓝海结论写进 `market_analysis.json`（搜索量按「量级」用，不当精确数）。
 - 这是和「市场/竞品/人群」互补的**定量**维度：竞品/人群回答「用户在抱怨什么」，关键词回答「有多少人在主动搜、竞争多激烈」
 - 产出 `keyword_landscape.md` + `keyword_metrics.csv`，并把红蓝海 top 关键词（含搜索量/KD/趋势）摘要进 `market_analysis.json` 的 `keywords` 段。**报告呈现仍用中文**，只有关键词词条本身是英文。
 
@@ -257,7 +278,17 @@ B) <方向2 title>
 `created_at/updated_at` 用 ISO 时间戳）。不确定字段格式时读
 `../lumilab-hypothesis-ledger/SKILL.md`。**至少写 2 条，通常 3–4 条。**
 
-**用户一选定，立刻进 Phase 4，不要停、不要确认、不要问「要不要我开始做」。** 决策门已经过了，剩下是自动执行。
+**用户一选定，立刻进 Phase 3.5 → Phase 4，不要停、不要确认、不要问「要不要我开始做」。** 决策门已经过了，剩下是自动执行。
+
+### 3.5 · 产品定位（选定方向后、生成 landing 前，自动 0 提问）
+
+方向定了，但 landing 需要一份**锋利的定位**才好写。用 `lumilab-product-positioning` 的方法论（April Dunford：竞争替代 → 独特属性 → 价值 → 目标人群 → 市场框架），把选定方向收敛成 `product_definition.md`：
+
+- **一句话定位**（给谁、解决什么、凭什么不一样）
+- **差异化切口**（vs 直接竞品 / 替代品 / 现状方案，你独有的那一点）
+- **抗替代理由**（为什么用户不会退回老方案 / 不会被大厂顺手做掉）
+
+写进 `data/ventures/<slug>/product_definition.md` —— **这是 landing-mvp 的必读输入**（hero 文案、价值主张都从它来）。0 提问，从 Phase 1 的竞品/人群分析 + 选定方向自动推导；信息不足就用最合理假设并标「（推断）」。**这一步补上了之前「方向直接跳 landing、产品定位被跳过」的断节。**
 
 ---
 
@@ -389,7 +420,7 @@ bun run ../lumilab-landing-mvp/scripts/validate-output.ts ~/.lumilab/data/ventur
     { "segment": "细分人群", "jtbd": "什么场景下挣扎", "where_they_are": "在哪找到", "willingness": "付费意愿信号" }
   ],
   "keywords": {
-    "source": "dataforseo | keywordseverywhere | host-llm-knowledge | mock",
+    "source": "dataforseo | keywordseverywhere | agent-estimate | host-llm-knowledge",
     "summary": "1-2 句：这个 idea 的搜索需求整体处于什么位置",
     "blue_ocean": [ { "keyword": "...", "volume": 1300, "difficulty": 18, "trend": "↗ +22%" } ],
     "red_ocean":  [ { "keyword": "...", "volume": 40500, "difficulty": 76, "differentiation": "建议的差异化切口" } ],

@@ -3,7 +3,7 @@ name: lumilab-research-keywords
 description: |
   Quantitative search-demand validation for venture ideas. Given the product keywords behind an idea, reverse-searches Google search demand: search volume, CPC, competition, keyword difficulty, 12-month trend, related + long-tail + "People Also Search For" expansion. Scores each keyword direction as Blue Ocean / Red Ocean / Differentiation Opportunity. Pluggable provider layer — default DataForSEO (pay-as-you-go), optional Keywords Everywhere. SERP competition depth filled via lumi-lab's existing Playwright / Tavily. Feeds hypothesis-ledger as demand evidence and research-platforms cross-platform synthesis. Use when user types /lumilab keywords or asks for search volume / keyword difficulty / 红蓝海 / 关键词热度 / SEO 需求.
   关键词：关键词调研 / keyword research / 搜索量 / search volume / 关键词难度 / keyword difficulty / 长尾词 / long-tail / 趋势 / trend / 红海蓝海 / blue ocean / red ocean / 差异化机会 / SEO 需求验证 / DataForSEO / Keywords Everywhere
-version: 1.5.0
+version: 1.6.1
 status: P0-ready
 metadata:
   hermes:
@@ -354,8 +354,8 @@ interface KeywordProvider {
 | 依赖 | 类型 | 是否付费 | 单次调用约成本 | 说明 |
 |---|---|---|---|---|
 | bun | CLI runtime | 免费 | free | ≥1.0，必需 |
-| DataForSEO API v3 | 默认 provider | 付费（PAYG，$50 起充，余额不过期） | ~$0.01–0.05 / 次（搜索量 + KD + 扩展端点合计，按关键词数计） | Basic auth；缺 token 回退 mock |
-| Keywords Everywhere API v1 | 可选 provider | 付费（年付 credit，一年过期） | ~1 credit / 关键词（与浏览器插件共用 credit 池） | Bearer auth；无 KD 字段，由 serp-probe 补；缺 token 回退 mock |
+| DataForSEO API v3 | 默认 provider | 付费（PAYG，$50 起充，余额不过期） | ~$0.01–0.05 / 次（搜索量 + KD + 扩展端点合计，按关键词数计） | Basic auth；缺 token → 启发式估计 + agent 核对（`source: agent-estimate`，非 mock） |
+| Keywords Everywhere API v1 | 可选 provider | 付费（年付 credit，一年过期） | ~1 credit / 关键词（与浏览器插件共用 credit 池） | Bearer auth；无 KD 字段，由 serp-probe 补；缺 token 同上 |
 | host LLM | 宿主提供 | 取决于宿主 | ~2–5k tokens / landscape 解读 | 红蓝海综合解读复用宿主，不直连 |
 | SERP probe（Playwright / Tavily） | serp-probe 真实实现 | 免费（本地浏览器）/ 复用 research-platforms 配额 | free–低 | 当前为确定性 stub，TODO 接真实抓取 |
 
@@ -411,13 +411,13 @@ provider token（DataForSEO login/password、Keywords Everywhere key）走 keych
 
 ## Failure modes
 
-`E_401` / `E_AUTH` 立即提示 token 失效；`E_429` 由 provider 层等待 + 退避；单个扩展端点失败只记 stderr 不中断整体；任意 provider 整体失败或无网络 → 回退 mock 并在 `notice` 标注，退出码仍为 0，下游不阻塞。
+`E_401` / `E_AUTH` 立即提示 token 失效；`E_429` 由 provider 层等待 + 退避；单个扩展端点失败只记 stderr 不中断整体；任意 provider 整体失败 / 无网络 / 无 token → **降级为启发式量级估计**（`source: agent-estimate`，宿主 agent 据知识核对方向），**非 mock 假数据**，退出码仍为 0，下游不阻塞。`--mock` 仍保留，仅测试用。
 
 ## Edge cases
 
 - 无 `--seed` 且无 project_brief → 用占位种子词跑通，stderr 提示。
 - `--no-serp-probe` 或 config `serp_probe: false` → 跳过 SERP 探测；Keywords Everywhere 路径下 KD 仍为 null，friction 退化为仅 demand/momentum。
-- mock 数据明确标 `source: mock` + `notice`，真假数据 schema 严格一致，下游 0 改动。
+- 各来源（`dataforseo`/`keywordseverywhere`/`agent-estimate`/`mock`）明确标 `source` + `notice`，schema 严格一致，下游 0 改动。`agent-estimate` 的搜索量是量级估计，红蓝海判断为相对值——下游解读时按「方向性」用，不当精确数。
 - `volume < low_demand_threshold`（默认 50）的词一律判 `low_demand`，不参与蓝/红海。
 
 ## Alternatives
@@ -428,7 +428,7 @@ provider token（DataForSEO login/password、Keywords Everywhere key）走 keych
 - **Ahrefs / SEMrush 订阅**：月费高，为 SEO 团队设计，不为 venture 验证场景做红蓝海判定。
 - **通用 LLM 估搜索量**：纯猜测，不可复现，无 CPC / 竞争度 / 趋势真实数据。
 
-Lumi Lab 的差异：pluggable provider（DataForSEO 默认 PAYG / Keywords Everywhere 可选），统一 KeywordMetric schema，确定性红蓝海评分，无 token 时 mock graceful fallback，产物直接喂 hypothesis-ledger 与 research-platforms 交叉合成。
+Lumi Lab 的差异：pluggable provider（DataForSEO 默认 PAYG / Keywords Everywhere 可选），统一 KeywordMetric schema，确定性红蓝海评分，无 token 时降级为「启发式估计 + 宿主 agent 核对」而非假数据，产物直接喂 hypothesis-ledger 与 research-platforms 交叉合成。
 
 ## Moat（复利护城河）
 

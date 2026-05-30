@@ -1,9 +1,9 @@
 ---
 name: lumilab-deploy
 description: |
-  One-command deployment of venture Studio to Cloudflare Pages with client-side encryption and password gate. Reads encrypted content (AES-GCM + PBKDF2 1M iterations) and wraps it in static HTML password gate. Uses wrangler CLI to push to Cloudflare Pages. Generates QR code for mobile access. Supports rotate-password and undeploy. Use when user types /lumilab deploy, /lumilab undeploy, or /lumilab rotate-password.
-  关键词：deploy / 部署 / cloudflare pages / wrangler / 加密分享 / 密码门 / venture studio 部署 / 一键部署 / 二维码 / 公网链接
-version: 1.5.0
+  One-command deploy of a venture's fake-door landing to Cloudflare Pages. DEFAULT = public, indexable validation page — so real strangers from SEO/GEO/小红书 can visit and you measure真实意愿（这是「对外测市场意愿」的正经模式）。Optional --private = client-side AES-GCM + password gate (advanced, for showing teammates/investors). Uses wrangler CLI; generates QR. Supports rotate-password and undeploy. Use when user types /lumilab deploy, /lumilab undeploy, or /lumilab rotate-password.
+  关键词：deploy / 部署 / cloudflare pages / wrangler / 公开验证页 / SEO / 私密加密分享 / 密码门 / 一键部署 / 二维码 / 公网链接
+version: 1.6.0
 metadata:
   hermes:
     tags: [deploy, cloudflare, encryption, aes-gcm, password-gate]
@@ -35,48 +35,44 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 
 
-# Deploy — Cloudflare Pages + 客户端加密 + 密码门
+# Deploy — Cloudflare Pages（默认公开验证页 / 可选私密加密）
 
 ## 用途
 
-把 venture 的 Studio 内容一键部署到公网 + 用密码门保护。
+把 venture 的 **fake-door landing 验证页**一键部署到公网。
+
+**默认 = 公开 + 可索引验证页**：让 SEO/GEO/小红书来的**真实陌生人**能访问，你才测得到真实购买意愿——这是「对外测市场意愿」的正经模式（配合第一方埋点读访问/点击/转化）。
 
 **核心特点**：
-- 纯静态托管（Cloudflare Pages）
-- 内容**真加密**（AES-GCM-256），连 Cloudflare 都读不到原文
-- 密码门客户端验证（密码不通过网络传输）
-- 默认密码预填（用户在 Setup Wizard 设的「常用密码」）
-- 一键改密码（重新加密 + 推送）
+- 纯静态托管（Cloudflare Pages），部署 **landing 验证页**（不是 studio 作战室日志）
+- **默认公开 + 可被搜索/GEO 索引**（验证需要被陌生人发现）
+- `--noindex`：公开但不收录（只发链接、不做 SEO）
+- `--private`（高级选项）：内容**真加密**（AES-GCM-256 + PBKDF2 1M）+ 密码门，给队友/投资人私密预览用 —— **不在默认/配置主流程出现**，仅显式 `--private` 时走
 
 ## 命令
 
 ```bash
-/lumilab deploy <venture>              # 部署
-/lumilab deploy <venture> --public     # 公开（无密码）
+/lumilab deploy <venture>              # 部署 = 公开可索引验证页（默认）
+/lumilab deploy <venture> --noindex    # 公开但不被搜索引擎收录
+/lumilab deploy <venture> --private    # 私密：加密 + 密码门（高级，给特定人看）
 /lumilab undeploy <venture>            # 删 Cloudflare 项目 + 归档 shares.json
-/lumilab rotate-password <venture>     # 改密码 + 重新部署
+/lumilab rotate-password <venture>     # （--private 部署的）改密码 + 重新部署
 /lumilab deploy:status [<venture>]     # 查看部署状态
+/lumilab signals <venture>                  # 拉第一方埋点 → studio/validation-signals.json（漏斗面板）
 ```
 
-## 部署流程
+## 部署流程（默认公开）
 
 ```
-1. 读 data/ventures/<name>/studio/ 整个目录
-2. 询问密码（默认预填 ~/.lumilab/config.json.deploy.default_password）
-   ○ 使用默认 [回车]
-   ○ 换一个
-   ○ 改成随机
-   ○ 改成公开（无密码）
-3. 加密：
-   - 取 PBKDF2(password, salt=16B random, iterations=1M, hash=SHA-256) → key
-   - 取 iv = 12B random
-   - AES-GCM-256 加密整个 HTML bundle → ciphertext
-4. 生成 wrapper HTML（密码门 + Web Crypto API 解密 JS）
-5. wrangler pages deploy ./encrypted-bundle/ --project-name=<auto-named>
-6. 等待 Cloudflare build（20-40s）
-7. 生成二维码 `deploy/qr.png`
-8. 更新 ~/.lumilab/shares.json + 写 `deploy/manifest.json`
-9. 输出 URL + 密码（提示用户单独告诉访问者）
+1. 选 landing 验证页（landing/v<最大N>/ 优先；--target studio 才部署作战室）
+2. 公开模式：直接拷贝源目录（不加密、无密码门），保留 landing-mvp 生成的
+   sitemap.xml / robots.txt / llms.txt / canonical / OG —— SEO/GEO 生效
+3. wrangler pages deploy → <project>.pages.dev
+4. 生成二维码 deploy/qr.png + 更新 shares.json + deploy/manifest.json（public:true）
+5. 输出公开 URL（可直接发小红书/朋友圈/PH 引流）
+
+私密模式（--private）：步骤 2 换成 PBKDF2(密码,1M)→AES-GCM-256 加密整页 +
+生成密码门 wrapper HTML，其余相同；输出 URL + 密码（单独告诉访问者）。
 ```
 
 ## 密码门 HTML 包装层

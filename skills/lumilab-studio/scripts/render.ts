@@ -338,6 +338,79 @@ function detectStages(ventureDir: string) {
   };
 }
 
+// ── 数据来源可信度徽章（真实 API / 宿主代搜 / 估算 / mock）──
+interface SrcBadge { label: string; cls: string; }
+function sourceBadge(src: string): SrcBadge {
+  switch (src) {
+    case 'tavily': case 'tikhub': case 'dataforseo': case 'keywordseverywhere': case 'stripe':
+      return { label: '真实 API', cls: 'src--real' };
+    case 'agent-web':       return { label: '宿主代搜·web', cls: 'src--agent' };
+    case 'agent-knowledge': return { label: '宿主知识', cls: 'src--est' };
+    case 'agent-estimate':  return { label: '启发式估计', cls: 'src--est' };
+    case 'agent-pending':   return { label: '待宿主补全', cls: 'src--pending' };
+    case 'mock':            return { label: 'mock 占位', cls: 'src--mock' };
+    default:                return { label: src || '—', cls: 'src--mock' };
+  }
+}
+
+function fmtTokens(n: number): string { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n); }
+function llmSrcLabel(src: string): string {
+  return src === 'host-reported' ? '宿主自报' : src === 'estimated' ? '体量估算' : src === 'mixed' ? '自报+估算' : '—';
+}
+
+// ── 「这一轮消耗」汇总（外部精确 + LLM 自报/估算）。best-effort，缺 config 也不报错。──
+function readUsageSummary(venture: string): any | null {
+  try {
+    const u = require('../../lumilab-config/scripts/usage.ts');
+    if (typeof u?.summarize === 'function') return u.summarize(venture, { estimateIfMissing: true });
+  } catch { /* usage 账本可选 */ }
+  return null;
+}
+
+// ── 调研足迹：本轮用了哪些服务 / 搜了什么 / 拿回多少条 ──
+interface FootprintRow { service: string; query: string; count: number; channel: string; }
+function buildResearchFootprint(ventureDir: string): FootprintRow[] {
+  const rows: FootprintRow[] = [];
+  const rdir = join(ventureDir, 'research');
+  if (!existsSync(rdir)) return rows;
+  const web = readJson<any>(join(rdir, 'web_tavily.json'));
+  if (web && web.source) rows.push({ service: web.source, query: web.query ?? '', count: Array.isArray(web.results) ? web.results.length : 0, channel: 'Web' });
+  const xhs = readJson<any>(join(rdir, 'xhs_raw.json'));
+  if (xhs && xhs.source) rows.push({ service: xhs.source, query: xhs.keyword ?? '', count: Array.isArray(xhs.notes) ? xhs.notes.length : 0, channel: '小红书' });
+  // keywords：从 landscape.md 头部 `> source=` + metrics.csv 行数拿
+  const land = readText(join(rdir, 'keyword_landscape.md'));
+  if (land) {
+    const m = land.match(/source=([\w-]+)/);
+    const csv = readText(join(rdir, 'keyword_metrics.csv'));
+    const count = csv ? Math.max(0, csv.trim().split('\n').length - 1) : 0;
+    if (m) rows.push({ service: m[1], query: '关键词需求', count, channel: '关键词' });
+  }
+  return rows;
+}
+
+// ── yc_brief.md → 教练梳理结论 5 字段（一句话定位 / ICP / 钩子 / 最高风险假设 / 第一个验证动作）──
+interface CoachBrief { positioning?: string; icp?: string; hook?: string; riskiest?: string; firstTest?: string; }
+function parseCoachBrief(md: string): CoachBrief | null {
+  if (!md.trim()) return null;
+  const grab = (labels: string[]): string | undefined => {
+    for (const lab of labels) {
+      // 匹配「**一句话定位**：xxx」「## 一句话定位\nxxx」「- 一句话定位: xxx」等常见写法
+      const re = new RegExp(`(?:[#>*\\-\\s]*)${lab}[*]*\\s*[:：]?\\s*([^\\n]+)`, 'i');
+      const m = md.match(re);
+      if (m && m[1].trim().replace(/^[*：:\s]+/, '')) return m[1].trim().replace(/^[*：:\s]+/, '');
+    }
+    return undefined;
+  };
+  const b: CoachBrief = {
+    positioning: grab(['一句话定位', '一句话价值', 'positioning']),
+    icp: grab(['目标用户', 'ICP', '目标人群']),
+    hook: grab(['核心钩子', '钩子', 'hook']),
+    riskiest: grab(['最高风险假设', '最大未验证假设', '核心假设', 'riskiest']),
+    firstTest: grab(['第一个验证动作', '下一步', '验证动作', 'first test']),
+  };
+  return (b.positioning || b.icp || b.hook || b.riskiest || b.firstTest) ? b : null;
+}
+
 export function render(ventureDir: string): string {
   const ventureName = ventureDir.split('/').filter(Boolean).pop()!;
   const brief = readText(join(ventureDir, 'project_brief.md'));
@@ -358,6 +431,12 @@ export function render(ventureDir: string): string {
   // ── Real pipeline artifacts ──
   const marketAnalysis = readJson<any>(join(ventureDir, 'market_analysis.json'));
   const hasMarketReport = existsSync(join(ventureDir, 'reports', 'market-report.html'));
+  // 1.13.0 验证信号漏斗（读第一方埋点汇总 studio/validation-signals.json）
+  const signals = readJson<any>(join(ventureDir, 'studio', 'validation-signals.json'));
+  // 1.12.0 Studio 透明度：教练梳理结论 / 调研足迹 / 消耗看板
+  const coachBrief = parseCoachBrief(readText(join(ventureDir, 'yc_brief.md')));
+  const footprint = buildResearchFootprint(ventureDir);
+  const usage = readUsageSummary(ventureName);
   const { versions: landingVersions, flat: landingFlat } = detectLandingVersions(ventureDir);
   const share = findShare(ventureName);
   // retro YAML: research/retro-*.yaml
@@ -503,7 +582,116 @@ export function render(ventureDir: string): string {
       <span class="row-tag tag--ghost">${esc(decisionTypeLabel(d.type))}</span>
     </li>`).join('');
 
+  // ── 透明度面板：消耗看板 / 调研足迹 / 教练结论 ──
+  const usageCard = usage && (usage.external_calls > 0 || usage.llm.total > 0) ? `
+      <header class="section__head" style="margin-top:24px;">
+        <h2 class="section__title">本轮消耗</h2>
+        <span class="section__count">usage.json</span>
+      </header>
+      <div class="usage-grid">
+        <div class="usage-cell">
+          <span class="usage-cell__num">$${usage.external_cost_usd.toFixed(3)}</span>
+          <span class="usage-cell__lbl">外部服务成本</span>
+          <span class="usage-cell__sub">${usage.external_calls} 次调用 · 精确计量</span>
+        </div>
+        <div class="usage-cell">
+          <span class="usage-cell__num">${fmtTokens(usage.llm.total)}</span>
+          <span class="usage-cell__lbl">宿主 LLM token</span>
+          <span class="usage-cell__sub"><span class="src-badge ${usage.llm.source === 'host-reported' ? 'src--real' : 'src--est'}">${llmSrcLabel(usage.llm.source)}</span></span>
+        </div>
+        ${usage.agent_calls > 0 ? `
+        <div class="usage-cell usage-cell--good">
+          <span class="usage-cell__num">${usage.agent_calls}</span>
+          <span class="usage-cell__lbl">宿主代搜</span>
+          <span class="usage-cell__sub">0 外部成本 · 零 key 也能跑</span>
+        </div>` : ''}
+      </div>
+      ${usage.services.length ? `<ul class="usage-svc">${usage.services.map((s: any) => `<li><span class="usage-svc__name">${esc(s.label)}</span><span class="usage-svc__meta">${s.calls} 次 · ${s.est_cost_usd > 0 ? '$' + s.est_cost_usd.toFixed(3) : '免费'}</span></li>`).join('')}</ul>` : ''}
+      ${usage.llm.source !== 'host-reported' && usage.llm.total > 0 ? `<p class="usage-note">※ LLM token 为按产物体量的估算（宿主未自报）。外部服务成本为精确计量。</p>` : ''}
+  ` : '';
+
+  const footprintPanel = footprint.length ? `
+      <header class="section__head" style="margin-top:20px;">
+        <h2 class="section__title">调研足迹</h2>
+        <span class="section__count">用了哪些服务 · 搜了什么</span>
+      </header>
+      <ul class="footprint">
+        ${footprint.map((f) => { const b = sourceBadge(f.service); return `
+        <li class="footprint__row">
+          <span class="footprint__chan">${esc(f.channel)}</span>
+          <span class="footprint__q">${esc(f.query || '—')}</span>
+          <span class="footprint__cnt">${f.count} 条</span>
+          <span class="src-badge ${b.cls}">${esc(b.label)}</span>
+        </li>`; }).join('')}
+      </ul>
+  ` : '';
+
+  const coachCard = coachBrief ? `
+      <header class="section__head">
+        <h2 class="section__title">教练梳理结论</h2>
+        <span class="section__count">yc_brief.md · coach-yc</span>
+      </header>
+      <div class="coach-brief">
+        ${coachBrief.positioning ? `<div class="coach-brief__row"><span class="coach-brief__k">一句话定位</span><span class="coach-brief__v">${esc(coachBrief.positioning)}</span></div>` : ''}
+        ${coachBrief.icp ? `<div class="coach-brief__row"><span class="coach-brief__k">目标用户</span><span class="coach-brief__v">${esc(coachBrief.icp)}</span></div>` : ''}
+        ${coachBrief.hook ? `<div class="coach-brief__row"><span class="coach-brief__k">核心钩子</span><span class="coach-brief__v">${esc(coachBrief.hook)}</span></div>` : ''}
+        ${coachBrief.riskiest ? `<div class="coach-brief__row coach-brief__row--risk"><span class="coach-brief__k">最高风险假设</span><span class="coach-brief__v">${esc(coachBrief.riskiest)}</span></div>` : ''}
+        ${coachBrief.firstTest ? `<div class="coach-brief__row coach-brief__row--test"><span class="coach-brief__k">第一个验证动作</span><span class="coach-brief__v">${esc(coachBrief.firstTest)}</span></div>` : ''}
+      </div>
+  ` : '';
+
   // ── Stage section builders ──
+  // ── 验证信号漏斗（第一方埋点：访问→点CTA→留邮箱→真付费 + 渠道归因）──
+  const sf = signals?.funnel;
+  const hasSignals = sf && (sf.uv > 0 || sf.payment_paid > 0 || sf.email_submit > 0);
+  const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
+  const funnelRow = (label: string, n: number, base: number, strong?: boolean) => `
+        <div class="vsig__row">
+          <span class="vsig__l">${esc(label)}</span>
+          <span class="vsig__n${strong ? ' vsig__n--strong' : ''}">${n}</span>
+          <span class="vsig__pct">${base > 0 ? pct(n, base) + '%' : '—'}</span>
+          <span class="vsig__bar"><i style="width:${base > 0 ? Math.max(pct(n, base), n > 0 ? 4 : 0) : 0}%"></i></span>
+        </div>`;
+  const signalsPanel = hasSignals ? `
+      <header class="section__head" style="margin-top:24px;">
+        <h2 class="section__title">验证信号</h2>
+        <span class="section__count">第一方埋点 · ${signals.source === 'd1' ? '实时' : signals.source}</span>
+      </header>
+      <div class="vsig">
+        ${funnelRow('访问 UV', sf.uv, sf.uv)}
+        ${funnelRow('点了 CTA', sf.cta_click, sf.uv)}
+        ${funnelRow('留邮箱', sf.email_submit, sf.uv, true)}
+        ${funnelRow('真付费', sf.payment_paid, sf.uv, true)}
+      </div>
+      ${Array.isArray(signals.by_channel) && signals.by_channel.length ? `
+      <div class="vsig-chan">
+        <div class="vsig-chan__h">渠道归因（哪个渠道带来 + 转化）</div>
+        ${signals.by_channel.slice(0, 5).map((c: any) => `
+          <div class="vsig-chan__row"><span class="vsig-chan__src">${esc(c.source)}</span><span class="vsig-chan__m">${c.uv} 访问 · ${c.cta} 点击 · ${c.email} 留资</span></div>`).join('')}
+      </div>` : ''}` : '';
+
+  // ── 完成后的下一步面板（landing 已生成 → 接着测真实意愿；把孤岛 deploy/payment/launch/retro 接回脊柱）──
+  const hasLandingBuilt = landingVersions.length > 0 || !!landingFlat;
+  const isDeployed = !!share;
+  const nstep = (icon: string, title: string, sub: string, copy: string, tag?: string) => `
+        <div class="nstep">
+          <div class="nstep__h"><span class="nstep__ic">${icon}</span><span class="nstep__t">${esc(title)}</span>${tag ? `<span class="nstep__tag">${esc(tag)}</span>` : ''}</div>
+          <p class="nstep__s">${esc(sub)}</p>
+          <code class="nstep__code" data-copy="${esc(copy)}">${esc(copy)}</code>
+        </div>`;
+  const nextStepsPanel = hasLandingBuilt ? `
+      <header class="section__head" style="margin-top:24px;">
+        <h2 class="section__title">完成后的下一步</h2>
+        <span class="section__count">landing 已生成 · 接着测真实意愿</span>
+      </header>
+      <div class="nsteps">
+        ${nstep('🚀', isDeployed ? '重新部署 / 更新上线' : '部署上线（公开验证页）', isDeployed ? '改了内容就重新部署；公开页带第一方埋点收数据。' : '公开发出去让真实陌生人来测意愿，自带第一方埋点（访问/点击/留资/国家）。', `用 lumilab-deploy 把 ${ventureName} 的 landing 公开部署上线`, '需确认')}
+        ${nstep('💳', '换成 Stripe 真付费按钮', '把假门邮箱换成真 checkout —— 「愿意付钱」比「留邮箱」强一档的信号。', `用 lumilab-payment-link 给 ${ventureName} 建 Stripe 测试付费链接、接到 landing 上`, '需确认')}
+        ${nstep('📱', '出小红书 / 朋友圈内容 + 配图', '把这个 idea 做成多平台引流内容（含封面图），把人引到验证页。', `用 lumilab-content-repurpose 给 ${ventureName} 出小红书和朋友圈内容、配上封面图`)}
+        ${nstep('📣', '冷启动计划', '4-8 周怎么把第一批真实用户引到验证页。', `用 lumilab-launch-strategy 给 ${ventureName} 出 4-8 周冷启动计划`)}
+        ${nstep('🔁', '复盘 + 下一步行动', '有访问/付费数据后 → 信号解读 + 该继续/调整/放弃。', `用 lumilab-next-actions 给 ${ventureName} 解读当前信号、理出下一步`)}
+      </div>` : '';
+
   const stageOverview = `
     <section class="stage" data-stage="overview">
       ${oneLiner ? `<p class="stage-deck">${esc(oneLiner)}</p>` : ''}
@@ -513,6 +701,9 @@ export function render(ventureDir: string): string {
         <span class="section__count">${stagesDone.length} / 6 已完成</span>
       </header>
       <div class="prog-row">${progRow}</div>
+      ${signalsPanel}
+      ${nextStepsPanel}
+      ${usageCard}
       <header class="section__head" style="margin-top:24px;">
         <h2 class="section__title">最近决策</h2>
         <span class="section__count">展示 5 条</span>
@@ -524,12 +715,14 @@ export function render(ventureDir: string): string {
 
   const stageIdea = `
     <section class="stage" data-stage="idea" hidden>
+      ${coachCard}
       ${brief.trim() ? `
-        <header class="section__head">
+        <header class="section__head"${coachBrief ? ' style="margin-top:20px;"' : ''}>
           <h2 class="section__title">项目简报</h2>
           <span class="section__count">project_brief.md</span>
         </header>
         <article class="md-card md-content">${renderMarkdown(brief)}</article>
+        ${!coachBrief ? `<p class="coach-hint">想把 idea 梳理得更锋利？让 <code>idea-to-landing</code> 跑一轮 <b>coach-yc</b> 教练澄清 —— 产出一句话定位 / ICP / 钩子 / 最高风险假设 / 第一个验证动作，会显示在这里。</p>` : ''}
       ` : ''}
       ${audience.trim() ? `
         <header class="section__head" style="margin-top:20px;">
@@ -557,10 +750,11 @@ export function render(ventureDir: string): string {
   const competitorCount = Array.isArray(marketAnalysis?.competitors) ? marketAnalysis.competitors.length : 0;
   const audienceCount = Array.isArray(marketAnalysis?.audience) ? marketAnalysis.audience.length : 0;
   const directionCount = Array.isArray(marketAnalysis?.directions) ? marketAnalysis.directions.length : 0;
-  const hasResearchArtifact = hasMarketReport || !!marketAnalysis;
+  const hasResearchArtifact = hasMarketReport || !!marketAnalysis || footprint.length > 0;
   const stageResearch = `
     <section class="stage" data-stage="research" hidden>
       ${hasResearchArtifact ? `
+        ${footprintPanel}
         ${hasMarketReport ? `
           <header class="section__head">
             <h2 class="section__title">市场分析</h2>
@@ -796,9 +990,31 @@ export function render(ventureDir: string): string {
 
   // ── 启动 stage ──
   const hasAnyLanding = !!primaryLandingHref;
+  // ── 内容画廊：content/xhs/*.png（封面/活动长图）+ 文案复制 + 下载 ──
+  const xhsContentDir = join(ventureDir, 'content', 'xhs');
+  const contentImgs = existsSync(xhsContentDir) ? readdirSync(xhsContentDir).filter((f) => f.endsWith('.png')).sort() : [];
+  let xhsCopy = '';
+  if (existsSync(xhsContentDir)) {
+    for (const m of readdirSync(xhsContentDir).filter((f) => f.endsWith('.md'))) { const t = readText(join(xhsContentDir, m)); if (t.trim()) { xhsCopy = t; break; } }
+  }
+  const contentGallery = contentImgs.length ? `
+      <header class="section__head" style="margin-top:20px;">
+        <h2 class="section__title">内容画廊</h2>
+        <span class="section__count">${contentImgs.length} 张 · 点图下载</span>
+      </header>
+      <div class="cgal">
+        ${contentImgs.map((f) => `
+        <figure class="cgal__item">
+          <a href="../content/xhs/${esc(f)}" download title="下载 ${esc(f)}"><img class="cgal__img" src="../content/xhs/${esc(f)}" alt="${esc(f)}" loading="lazy"></a>
+          <figcaption class="cgal__cap"><span class="cgal__nm">${esc(f)}</span><a class="cgal__dl" href="../content/xhs/${esc(f)}" download>↓</a></figcaption>
+        </figure>`).join('')}
+      </div>
+      ${xhsCopy ? `<div class="cgal-copy"><div class="cgal-copy__h">小红书文案 · 点击复制全文</div><pre class="cgal-copy__t" data-copy="${esc(xhsCopy)}">${esc(xhsCopy.slice(0, 700))}${xhsCopy.length > 700 ? '\n…（点击复制全文）' : ''}</pre></div>` : ''}` : '';
+
   const stageLaunch = `
     <section class="stage" data-stage="launch" hidden>
       ${paymentBlock}
+      ${contentGallery}
       ${share ? `
         <header class="section__head">
           <h2 class="section__title">已上线</h2>
@@ -1663,6 +1879,105 @@ kbd {
 .kpi--hyp::after { background: var(--mute); }
 .kpi--dec { background: color-mix(in oklch, var(--ochre-soft) 40%, var(--surface)); }
 .kpi--dec::after { background: var(--ochre); }
+
+/* ── 数据来源徽章（真实/宿主代搜/估算/mock）── */
+.src-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600; line-height: 1;
+  padding: 3px 7px; border-radius: 999px; white-space: nowrap;
+}
+.src--real    { background: var(--moss-soft);  color: var(--moss); }
+.src--agent   { background: var(--accent-soft); color: var(--accent); }
+.src--est     { background: var(--ochre-soft); color: var(--ochre); }
+.src--pending { background: var(--ash-soft);   color: var(--mute); }
+.src--mock    { background: var(--ash-soft);   color: var(--mute-2); }
+
+/* ── 消耗看板 ── */
+.usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+@media (max-width: 1100px) { .usage-grid { grid-template-columns: repeat(2, 1fr); } }
+.usage-cell {
+  background: var(--surface); border-radius: var(--r-xl); padding: 14px 16px;
+  box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 3px;
+}
+.usage-cell--good { background: color-mix(in oklch, var(--moss-soft) 55%, var(--surface)); }
+.usage-cell__num { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.usage-cell__lbl { font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.usage-cell__sub { font-size: 11px; color: var(--mute); }
+.usage-svc { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
+.usage-svc li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 12px; border-radius: var(--r-md);
+  font-size: 12px; border-bottom: 1px solid var(--hairline);
+}
+.usage-svc li:last-child { border-bottom: 0; }
+.usage-svc__name { color: var(--ink-2); }
+.usage-svc__meta { color: var(--mute); font-family: var(--mono); font-size: 11px; }
+.usage-note { font-size: 11px; color: var(--mute); margin-top: 6px; line-height: 1.5; }
+
+/* ── 调研足迹 ── */
+.footprint { display: flex; flex-direction: column; gap: 6px; }
+.footprint__row {
+  display: grid; grid-template-columns: 64px 1fr auto auto; gap: 10px; align-items: center;
+  padding: 9px 14px; background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-soft);
+}
+.footprint__chan { font-size: 12px; font-weight: 600; color: var(--accent); }
+.footprint__q { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.footprint__cnt { font-size: 12px; color: var(--mute); font-family: var(--mono); }
+
+/* ── 教练梳理结论 ── */
+.coach-brief { display: flex; flex-direction: column; gap: 1px; background: var(--surface); border-radius: var(--r-xl); box-shadow: var(--shadow-soft); overflow: hidden; }
+.coach-brief__row { display: grid; grid-template-columns: 104px 1fr; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--hairline); }
+.coach-brief__row:last-child { border-bottom: 0; }
+.coach-brief__row--risk { background: color-mix(in oklch, var(--accent-soft) 35%, var(--surface)); }
+.coach-brief__row--test { background: color-mix(in oklch, var(--moss-soft) 45%, var(--surface)); }
+.coach-brief__k { font-size: 12px; font-weight: 600; color: var(--mute); padding-top: 1px; }
+.coach-brief__v { font-size: 14px; color: var(--ink); line-height: 1.55; }
+.coach-hint { font-size: 12px; color: var(--mute); margin-top: 12px; line-height: 1.6; padding: 12px 14px; background: var(--ash-soft); border-radius: var(--r-lg); }
+.coach-hint code { font-family: var(--mono); font-size: 0.9em; color: var(--accent); }
+
+/* ── 完成后的下一步面板 ── */
+.nsteps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (max-width: 1100px) { .nsteps { grid-template-columns: 1fr; } }
+.nstep { background: var(--surface); border-radius: var(--r-xl); padding: 14px 16px; box-shadow: var(--shadow-soft);
+  display: flex; flex-direction: column; gap: 7px; }
+.nstep__h { display: flex; align-items: center; gap: 8px; }
+.nstep__ic { font-size: 17px; line-height: 1; }
+.nstep__t { font-size: 14px; font-weight: 600; color: var(--ink); }
+.nstep__tag { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--accent);
+  background: var(--accent-soft); padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.nstep__s { font-size: 12px; color: var(--mute); line-height: 1.55; }
+.nstep__code { font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--ash-soft);
+  border-radius: var(--r-md); padding: 7px 10px; cursor: copy; word-break: break-all; line-height: 1.5; }
+.nstep__code:hover { color: var(--accent); }
+
+/* ── 验证信号漏斗 ── */
+.vsig { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-radius: var(--r-xl);
+  padding: 16px 18px; box-shadow: var(--shadow-soft); }
+.vsig__row { display: grid; grid-template-columns: 72px 52px 44px 1fr; gap: 12px; align-items: center; }
+.vsig__l { font-size: 13px; color: var(--ink-2); }
+.vsig__n { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--ink); text-align: right; }
+.vsig__n--strong { color: var(--accent); }
+.vsig__pct { font-family: var(--mono); font-size: 12px; color: var(--mute); text-align: right; }
+.vsig__bar { height: 8px; border-radius: 999px; background: var(--ash-soft); overflow: hidden; }
+.vsig__bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.vsig-chan { margin-top: 10px; background: var(--surface); border-radius: var(--r-lg); padding: 12px 16px; box-shadow: var(--shadow-soft); }
+.vsig-chan__h { font-size: 12px; font-weight: 600; color: var(--mute); margin-bottom: 8px; }
+.vsig-chan__row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--hairline); font-size: 12px; }
+.vsig-chan__row:last-child { border-bottom: 0; }
+.vsig-chan__src { color: var(--accent); font-weight: 600; }
+.vsig-chan__m { color: var(--mute); font-family: var(--mono); }
+
+/* ── 内容画廊 ── */
+.cgal { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 12px; }
+.cgal__item { margin: 0; background: var(--surface); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-soft); }
+.cgal__img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; cursor: pointer; transition: opacity .15s; }
+.cgal__img:hover { opacity: .82; }
+.cgal__cap { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 9px; }
+.cgal__nm { font-family: var(--mono); font-size: 10px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cgal__dl { font-size: 13px; color: var(--accent); text-decoration: none; flex: none; }
+.cgal-copy { margin-top: 12px; background: var(--surface); border-radius: var(--r-lg); padding: 12px 16px; box-shadow: var(--shadow-soft); }
+.cgal-copy__h { font-size: 12px; font-weight: 600; color: var(--mute); margin-bottom: 8px; }
+.cgal-copy__t { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--ink-2); white-space: pre-wrap; cursor: copy; max-height: 220px; overflow: hidden; }
 .kpi--stage { background: color-mix(in oklch, var(--moss-soft) 45%, var(--surface)); }
 .kpi--stage::after { background: var(--moss); }
 .kpi--verified { background: var(--accent-soft); }

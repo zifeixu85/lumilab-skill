@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑杂志封面</title>
+<!--
+  Lumi Lab · 小红书封面模板 · editorial（编辑杂志）
+  原创（受 guizang Editorial 模式的排版纪律启发，未抄其代码）。
+  画布 600x800（3:4）；导出 1080x1440 @2x。配色可被 design_direction.json 覆盖（改 :root 变量即可）。
+  ★ 安全边界：标题 data-fit 自动缩放（短则放大填充、长则缩小不溢出）；副标题最多 4 行省略；kicker/foot 超长省略。
+  占位：{{KICKER}} {{TITLE}} {{SUBTITLE}} {{META_LEFT}} {{META_RIGHT}} {{TAG}}
+  注：{{TITLE}} 里可用 <em>…</em> 给关键词加 accent 高亮带。
+-->
+<style>
+:root{
+  --paper: oklch(96.5% 0.012 85);
+  --paper-2: oklch(93% 0.018 85);
+  --ink:   oklch(18% 0.02 60);
+  --muted: oklch(46% 0.02 60);
+  --line:  oklch(18% 0.02 60 / 0.20);
+  --accent: oklch(55% 0.16 38);
+  --accent-h: color-mix(in oklch, var(--accent) 16%, transparent);  /* 高亮带随 accent 自动变（含 design_direction 覆盖）*/
+  --sans:  "PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  --mono:  "SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;align-items:center;justify-content:center;background:#1a1a1a;padding:24px}
+.card{position:relative;width:600px;height:800px;overflow:hidden;
+  background:var(--paper);color:var(--ink);padding:96px 80px 100px;
+  display:flex;flex-direction:column}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(120% 80% at 12% 0%, var(--paper) 0%, var(--paper-2) 100%),
+    repeating-linear-gradient(0deg, transparent 0 3px, oklch(0% 0 0 / 0.012) 3px 4px);
+  z-index:0;}
+.card > *{position:relative;z-index:1}
+
+.kicker{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.20em;
+  text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px}
+.kicker .k{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* 内容块：在 kicker 与 footer 之间居中（稀疏不发空、密集填满） */
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+/* 标题：data-fit 控字号（短放大、长缩小，封顶 76）。越大越细：weight 500 + 宽字距 */
+.titlewrap{flex:none}
+.title{font-family:var(--sans);font-weight:600;letter-spacing:0;line-height:1.14;
+  overflow:hidden;overflow-wrap:anywhere}
+.title em{font-style:normal;color:var(--accent);box-shadow:inset 0 -.30em 0 var(--accent-h)}
+
+.subtitle{margin-top:26px;font-family:var(--sans);font-size:23px;line-height:1.6;
+  color:var(--muted);max-width:30ch;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+.rule{height:1px;background:var(--line);margin-bottom:22px}
+.foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.foot .meta{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--muted);line-height:1.5;
+  min-width:0;overflow:hidden}
+.foot .meta b{color:var(--ink);font-weight:500}
+.foot .meta .l,.foot .meta .r{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--paper);
+  background:var(--ink);padding:7px 16px;border-radius:999px;white-space:nowrap;flex:none}
+</style>
+</head>
+<body>
+  <article class="card">
+    <div class="kicker"><span class="k">{{KICKER}}</span></div>
+    <div class="stage">
+      <div class="titlewrap">
+        <h1 class="title" data-fit data-fit-max="76" data-fit-min="38" data-fit-maxh="300">{{TITLE}}</h1>
+      </div>
+      <p class="subtitle">{{SUBTITLE}}</p>
+    </div>
+    <div class="rule"></div>
+    <div class="foot">
+      <div class="meta"><b class="l">{{META_LEFT}}</b><span class="r">{{META_RIGHT}}</span></div>
+      <span class="tag">{{TAG}}</span>
+    </div>
+  </article>
+  <script>
+  /* 安全边界 + 密度自适应：[data-fit] 二分缩放到不溢出（宽 + 可选高）。短放大填充、长缩小不溢出。 */
+  (function(){
+    function ok(el,h){return el.scrollWidth<=el.clientWidth+0.5 && (!h || el.scrollHeight<=h+0.5);}
+    function fit(el){
+      var min=+(el.dataset.fitMin||16),
+          max=+(el.dataset.fitMax||parseFloat(getComputedStyle(el).fontSize)),
+          h=el.dataset.fitMaxh?+el.dataset.fitMaxh:0, lo=min, hi=max, best=min;
+      for(var i=0;i<26;i++){var m=(lo+hi)/2; el.style.fontSize=m+'px'; if(ok(el,h)){best=m;lo=m;}else hi=m;}
+      el.style.fontSize=best+'px';
+    }
+    document.querySelectorAll('[data-fit]').forEach(fit);
+    document.documentElement.setAttribute('data-fitted','1');
+  })();
+  </script>
+</body>
+</html>

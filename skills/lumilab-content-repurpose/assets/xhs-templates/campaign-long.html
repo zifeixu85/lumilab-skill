@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>x</title>
+<!--
+  Lumi Lab · 活动长图模板 · campaign-long
+  与封面不同：这是「长图」——把核心吸引用户的文案铺开，底部放二维码 / 私聊 CTA 做验证触达。
+  宽固定 600（导出 1080），**高随内容自动增长**（render 脚本用 --ratio long 两步测高再截）。
+  配色可被 design_direction.json 覆盖（--accent/--paper/--ink）。
+  占位：
+    {{KICKER}} {{TITLE}} {{SUBTITLE}}
+    {{POINTS_HTML}}  —— 核心触达卖点列表，由 agent 拼成若干 <li> ，每条格式：
+                       <li class="pt"><span class="n">01</span><div class="b"><b>小标题</b><p>一句卖点正文</p></div></li>
+    {{HIGHLIGHT}}    —— 一句强信号/钩子（可空）
+    {{CTA_LINE}}     —— 行动召唤，如「扫码私聊我，领第一批体验名额」
+    {{QR_IMG}}       —— 二维码图片路径/URL（用户给的）；留空则只显示 CTA + 联系方式
+    {{CONTACT}}      —— 联系方式，如「微信 lumilab / 小红书 @xxx」
+    {{META}}
+-->
+<style>
+:root{
+  --paper: oklch(97% 0.01 85);
+  --paper-2: oklch(94% 0.016 85);
+  --ink:   oklch(18% 0.02 60);
+  --ink-2: oklch(30% 0.018 60);
+  --muted: oklch(48% 0.018 60);
+  --line:  oklch(18% 0.02 60 / 0.16);
+  --accent: oklch(55% 0.16 38);
+  --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+  --sans:  "PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  --mono:  "SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;justify-content:center;background:#1a1a1a;padding:24px}
+.card{position:relative;width:600px;overflow:hidden;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);padding:72px 72px 0}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 50% at 10% 0%, var(--paper) 0%, var(--paper-2) 100%),
+  repeating-linear-gradient(0deg, transparent 0 3px, oklch(0% 0 0 / 0.012) 3px 4px);}
+.card > *{position:relative;z-index:1}
+
+/* 顶部 hook */
+.kicker{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--accent);display:flex;align-items:center;gap:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+.title{margin-top:30px;font-weight:600;font-size:52px;line-height:1.16;letter-spacing:0;overflow-wrap:anywhere}
+.title em{font-style:normal;color:var(--accent);box-shadow:inset 0 -.30em 0 var(--accent-soft)}
+.subtitle{margin-top:22px;font-size:21px;line-height:1.6;color:var(--muted)}
+
+/* 核心触达卖点 */
+.points{margin-top:46px;list-style:none;display:flex;flex-direction:column;gap:26px}
+.pt{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.pt .n{font-family:var(--mono);font-weight:600;font-size:18px;color:var(--paper);background:var(--accent);
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+.pt .b b{display:block;font-size:22px;font-weight:600;line-height:1.3;color:var(--ink)}
+.pt .b p{margin-top:6px;font-size:17px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+
+/* 强信号一句话（可空） */
+.hl:not(:empty){margin-top:46px;background:var(--accent-soft);border-left:4px solid var(--accent);
+  padding:22px 24px;border-radius:0 12px 12px 0;font-size:22px;font-weight:600;line-height:1.5;color:var(--ink)}
+
+/* 底部 CTA + 二维码（深色面板压住长图收尾） */
+.cta{margin:54px -72px 0;background:var(--ink);color:var(--paper);padding:44px 72px 48px}
+.cta .line{font-size:26px;font-weight:600;line-height:1.4;text-wrap:balance}
+.cta .qrbox{margin-top:26px;display:flex;align-items:center;gap:22px}
+.cta .qr{width:128px;height:128px;border-radius:12px;background:#fff;object-fit:contain;flex:none}
+.cta .qr[src=""],.cta .qr:not([src]){display:none}
+.cta .contact{font-size:17px;line-height:1.6;color:oklch(85% 0.01 85)}
+.cta .contact b{color:var(--paper);font-weight:600}
+.cta .meta{margin-top:24px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:oklch(70% 0.01 85)}
+</style>
+</head>
+<body>
+  <article class="card">
+    <div class="kicker">{{KICKER}}</div>
+    <h1 class="title">{{TITLE}}</h1>
+    <p class="subtitle">{{SUBTITLE}}</p>
+
+    <ul class="points">{{POINTS_HTML}}</ul>
+
+    <div class="hl">{{HIGHLIGHT}}</div>
+
+    <div class="cta">
+      <div class="line">{{CTA_LINE}}</div>
+      <div class="qrbox">
+        <img class="qr" src="{{QR_IMG}}" alt="二维码">
+        <div class="contact">{{CONTACT}}</div>
+      </div>
+      <div class="meta">{{META}}</div>
+    </div>
+  </article>
+  <script>
+  /* data-fit（如有）+ 把卡片实际高度写进 title，供 render 脚本 --ratio long 两步测高。 */
+  (function(){
+    function ok(el,h){return el.scrollWidth<=el.clientWidth+0.5 && (!h || el.scrollHeight<=h+0.5);}
+    function fit(el){var min=+(el.dataset.fitMin||16),max=+(el.dataset.fitMax||parseFloat(getComputedStyle(el).fontSize)),
+      h=el.dataset.fitMaxh?+el.dataset.fitMaxh:0,lo=min,hi=max,b=min;
+      for(var i=0;i<26;i++){var m=(lo+hi)/2;el.style.fontSize=m+'px';if(ok(el,h)){b=m;lo=m;}else hi=m;}el.style.fontSize=b+'px';}
+    document.querySelectorAll('[data-fit]').forEach(fit);
+    var c=document.querySelector('.card');
+    document.title='H:'+Math.ceil(c.getBoundingClientRect().height);
+    document.documentElement.setAttribute('data-fitted','1');
+  })();
+  </script>
+</body>
+</html>

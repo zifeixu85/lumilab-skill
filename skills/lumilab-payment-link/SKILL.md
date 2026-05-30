@@ -3,7 +3,7 @@ name: lumilab-payment-link
 description: |
   把 fake-door landing 的"立即购买"按钮换成 Stripe Test Mode 真 checkout。一次性创建 Stripe product + price + payment link，输出可分享 URL。用户点了用测试卡 4242… 完成假 checkout = "愿意付钱"的强信号，比邮件留资强一档。需要 sk_test（sandbox 无需 KYC）。 Use when 用户 /lumilab payment create 或 sync，要测真付费或回读成交。
   关键词：stripe / payment link / 假门 / 测试卡 / sandbox / fake door / 付费意向 / Test Mode / pricing
-version: 0.2.0
+version: 0.2.1
 metadata:
   hermes:
     tags: [stripe, payment, fake-door, validation, sandbox]

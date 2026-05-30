@@ -26,7 +26,8 @@ Usage:
 Validates xhs_raw.json / web_tavily.json against the documented schema.
 Exit 0 = valid, 1 = violations found.`;
 
-const SOURCE_ENUM = ['tikhub', 'tavily', 'mock'];
+// 真实数据源 + 宿主代搜/代答 tier（agent-*）+ 显式 mock。agent-pending = 待宿主补全。
+const SOURCE_ENUM = ['tikhub', 'tavily', 'mock', 'agent-pending', 'agent-web', 'agent-knowledge'];
 
 type Issue = string;
 

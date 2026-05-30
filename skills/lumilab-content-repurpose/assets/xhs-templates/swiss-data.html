@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>瑞士数据封面</title>
+<!--
+  Lumi Lab · 小红书封面模板 · swiss-data（瑞士数据）
+  原创（受 guizang Swiss International 模式启发，未抄其代码）。
+  最适合：验证数据 / 红蓝海对比 / 产品更新。画布 600x800（3:4）→ 1080x1440 @2x。
+  ★ 安全边界 + 密度自适应：
+    - 布局：kicker 顶 / 内容块居中 / footer 底 —— 内容稀疏时居中不发空，密集时填满。
+    - 文本 data-fit 自动缩放（短放大、长缩小不溢出）；hero 数字 nowrap+缩放；标签长则换行；副信息超长省略。
+  占位：{{KICKER}} {{TITLE}} {{HERO_NUM}} {{HERO_LABEL}}
+        {{R1_LABEL}} {{R1_VALUE}} {{R1_PCT}}  {{R2_LABEL}} {{R2_VALUE}} {{R2_PCT}}  {{R3_LABEL}} {{R3_VALUE}} {{R3_PCT}}
+        {{META}}
+-->
+<style>
+:root{
+  --paper: oklch(98.5% 0.004 95);
+  --ink:   oklch(16% 0.01 60);
+  --muted: oklch(48% 0.01 60);
+  --line:  oklch(16% 0.01 60 / 0.14);
+  --line-2:oklch(16% 0.01 60 / 0.28);
+  --accent: oklch(55% 0.16 38);
+  --track: oklch(16% 0.01 60 / 0.08);
+  --sans:  "PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;
+  --mono:  "SFMono-Regular",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;align-items:center;justify-content:center;background:#1a1a1a;padding:24px}
+.card{position:relative;width:600px;height:800px;overflow:hidden;background:var(--paper);
+  color:var(--ink);padding:96px 80px 100px;display:flex;flex-direction:column;font-family:var(--sans)}
+.card::before{content:"";position:absolute;inset:96px 80px 100px;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 64px;opacity:.5;z-index:0}
+.card > *{position:relative;z-index:1}
+
+/* kicker 行：固定顶部 */
+.topbar{flex:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.kicker{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.idx{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--muted);flex:none}
+
+/* 内容块：在 kicker 与 footer 之间居中（稀疏不发空，密集填满） */
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:32px}
+.title{font-weight:500;line-height:1.14;letter-spacing:0;overflow:hidden;overflow-wrap:anywhere}
+
+.hero .num{display:block;white-space:nowrap;overflow:hidden;font-family:var(--mono);font-weight:600;
+  line-height:.92;letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums}
+.hero .lbl{font-family:var(--mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.bars{display:flex;flex-direction:column;gap:15px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:baseline}
+.row .rl{font-size:16px;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.row .rv{font-family:var(--mono);font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums;
+  white-space:nowrap;flex:none}
+.row .bar{grid-column:1/-1;height:6px;border-radius:999px;background:var(--track);overflow:hidden}
+.row .bar::after{content:"";display:block;height:100%;width:var(--w,40%);max-width:100%;
+  background:var(--accent);border-radius:999px}
+
+/* footer：固定底部 */
+.foot{flex:none;border-top:1px solid var(--line-2);padding-top:16px;
+  font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+  <article class="card">
+    <div class="topbar">
+      <span class="kicker">{{KICKER}}</span>
+      <span class="idx">Nº 01 / 03</span>
+    </div>
+
+    <div class="stage">
+      <h1 class="title" data-fit data-fit-max="60" data-fit-min="28" data-fit-maxh="200">{{TITLE}}</h1>
+      <div class="hero">
+        <div class="num" data-fit data-fit-max="124" data-fit-min="40">{{HERO_NUM}}</div>
+        <div class="lbl">{{HERO_LABEL}}</div>
+      </div>
+      <div class="bars">
+        <div class="row"><span class="rl">{{R1_LABEL}}</span><span class="rv">{{R1_VALUE}}</span><span class="bar" style="--w:{{R1_PCT}}%"></span></div>
+        <div class="row"><span class="rl">{{R2_LABEL}}</span><span class="rv">{{R2_VALUE}}</span><span class="bar" style="--w:{{R2_PCT}}%"></span></div>
+        <div class="row"><span class="rl">{{R3_LABEL}}</span><span class="rv">{{R3_VALUE}}</span><span class="bar" style="--w:{{R3_PCT}}%"></span></div>
+      </div>
+    </div>
+
+    <div class="foot">{{META}}</div>
+  </article>
+  <script>
+  /* 安全边界 + 密度自适应：[data-fit] 二分缩放到不溢出（宽 + 可选高）。短放大填充、长缩小不溢出。 */
+  (function(){
+    function ok(el,h){return el.scrollWidth<=el.clientWidth+0.5 && (!h || el.scrollHeight<=h+0.5);}
+    function fit(el){
+      var min=+(el.dataset.fitMin||16),
+          max=+(el.dataset.fitMax||parseFloat(getComputedStyle(el).fontSize)),
+          h=el.dataset.fitMaxh?+el.dataset.fitMaxh:0, lo=min, hi=max, best=min;
+      for(var i=0;i<26;i++){var m=(lo+hi)/2; el.style.fontSize=m+'px'; if(ok(el,h)){best=m;lo=m;}else hi=m;}
+      el.style.fontSize=best+'px';
+    }
+    document.querySelectorAll('[data-fit]').forEach(fit);
+    document.documentElement.setAttribute('data-fitted','1');
+  })();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ name: lumilab-home
 description: |
   Lumi Lab 的门面 / 入口 skill —— 用户第一次接触 Lumi Lab、或想看「现在什么情况」时调用。首次使用（~/.lumilab/config.json 无 onboarded）会引导用户走首次配置；已配置过则渲染一个 home dashboard：已配工具状态、所有 venture 及各自验证流水线进度、建议的下一步动作。是「不知道从哪开始」时的答案。 Use when 用户打开 lumilab、首次使用、或想看总览/进度/从哪开始。
   关键词：lumilab home / 打开 lumilab / lumilab dashboard / 开始用 lumilab / 主页 / 总览 / 仪表盘 / 首次使用 / 从哪开始 / 我的 venture / 进度 / getting started / 入口
-version: 1.5.0
+version: 1.6.0
 license: Apache-2.0
 platforms: [macos, linux]
 prerequisites:

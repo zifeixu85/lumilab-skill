@@ -136,41 +136,8 @@ async function fetchTikHub(keyword: string, limit: number, apiKey: string) {
     });
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const apiKey = loadSecret('TIKHUB_API_KEY');
-
-  let notes: any[];
-  let source: 'tikhub' | 'mock';
-  let notice = '';
-
-  if (args.mock || !apiKey) {
-    notes = mockNotes(args.keyword, args.limit);
-    source = 'mock';
-    notice = apiKey
-      ? '⚠️  --mock 启用，未走真实 API'
-      : '⚠️  未配置 TIKHUB_API_KEY，回退 mock 数据。可在 `lumilab config` 或 `~/.lumilab/secrets.json` 设置后启用真抓取。';
-  } else {
-    try {
-      notes = await fetchTikHub(args.keyword, args.limit, apiKey);
-      source = 'tikhub';
-    } catch (e: any) {
-      console.error(`✗ ${e.message}`);
-      console.error('  回退 mock 数据。');
-      notes = mockNotes(args.keyword, args.limit);
-      source = 'mock';
-      notice = `⚠️  真抓取失败：${e.message}`;
-    }
-  }
-
-  const out = {
-    keyword: args.keyword,
-    fetched_at: new Date().toISOString(),
-    source,
-    notice: notice || undefined,
-    notes,
-  };
-
+function writeOut(args: CliArgs, d: { source: string; notes: any[]; notice?: string }): void {
+  const out = { keyword: args.keyword, fetched_at: new Date().toISOString(), source: d.source, notice: d.notice || undefined, notes: d.notes };
   if (args.venture) {
     // venture 数据永远在 ~/.lumilab/data/ventures/，跟 cwd / 谁调用无关。
     const lumilabHome = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
@@ -178,11 +145,43 @@ async function main() {
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
     const outPath = join(outDir, 'xhs_raw.json');
     writeFileSync(outPath, JSON.stringify(out, null, 2));
-    console.log(`✓ ${notes.length} 条笔记 · source=${source} → ${outPath}`);
-    if (notice) console.log(notice);
+    console.log(`✓ ${d.notes.length} 条笔记 · source=${d.source} → ${outPath}`);
+    if (d.notice) console.log(d.notice);
   } else {
     console.log(JSON.stringify(out, null, 2));
   }
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const apiKey = loadSecret('TIKHUB_API_KEY');
+
+  // 显式 --mock：仅测试 / 纯离线 demo。
+  if (args.mock) {
+    writeOut(args, { source: 'mock', notice: '⚠️  --mock 启用（占位数据，仅测试）', notes: mockNotes(args.keyword, args.limit) });
+    return;
+  }
+
+  // 有 key：真实 TikHub。
+  if (apiKey) {
+    try {
+      const notes = await fetchTikHub(args.keyword, args.limit, apiKey);
+      writeOut(args, { source: 'tikhub', notes });
+      const { recordUsage } = await import('./agent_handoff.ts');
+      recordUsage(args.venture, 'tikhub');
+      return;
+    } catch (e: any) {
+      console.error(`✗ ${e.message}`);
+      // 真抓取失败不落 mock —— 交宿主 agent 代搜（真实兜底）。
+      const { emitAgentPending } = await import('./agent_handoff.ts');
+      emitAgentPending({ channel: 'xhs', venture: args.venture, queries: [args.keyword], reason: `TikHub 抓取失败（${String(e.message).split('·')[0].trim()}）` });
+      return;
+    }
+  }
+
+  // 无 key：宿主代搜（真实数据，非 mock）。
+  const { emitAgentPending } = await import('./agent_handoff.ts');
+  emitAgentPending({ channel: 'xhs', venture: args.venture, queries: [args.keyword], reason: '未配置 TIKHUB_API_KEY' });
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

@@ -105,32 +105,8 @@ async function searchTavily(args: Args, apiKey: string) {
   }));
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const apiKey = loadSecret('TAVILY_API_KEY');
-
-  let results: any[];
-  let source: 'tavily' | 'mock';
-  let notice = '';
-
-  if (args.mock || !apiKey) {
-    results = mockResults(args.query, args.num);
-    source = 'mock';
-    notice = apiKey ? '⚠️  --mock 启用' : '⚠️  未配置 TAVILY_API_KEY，回退 mock。设置后会自动启用。';
-  } else {
-    try {
-      results = await searchTavily(args, apiKey);
-      source = 'tavily';
-    } catch (e: any) {
-      console.error(`✗ ${e.message}`);
-      results = mockResults(args.query, args.num);
-      source = 'mock';
-      notice = `⚠️  ${e.message}`;
-    }
-  }
-
-  const out = { query: args.query, fetched_at: new Date().toISOString(), source, notice: notice || undefined, results };
-
+function writeOut(args: Args, d: { source: string; results: any[]; notice?: string }): void {
+  const out = { query: args.query, fetched_at: new Date().toISOString(), source: d.source, notice: d.notice || undefined, results: d.results };
   if (args.venture) {
     // venture 数据永远在 ~/.lumilab/data/ventures/，跟 cwd / 谁调用无关。
     const lumilabHome = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
@@ -138,11 +114,43 @@ async function main() {
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
     const outPath = join(outDir, 'web_tavily.json');
     writeFileSync(outPath, JSON.stringify(out, null, 2));
-    console.log(`✓ ${results.length} 条结果 · source=${source} → ${outPath}`);
-    if (notice) console.log(notice);
+    console.log(`✓ ${d.results.length} 条结果 · source=${d.source} → ${outPath}`);
+    if (d.notice) console.log(d.notice);
   } else {
     console.log(JSON.stringify(out, null, 2));
   }
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const apiKey = loadSecret('TAVILY_API_KEY');
+
+  // 显式 --mock：仅测试 / 纯离线 demo 用占位数据。
+  if (args.mock) {
+    writeOut(args, { source: 'mock', notice: '⚠️  --mock 启用（占位数据，仅测试）', results: mockResults(args.query, args.num) });
+    return;
+  }
+
+  // 有 key：真实 Tavily。
+  if (apiKey) {
+    try {
+      const results = await searchTavily(args, apiKey);
+      writeOut(args, { source: 'tavily', results });
+      const { recordUsage } = await import('./agent_handoff.ts');
+      recordUsage(args.venture, 'tavily');
+      return;
+    } catch (e: any) {
+      console.error(`✗ ${e.message}`);
+      // key 失败也不落 mock —— 交宿主 agent 代搜（真实兜底）。
+      const { emitAgentPending } = await import('./agent_handoff.ts');
+      emitAgentPending({ channel: 'web', venture: args.venture, queries: [args.query], reason: `Tavily 调用失败（${String(e.message).split('·')[0].trim()}）` });
+      return;
+    }
+  }
+
+  // 无 key：宿主代搜（真实数据，非 mock）。宿主 agent 用自己的 web 工具/知识补全 → ingest_agent_results.ts 回写。
+  const { emitAgentPending } = await import('./agent_handoff.ts');
+  emitAgentPending({ channel: 'web', venture: args.venture, queries: [args.query], reason: '未配置 TAVILY_API_KEY' });
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
