@@ -6,9 +6,23 @@
 
 ---
 
+## [1.10.0] · 2026-05-30 · 决赛优化 W1–W4 + 全量 SkillLens S
+
+> 决赛优化：4 条工作流 + 新增第 26 个 skill `lumilab-next-actions` + 全量 26 skill 升 SkillLens S 级。**26 skill**。
+
+### Added · W1–W4 决赛优化
+- **W1 · 常驻 Studio 守护进程**：`lumilab serve start|stop|status|restart|open`，固定端口（默认 7777），一个进程统一服务所有 venture + home。`GET /api/ping` 探活；`GET /api/events` SSE，`fs.watch` 文件变更 → 已打开页面**自动刷新**；访问时按 mtime **惰性重渲**（消灭"agent 改完要手动 render"）。控制走 run-file（`~/.lumilab/run/studio.json`）+ 信号，不新增 HTTP 控制端点。
+- **W2 · `lumilab-next-actions` 新 skill（分析大脑）** + studio 看板/脑图呈现：读全量 venture 数据，对照 R6 基线打信号 level/tier，产出**多方向**（同一 idea 的推进岔路）候选动作 → `studio/next-actions.json`。studio 复盘阶段内联**看板**（原生 HTML5 拖拽，drop 即持久化）+ **脑图**（离线 SVG，本地零依赖、断网可用）+ `@media print` 可打印贴墙。
+- **W3 · 付款数据回流**：`lumilab payment sync <slug>` 只读拉取 Stripe checkout sessions → 付款笔数/金额/转化率 → `payment/summary.json`（**脱敏**，不存邮箱/卡/姓名）→ 对照 `lumilab-metrics/assets/baselines.yaml`（R6 A/B/C 置信层）判信号 → 回写「付费意愿」假设 evidence → 喂 next-actions。studio 启动阶段显示「真实付款 N 笔 · ¥X · 转化 Y% · 强信号」。`--mock` 兜底，demo 必有数字。
+- **W4 · 落地页 `theme.css` + 设计交互重做**：纯视觉调整变**确定性 + 即时**。landing 暴露规范 token（`--accent / --radius / --font-heading / --space-scale` …），studio 构建阶段把**真实落地页放进 iframe**与设计面板（~9 个分组旋钮）并排，拖旋钮直接改 iframe CSS 变量 → **立刻可见**；「应用设计」`POST /api/design/apply` 服务端**确定性**写回 `design_direction.json` + `theme.css`（**不调 LLM**）。「生成验证页」改**引导式门**（前置清单 + 说明 + 确认 + 版本 diff），不再是裸按钮黑盒。
+- studio 支持 `#stage=<name>` 深链（可分享 + 截图）。
+
+### Changed · 文档与评测
+- 26 个 skill 全部跑过 SkillLens agent-side Deep Review → **全部 S 级**（92.26–92.88，`deepReviewCertificate` verified）；SKILL.md 精简到 ≤6000 字、完整操作详版移入各 skill 的 `references/full-guide.md`（progressive disclosure，宿主执行时按需加载）。
+
 ## [1.9.0] · 2026-05-30 · 验证工具 + 发布对齐
 
-> 同步发布版到 GitHub（此前线上停在 v1.8.0 旧快照，缺下列内容）。25 skill。
+> 同步发布版到 GitHub（此前线上停在 v1.8.0 旧快照，缺下列内容）。**25 skill**。
 
 ### Added
 - **`lumilab-payment-link`** 新 skill — Stripe Test Mode 真 checkout（创建 product + price + payment_link），让 fake-door 验证页能测真实付费意愿，不止留邮箱。

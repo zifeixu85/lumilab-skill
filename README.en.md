@@ -4,11 +4,11 @@
 
 English ｜ [简体中文](README.md)
 
-**Lumi Lab** is a 25-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
+**Lumi Lab** is a 26-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
 
 🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![Version](https://img.shields.io/badge/version-1.8.0-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-25-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
@@ -238,7 +238,7 @@ A super prompt is text. Lumi Lab is a workspace.
 
 ## Quality
 
-All 21 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **all 21 at S grade, avg 91.6 / 100, all 21 `deepReviewCertificate` `verified`**. Every skill ships a runnable `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts` copy checker. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
+All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **all 26 at S grade, avg ~92.6 / 100, all `deepReviewCertificate` `verified`**. Every skill ships a runnable `scripts/validate-output.ts` output validator + `scripts/anti-slop-lint.ts` copy checker. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
 
 ---
 

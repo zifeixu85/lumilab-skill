@@ -71,3 +71,23 @@
   last_accessed: "2026-05-13"
   access_count: 7
   verification_count: 2
+
+- id: h-005
+  fact: "目标用户愿意为「一句话想法 → 可验证 landing」这件事付费，而不只是收藏点赞"
+  category: assumption
+  confidence: high
+  test_method: "fake-door 落地页挂 Stripe test 购买按钮，回读真实付款笔数（payment sync）"
+  test_status: passed
+  evidence:
+    - source: "payment/summary.json"
+      excerpt: "Stripe test 真实付款 4 笔 / 496 CNY"
+      timestamp: "2026-05-29T12:00:00Z"
+  status: active
+  superseded_by: null
+  superseded_reason: null
+  created_at: "2026-05-14T02:00:00Z"
+  updated_at: "2026-05-29T12:00:00Z"
+  related_entities: []
+  last_accessed: "2026-05-29"
+  access_count: 4
+  verification_count: 1

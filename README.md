@@ -4,11 +4,11 @@
 
 [English](README.en.md) ｜ 简体中文
 
-**Lumi Lab** 是一套 25 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
+**Lumi Lab** 是一套 26 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
 🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
 
-[![版本](https://img.shields.io/badge/version-1.8.0-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.10.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-25-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-21_S_·_avg_91.6_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
@@ -267,7 +267,7 @@ lumilab help                          显示帮助
 
 ## 质量评测
 
-原 21 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 91.6 / 100，21 个 `deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器。（v1.1.0 新增的 idea-to-landing orchestrator 待下一轮评测。）
+26 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**全部 S 级，平均 ~92.6 / 100，`deepReviewCertificate` 全部 `verified`**。每个 skill 都带可独立运行的 `scripts/validate-output.ts` 输出校验器 + `scripts/anti-slop-lint.ts` 文案检查器，完整操作详版放在 `references/full-guide.md`（progressive disclosure，按需加载）。
 
 详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
 
@@ -277,7 +277,7 @@ lumilab help                          显示帮助
 
 - [`docs/TUTORIAL.zh.md`](docs/TUTORIAL.zh.md) — 完整中文上手指南（三种宿主路径 + 飞书入门）
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 技术架构
-- [`docs/SKILLS.md`](docs/SKILLS.md) — 21 个 skill 索引，一行说明
+- [`docs/SKILLS.md`](docs/SKILLS.md) — 26 个 skill 索引，一行说明
 - [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md) — SkillLens 评测报告
 - [`CHANGELOG.md`](CHANGELOG.md) — 版本变更
 

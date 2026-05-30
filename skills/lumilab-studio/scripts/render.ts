@@ -350,6 +350,10 @@ export function render(ventureDir: string): string {
   const decisions = readYaml<Decision[]>(join(ventureDir, 'decisions.yaml')) ?? [];
   const designDirection = readJson<any>(join(ventureDir, 'design_direction.json'));
   const accent = designDirection?.palette?.accent ?? 'oklch(42% 0.16 28)';
+  // W2: next-actions decision-engine output (kanban + mindmap)
+  const nextActions = readJson<any>(join(ventureDir, 'studio', 'next-actions.json'));
+  // W3: payment validation signal
+  const paymentSummary = readJson<any>(join(ventureDir, 'payment', 'summary.json'));
 
   // ── Real pipeline artifacts ──
   const marketAnalysis = readJson<any>(join(ventureDir, 'market_analysis.json'));
@@ -390,6 +394,12 @@ export function render(ventureDir: string): string {
     venture: { name: ventureName, oneLiner, audience: targetAudience, iteration, currentDay, totalDays, currentStage, stagesDone },
     hypotheses,
     decisions,
+    nextActions: nextActions ?? null,
+    build: {
+      landingTop: landingVersions.length ? landingVersions[landingVersions.length - 1] : null,
+      preset: designDirection?.preset ?? null,
+      hypothesisCount: hypotheses.length,
+    },
   };
 
   // ── Left nav: 7 stages ──
@@ -663,67 +673,132 @@ export function render(ventureDir: string): string {
         ` : ''}
         ${designDirection ? (() => {
           const dd = designDirection;
-          const accent = dd.palette?.accent ?? dd.palette?.cta ?? 'oklch(58% 0.22 25)';
-          const surface = dd.palette?.surface ?? 'oklch(100% 0 0)';
-          const ink = dd.palette?.text_primary ?? 'oklch(15% 0 0)';
-          const ink2 = dd.palette?.text_secondary ?? 'oklch(45% 0 0)';
-          const radius = dd.radius != null ? dd.radius : 14;
-          const heading = dd.typography?.heading ?? 'serif';
-          const body = dd.typography?.body ?? 'sans-serif';
-          const di = dd.dials ?? {};
+          const accent = dd.palette?.accent ?? dd.palette?.cta ?? 'oklch(45% 0.15 25)';
+          const accent2 = dd.palette?.accent_2 ?? 'oklch(70% 0.12 250)';
+          const surface = dd.palette?.surface ?? dd.palette?.neutral ?? 'oklch(97% 0.012 85)';
+          const ink = dd.palette?.text_primary ?? dd.palette?.primary ?? 'oklch(23% 0.02 60)';
+          const ink2 = dd.palette?.text_secondary ?? 'oklch(52% 0.02 70)';
+          const radius = dd.radius != null ? dd.radius : 4;
+          const spaceScale = dd.layout?.space_scale ?? 1;
+          const heroLayout = dd.layout?.hero ?? 'split';
+          const buttonStyle = dd.layout?.button ?? 'solid';
+          const fontHeading = dd.typography?.heading ?? '"Fraunces","Noto Serif SC",Georgia,serif';
+          const fontBody = dd.typography?.body ?? '"Fraunces","Noto Serif SC",Georgia,serif';
+          // font whitelist (anti-slop: no Inter/Roboto/Arial) — visibly distinct + loaded/system-safe
+          const HEADING_FONTS: [string, string][] = [
+            ['"Fraunces","Noto Serif SC",Georgia,serif', 'Fraunces 衬线'],
+            ['"Noto Serif SC",Georgia,serif', 'Noto Serif 宋'],
+            ['Georgia,"Times New Roman",serif', 'Georgia 经典衬线'],
+            ['"JetBrains Mono",ui-monospace,monospace', 'JetBrains 等宽（编辑感）'],
+            ['ui-sans-serif,system-ui,sans-serif', 'System 无衬线'],
+          ];
+          const BODY_FONTS: [string, string][] = [
+            ['"Fraunces","Noto Serif SC",Georgia,serif', 'Fraunces 衬线'],
+            ['Georgia,"Times New Roman",serif', 'Georgia 衬线'],
+            ['ui-sans-serif,system-ui,sans-serif', 'System 无衬线'],
+            ['"JetBrains Mono",ui-monospace,monospace', 'JetBrains 等宽'],
+          ];
+          const opt = (pairs: [string, string][], cur: string) => pairs
+            .map(([v, label]) => `<option value="${escAttr(v)}"${v === cur ? ' selected' : ''}>${esc(label)}</option>`).join('');
           const presetOpts = ['editorial', 'minimalist', 'brutalist', 'soft']
             .map((p) => `<option value="${p}"${p === dd.preset ? ' selected' : ''}>${p}</option>`).join('');
-          const swatches = dd.palette ? Object.entries(dd.palette).map(([k, v]) =>
-            typeof v === 'string' && /^oklch|^#|^rgb/.test(v)
-              ? `<div class="swatch"><span class="swatch-chip" style="background:${esc(String(v))}"></span><span class="swatch-name">${esc(k)}</span></div>`
-              : '').join('') : '';
+          const heroOpts = [['split', '分栏'], ['centered', '居中'], ['editorial', '编辑感']]
+            .map(([v, l]) => `<option value="${v}"${v === heroLayout ? ' selected' : ''}>${l}</option>`).join('');
+          const btnOpts = [['solid', '实心'], ['outline', '描边'], ['pill', '胶囊']]
+            .map(([v, l]) => `<option value="${v}"${v === buttonStyle ? ' selected' : ''}>${l}</option>`).join('');
           return `
           <header class="section__head" style="margin-top:20px;">
-            <h2 class="section__title">设计系统</h2>
-            <span class="section__count">${esc(dd.preset ?? '—')} preset · design_direction.json</span>
+            <h2 class="section__title">设计系统 · 实时 re-theme</h2>
+            <span class="section__count">${esc(dd.preset ?? '—')} preset · 拖旋钮 → 右侧真实落地页立刻变</span>
           </header>
           <div class="ds" data-ds
-            data-accent="${escAttr(accent)}" data-radius="${radius}"
-            data-variance="${di.variance ?? 50}" data-motion="${di.motion ?? 40}" data-density="${di.density ?? 55}">
-            <div class="ds-controls">
-              <label class="ds-ctl"><span>预设</span><select data-ds-preset>${presetOpts}</select></label>
-              <label class="ds-ctl"><span>圆角 <b data-ds-out="radius">${radius}px</b></span><input type="range" min="0" max="28" value="${radius}" data-ds-radius></label>
-              <label class="ds-ctl"><span>方差 <b data-ds-out="variance">${di.variance ?? 50}</b></span><input type="range" min="0" max="100" value="${di.variance ?? 50}" data-ds-dial="variance"></label>
-              <label class="ds-ctl"><span>动效 <b data-ds-out="motion">${di.motion ?? 40}</b></span><input type="range" min="0" max="100" value="${di.motion ?? 40}" data-ds-dial="motion"></label>
-              <label class="ds-ctl"><span>密度 <b data-ds-out="density">${di.density ?? 55}</b></span><input type="range" min="0" max="100" value="${di.density ?? 55}" data-ds-dial="density"></label>
-              <label class="ds-ctl"><span>强调色</span><input type="text" value="${escAttr(accent)}" data-ds-accent spellcheck="false"></label>
+            data-accent="${escAttr(accent)}" data-accent2="${escAttr(accent2)}" data-surface="${escAttr(surface)}"
+            data-ink="${escAttr(ink)}" data-ink2="${escAttr(ink2)}" data-radius="${radius}" data-space="${spaceScale}"
+            data-hero="${escAttr(heroLayout)}" data-button="${escAttr(buttonStyle)}"
+            data-fh="${escAttr(fontHeading)}" data-fb="${escAttr(fontBody)}"
+            data-landing="${primaryLandingHref ? escAttr(primaryLandingHref) : ''}">
+            <div class="ds-panel">
+              <div class="ds-grp">
+                <div class="ds-grp__t">预设</div>
+                <label class="ds-ctl"><span>一键套用</span><select data-ds-preset>${presetOpts}</select></label>
+              </div>
+              <div class="ds-grp">
+                <div class="ds-grp__t">色彩</div>
+                <label class="ds-ctl"><span>主强调色 <i class="ds-sw" data-sw="accent" style="background:${esc(accent)}"></i></span><input type="text" value="${escAttr(accent)}" data-ds-tok="accent" spellcheck="false"></label>
+                <label class="ds-ctl"><span>次强调色 <i class="ds-sw" data-sw="accent2" style="background:${esc(accent2)}"></i></span><input type="text" value="${escAttr(accent2)}" data-ds-tok="accent2" spellcheck="false"></label>
+                <label class="ds-ctl"><span>表面色调 暖 ↔ 冷 <b data-ds-out="surfacehue">—</b></span><input type="range" min="20" max="280" value="85" data-ds-surfacehue></label>
+              </div>
+              <div class="ds-grp">
+                <div class="ds-grp__t">形状</div>
+                <label class="ds-ctl"><span>圆角 <b data-ds-out="radius">${radius}px</b></span><input type="range" min="0" max="28" value="${radius}" data-ds-radius></label>
+                <label class="ds-ctl"><span>间距密度 <b data-ds-out="space">${spaceScale}×</b></span><input type="range" min="80" max="140" value="${Math.round(spaceScale * 100)}" data-ds-space></label>
+              </div>
+              <div class="ds-grp">
+                <div class="ds-grp__t">字体（白名单 · 禁 Inter/Roboto）</div>
+                <label class="ds-ctl"><span>标题字体</span><select data-ds-tok="fontHeading">${opt(HEADING_FONTS, fontHeading)}</select></label>
+                <label class="ds-ctl"><span>正文字体</span><select data-ds-tok="fontBody">${opt(BODY_FONTS, fontBody)}</select></label>
+              </div>
+              <div class="ds-grp">
+                <div class="ds-grp__t">版式</div>
+                <label class="ds-ctl"><span>hero 版式</span><select data-ds-layout="hero">${heroOpts}</select></label>
+                <label class="ds-ctl"><span>按钮风格</span><select data-ds-layout="button">${btnOpts}</select></label>
+              </div>
               <div class="ds-actions">
-                <button class="btn-primary" data-act="design-apply">应用设计</button>
-                <button class="btn-ghost" data-act="design-gen">用此设计生成新 Landing →</button>
+                <button class="btn-primary" data-act="design-apply">应用设计（确定性写回）</button>
+                <button class="btn-ghost" data-act="design-gen-gate">生成验证页 →</button>
               </div>
+              <p class="ds-hint">纯视觉调整即时反映、写回 <code>theme.css</code>（无需 LLM）。换方向 / 改文案 / 换版式结构才走「生成验证页」引导门。</p>
             </div>
-            <div class="ds-preview" id="ds-preview"
-              style="--ds-accent:${esc(accent)};--ds-radius:${radius}px;--ds-surface:${esc(surface)};--ds-ink:${esc(ink)};--ds-ink2:${esc(ink2)};">
-              <div class="ds-pv-card ds-pv-card--lg">
-                <span class="ds-pv-eyebrow">Card · 圆角 / 阴影 / 层级</span>
-                <h3 class="ds-pv-h" style="font-family:${esc(heading)},serif">${esc(oneLiner || ventureName)}</h3>
-                <p class="ds-pv-body" style="font-family:${esc(body)},sans-serif">这是当前设计 token 渲染出的卡片样例。拖动上面的旋钮，圆角与强调色实时变化；点「应用设计」写回 design_direction.json。</p>
-                <div class="ds-pv-btns">
-                  <button class="ds-pv-btn ds-pv-btn--primary">主按钮 CTA</button>
-                  <button class="ds-pv-btn ds-pv-btn--ghost">次按钮</button>
-                  <span class="ds-pv-chip">标签 chip</span>
-                </div>
-              </div>
-              <div class="ds-pv-side">
-                <div class="ds-pv-card ds-pv-card--sm"><span class="ds-pv-num">A</span><span>卡片 A</span></div>
-                <div class="ds-pv-card ds-pv-card--sm"><span class="ds-pv-num">B</span><span>卡片 B</span></div>
-                <div class="ds-pv-swatches">${swatches}</div>
-              </div>
+            <div class="ds-stage">
+              ${primaryLandingHref
+                ? `<div class="ds-stage__bar"><span class="ds-stage__dot"></span>真实落地页 · ${esc(primaryLandingLabel)}</div>
+                   <iframe class="ds-frame" id="ds-frame" src="${esc(primaryLandingHref)}" title="landing 实时预览" loading="lazy"></iframe>`
+                : `<div class="ds-stage__empty">还没有 landing 验证页。<br>用下方「生成验证页 →」先生成一个，再回来实时调样式。</div>`}
             </div>
           </div>
         `; })() : ''}
       ` : pendingState(STAGE_LABELS.build, STAGE_SKILL_HINT.build)}
     </section>`;
 
+  // ── 付款验证块（W3）：读 payment/summary.json + R6 基线 → 信号灯 ──
+  const paymentBlock = (() => {
+    if (!paymentSummary || typeof paymentSummary.count_paid !== 'number') return '';
+    const ps = paymentSummary;
+    const paid = ps.count_paid;
+    const amount = (ps.gross_amount ?? 0) / 100;
+    const cur = String(ps.currency ?? '').toUpperCase();
+    const total = Array.isArray(ps.sessions) ? ps.sessions.length : paid;
+    const cvr = total ? (paid / total) : 0;
+    // R6 payment_any：任意真实付款即强信号；0 笔 = 死信号
+    const level = paid > 0 ? 'strong' : 'dead';
+    const sigClass = paid > 0 ? 'g' : 'r';
+    const sigLabel = paid > 0 ? '强信号' : '死信号';
+    const interp = paid > 0
+      ? `${paid} 笔真实付款 = 比任何留资/点赞都强的需求信号。该放大、扩量。`
+      : `付款 0 笔。若 UV 已足够仍无付款，「愿意付」假设未成立，考虑换定位或换受众。`;
+    const modeTag = ps.mode === 'live' ? 'live' : 'test';
+    return `
+      <header class="section__head">
+        <h2 class="section__title">付款验证</h2>
+        <span class="section__count">payment/summary.json · Stripe ${esc(modeTag)} mode</span>
+      </header>
+      <div class="pay">
+        <div class="pay-grid">
+          <div class="pay-kpi"><div class="pay-kpi__v">${paid}</div><div class="pay-kpi__l">真实付款</div></div>
+          <div class="pay-kpi"><div class="pay-kpi__v">${amount.toFixed(0)} <span class="pay-cur">${esc(cur)}</span></div><div class="pay-kpi__l">累计金额</div></div>
+          <div class="pay-kpi"><div class="pay-kpi__v">${(cvr * 100).toFixed(1)}%</div><div class="pay-kpi__l">付款/会话</div></div>
+          <div class="pay-kpi pay-kpi--sig pay-kpi--${sigClass}"><div class="pay-kpi__v"><span class="pay-dot"></span>${esc(sigLabel)}</div><div class="pay-kpi__l">R6 payment_any · tier A</div></div>
+        </div>
+        <p class="pay-interp">${esc(interp)}</p>
+        ${ps.source === 'mock' ? `<p class="pay-note">※ 当前为预置样例数据（demo 兜底）。配 Stripe test key + 网络后跑 <code>lumilab payment sync ${esc(ventureName)}</code> 现场真拉。</p>` : `<p class="pay-note">这是真实 Stripe 付款，不是 mock。最近同步：${esc(String(ps.last_synced ?? '').slice(0, 16).replace('T', ' '))}</p>`}
+      </div>`;
+  })();
+
   // ── 启动 stage ──
   const hasAnyLanding = !!primaryLandingHref;
   const stageLaunch = `
     <section class="stage" data-stage="launch" hidden>
+      ${paymentBlock}
       ${share ? `
         <header class="section__head">
           <h2 class="section__title">已上线</h2>
@@ -742,8 +817,96 @@ export function render(ventureDir: string): string {
       ` : pendingState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
     </section>`;
 
-  // next-actions 行动卡（若 studio/next-actions.html 存在 → 在复盘 stage 顶部给入口）
-  const hasNextActions = existsSync(join(ventureDir, 'studio', 'next-actions.html'));
+  // ── W2 · 下一步行动：看板 + 脑图（内联，确定性渲染 next-actions.json）──
+  const NA_SIG_CLASS: Record<string, string> = { dead: 'r', weak: 'y', normal: 'g', strong: 'g', excellent: 'g', na: 'n' };
+  const NA_TIER_NOTE: Record<string, string> = { A: '高置信', B: '中置信', C: '经验值' };
+  const naSignalsHtml = (sigs: any[]): string => {
+    if (!Array.isArray(sigs) || !sigs.length) return '';
+    const rows = sigs.map((s) => {
+      const cls = NA_SIG_CLASS[s.level] ?? 'n';
+      const val = s.value != null ? `<span class="na-sig__val">${esc(String(s.value))}</span>` : '';
+      const tier = s.tier ? `<span class="na-sig__tier na-sig__tier--${esc(s.tier)}" title="${esc(NA_TIER_NOTE[s.tier] ?? '')}">tier ${esc(s.tier)}</span>` : '';
+      return `<div class="na-sig na-sig--${cls}">
+        <span class="na-sig__dot"></span>
+        <span class="na-sig__metric">${esc(s.metric)}</span>
+        ${val}
+        <span class="na-sig__interp">${esc(s.interpretation ?? '')}</span>
+        ${tier}
+      </div>`;
+    }).join('');
+    return `<div class="na-signals">
+      <div class="na-signals__head">① 信号（仅参考，非判决）· 对照 R6 基线</div>
+      ${rows}
+    </div>`;
+  };
+  const naCard = (t: any): string => {
+    const prio = ['high', 'medium', 'low'].includes(t.priority) ? t.priority : 'medium';
+    const chip = t.linked_hypothesis
+      ? `<a class="na-chip" data-target="hypothesis" data-id="${escAttr(t.linked_hypothesis)}" title="跳到该假设">${esc(t.linked_hypothesis)}</a>`
+      : '';
+    return `<article class="na-card na-card--${prio}" draggable="true" data-id="${escAttr(t.id)}" data-col="${escAttr(t.column)}">
+      <span class="na-card__bar"></span>
+      <div class="na-card__body">
+        <p class="na-card__title">${esc(t.title)}</p>
+        ${t.detail ? `<p class="na-card__detail">${esc(t.detail)}</p>` : ''}
+        <div class="na-card__foot">
+          ${chip}
+          ${t.source ? `<span class="na-card__src">${esc(t.source)}</span>` : ''}
+          <span class="na-card__spacer"></span>
+          <button class="na-card__x" data-act="na-del" data-id="${escAttr(t.id)}" title="删除">×</button>
+        </div>
+      </div>
+    </article>`;
+  };
+  const naBoardHtml = (na: any): string => {
+    const cols = Array.isArray(na?.columns) && na.columns.length ? na.columns
+      : [{ id: 'to_validate', title: '待验证' }, { id: 'in_progress', title: '进行中' }, { id: 'learned', title: '已学到' }];
+    const tasks: any[] = Array.isArray(na?.tasks) ? na.tasks : [];
+    const colHtml = cols.map((c: any) => {
+      const items = tasks.filter((t) => t.column === c.id);
+      return `<section class="na-col" data-col="${escAttr(c.id)}">
+        <div class="na-col__head"><span>${esc(c.title)}</span><span class="na-col__n">${items.length}</span></div>
+        <div class="na-col__drop" data-col="${escAttr(c.id)}">
+          ${items.map(naCard).join('') || '<p class="na-col__empty">拖卡到这里</p>'}
+        </div>
+        <button class="na-add" data-act="na-add" data-col="${escAttr(c.id)}">＋ 加一条</button>
+      </section>`;
+    }).join('');
+    return `<div class="na-board" data-na-pane="kanban">${colHtml}</div>`;
+  };
+  const naSection = nextActions ? `
+        <header class="section__head">
+          <h2 class="section__title">下一步行动</h2>
+          <span class="section__count">本轮信号 → 现在该做什么 · next-actions.json</span>
+        </header>
+        <div class="na" data-na>
+          <div class="na-toolbar">
+            <div class="seg-group na-seg">
+              <button class="seg-btn is-active" data-na-view="kanban" type="button">看板</button>
+              <button class="seg-btn" data-na-view="mindmap" type="button">脑图</button>
+            </div>
+            <button class="btn-ghost na-print" data-act="na-print" type="button">🖨 打印 / 导出 PDF</button>
+          </div>
+          ${naSignalsHtml(nextActions.source_signals)}
+          ${naBoardHtml(nextActions)}
+          <div class="na-mind" data-na-pane="mindmap" hidden>
+            <div class="na-mind__tools">
+              <button data-mind="out" type="button" title="缩小">−</button>
+              <button data-mind="fit" type="button" title="适配">适配</button>
+              <button data-mind="in" type="button" title="放大">＋</button>
+            </div>
+            <div class="na-mind__canvas"><svg id="na-mind-svg" role="img" aria-label="下一步行动脑图"></svg></div>
+          </div>
+          <p class="na-foot">信号灯只表达方向/温度，不表达成败结论。「多方向」是同一 idea 的不同推进岔路。最终继续 / 调整 / 放弃由你拍板。</p>
+        </div>
+  ` : (existsSync(join(ventureDir, 'studio', 'next-actions.html')) ? `
+        <header class="section__head">
+          <h2 class="section__title">下一步行动</h2>
+          <span class="section__count">本轮信号 → 现在该做什么</span>
+        </header>
+        ${artifactCard('🧭', '打开「下一步」行动卡', 'next-actions.html', '信号灯 + 解读 + 候选动作（你来选，不替你拍板）')}
+  ` : '');
+  const hasNextActions = !!nextActions || existsSync(join(ventureDir, 'studio', 'next-actions.html'));
 
   // ── 复盘 stage ──
   const retroBucket = (label: string, cls: string, items: any): string => {
@@ -768,13 +931,7 @@ export function render(ventureDir: string): string {
   const hasRetroArtifact = !!retroData || reviewReport.trim() || decisions.length > 0;
   const stageRetro = `
     <section class="stage" data-stage="retro" hidden>
-      ${hasNextActions ? `
-        <header class="section__head">
-          <h2 class="section__title">下一步行动</h2>
-          <span class="section__count">本轮信号 → 现在该做什么</span>
-        </header>
-        ${artifactCard('🧭', '打开「下一步」行动卡', 'next-actions.html', '信号灯 + 解读 + 候选动作（你来选，不替你拍板）')}
-      ` : ''}
+      ${naSection}
       ${retroData ? `
         <header class="section__head">
           <h2 class="section__title">复盘</h2>
@@ -1845,13 +2002,23 @@ kbd {
 .dir-row__cta .btn-ghost { font-size: 12px; height: 28px; padding: 4px 12px; }
 
 /* ───── Design System demo (P3) ───── */
-.ds { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
-@media (max-width: 860px) { .ds { grid-template-columns: 1fr; } }
-.ds-controls {
-  display: flex; flex-direction: column; gap: 12px;
+.ds { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .ds { grid-template-columns: 1fr; } }
+.ds-panel {
+  display: flex; flex-direction: column; gap: 14px;
   padding: 16px; background: var(--surface-2);
   border: 1px solid var(--hairline); border-radius: var(--r-lg);
 }
+.ds-grp { display: flex; flex-direction: column; gap: 9px; }
+.ds-grp__t { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 5px; border-bottom: 1px solid var(--hairline); }
+.ds-sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; border: 1px solid var(--hairline-strong); vertical-align: middle; margin-left: 4px; }
+.ds-hint { font-size: 11px; color: var(--mute); line-height: 1.5; }
+.ds-hint code { background: var(--surface); padding: 1px 5px; border-radius: 4px; }
+.ds-stage { border: 1px solid var(--hairline); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); display: flex; flex-direction: column; min-height: 520px; }
+.ds-stage__bar { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-2); border-bottom: 1px solid var(--hairline); background: var(--surface-2); }
+.ds-stage__dot { width: 8px; height: 8px; border-radius: 50%; background: oklch(60% 0.14 150); }
+.ds-frame { width: 100%; flex: 1; min-height: 480px; border: 0; display: block; background: white; }
+.ds-stage__empty { padding: 60px 24px; text-align: center; color: var(--mute); line-height: 1.7; font-size: 13px; }
 .ds-ctl { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
 .ds-ctl b { color: var(--accent); font-variant-numeric: tabular-nums; }
 .ds-ctl select, .ds-ctl input[type=text] {
@@ -1860,6 +2027,17 @@ kbd {
 }
 .ds-ctl input[type=range] { width: 100%; accent-color: var(--accent); }
 .ds-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+/* W4 · 引导式生成门 */
+.gate { display: flex; flex-direction: column; gap: 12px; }
+.gate-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.gate-row { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+.gate-row__mark { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: oklch(100% 0 0); }
+.gate-row--ok .gate-row__mark { background: oklch(60% 0.14 150); }
+.gate-row--no .gate-row__mark { background: oklch(72% 0.13 85); }
+.gate-row__txt em { color: var(--ink-2); font-style: normal; font-size: 11.5px; display: block; }
+.gate-note { font-size: 13px; line-height: 1.6; color: var(--ink); background: var(--surface-2); border-left: 3px solid var(--moss); padding: 10px 12px; border-radius: 8px; }
+.gate-confirm { font-size: 13px; line-height: 1.6; color: var(--ink); padding: 10px 12px; border: 1px solid var(--hairline-strong); border-radius: 8px; }
+.gate-diff { font-family: var(--mono); font-size: 11px; color: var(--mute); line-height: 1.5; }
 .ds-preview { display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px; align-items: start; }
 @media (max-width: 600px) { .ds-preview { grid-template-columns: 1fr; } }
 .ds-pv-card {
@@ -1954,6 +2132,101 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ───────── W2 · 下一步行动：看板 + 脑图 ───────── */
+.na { display: flex; flex-direction: column; gap: 14px; }
+.na-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.na-seg { flex: 0 0 auto; }
+.na-print { font-size: 12px; height: 30px; padding: 5px 14px; }
+.na-signals { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--hairline); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); }
+.na-signals__head { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--hairline); }
+.na-sig { display: grid; grid-template-columns: auto auto auto 1fr auto; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--hairline); font-size: 13px; }
+.na-sig:last-child { border-bottom: 0; }
+.na-sig__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--mute); }
+.na-sig--g .na-sig__dot { background: oklch(60% 0.14 150); }
+.na-sig--y .na-sig__dot { background: oklch(74% 0.13 85); }
+.na-sig--r .na-sig__dot { background: oklch(58% 0.19 25); }
+.na-sig__metric { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+.na-sig__val { font-family: var(--mono); font-weight: 700; color: var(--ink); }
+.na-sig__interp { color: var(--ink-2); line-height: 1.5; min-width: 0; }
+.na-sig__tier { font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.na-sig__tier--C { background: oklch(94% 0.05 60); color: oklch(48% 0.12 50); }
+
+.na-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: start; }
+.na-col { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-lg); display: flex; flex-direction: column; min-height: 120px; }
+.na-col__head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--hairline); }
+.na-col__n { font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--surface); border-radius: 999px; padding: 1px 8px; }
+.na-col__drop { display: flex; flex-direction: column; gap: 8px; padding: 10px; flex: 1; transition: background 120ms var(--ease); }
+.na-col__drop.is-over { background: color-mix(in oklch, var(--moss-soft) 60%, var(--surface)); outline: 2px dashed var(--moss); outline-offset: -4px; border-radius: 8px; }
+.na-col__empty { color: var(--mute); font-size: 12px; text-align: center; padding: 16px 4px; border: 1px dashed var(--hairline-strong); border-radius: 8px; }
+.na-add { margin: 0 10px 10px; font-family: inherit; font-size: 12px; color: var(--ink-2); background: transparent; border: 1px dashed var(--hairline-strong); border-radius: 8px; padding: 7px; cursor: pointer; transition: all 120ms var(--ease); }
+.na-add:hover { color: var(--ink); border-color: var(--moss); }
+.na-card { display: flex; gap: 0; background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; cursor: grab; transition: box-shadow 120ms var(--ease), border-color 120ms var(--ease); }
+.na-card:hover { border-color: var(--hairline-strong); box-shadow: 0 2px 10px oklch(20% 0 0 / 0.06); }
+.na-card.is-dragging { opacity: 0.5; cursor: grabbing; }
+.na-card__bar { width: 4px; flex-shrink: 0; background: var(--mute); }
+.na-card--high .na-card__bar { background: oklch(50% 0.18 25); }
+.na-card--medium .na-card__bar { background: oklch(72% 0.13 85); }
+.na-card--low .na-card__bar { background: var(--mute); }
+.na-card__body { padding: 10px 12px; flex: 1; min-width: 0; }
+.na-card__title { font-size: 13.5px; font-weight: 600; line-height: 1.4; color: var(--ink); }
+.na-card__detail { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin-top: 5px; }
+.na-card__foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.na-card__spacer { flex: 1; }
+.na-chip { font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: color-mix(in oklch, var(--moss-soft) 70%, var(--surface)); color: var(--moss); text-decoration: none; cursor: pointer; }
+.na-chip:hover { background: var(--moss); color: oklch(100% 0 0); }
+.na-card__src { font-family: var(--mono); font-size: 10px; color: var(--mute); }
+.na-card__x { background: none; border: none; color: var(--mute); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.na-card__x:hover { color: oklch(55% 0.18 25); }
+
+.na-mind { border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); position: relative; }
+.na-mind__tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; z-index: 2; }
+.na-mind__tools button { font-family: var(--mono); font-size: 12px; min-width: 30px; height: 28px; padding: 0 8px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ink-2); border-radius: 7px; cursor: pointer; }
+.na-mind__tools button:hover { color: var(--ink); border-color: var(--hairline-strong); }
+.na-mind__canvas { overflow: hidden; height: 460px; border-radius: var(--r-lg); }
+#na-mind-svg { width: 100%; height: 100%; display: block; font-family: var(--sans); }
+.na-mind-link { fill: none; stroke: var(--hairline-strong); stroke-width: 1.5px; }
+.na-mind-node rect { fill: var(--surface); stroke: var(--hairline-strong); }
+.na-mind-node--d0 rect { fill: var(--ink); stroke: var(--ink); }
+.na-mind-node--d0 text { fill: oklch(100% 0 0); font-weight: 700; }
+.na-mind-node--d1 rect { fill: color-mix(in oklch, var(--moss-soft) 60%, var(--surface)); stroke: var(--moss); }
+.na-mind-node text { fill: var(--ink); font-size: 12px; }
+.na-foot { font-family: var(--mono); font-size: 11px; color: var(--mute); line-height: 1.5; }
+@media (max-width: 900px) { .na-board { grid-template-columns: 1fr; } }
+
+/* ───────── W3 · 付款验证 ───────── */
+.pay { border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface); padding: 16px; }
+.pay-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.pay-kpi { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; }
+.pay-kpi__v { font-size: 26px; font-weight: 700; line-height: 1.1; color: var(--ink); display: flex; align-items: center; gap: 7px; }
+.pay-cur { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.pay-kpi__l { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em; color: var(--ink-2); margin-top: 6px; text-transform: uppercase; }
+.pay-kpi--sig .pay-kpi__v { font-size: 17px; }
+.pay-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.pay-kpi--g { background: color-mix(in oklch, oklch(60% 0.14 150) 14%, var(--surface)); border-color: color-mix(in oklch, oklch(60% 0.14 150) 40%, var(--hairline)); }
+.pay-kpi--g .pay-dot { background: oklch(60% 0.14 150); }
+.pay-kpi--r { background: color-mix(in oklch, oklch(58% 0.19 25) 12%, var(--surface)); border-color: color-mix(in oklch, oklch(58% 0.19 25) 36%, var(--hairline)); }
+.pay-kpi--r .pay-dot { background: oklch(58% 0.19 25); }
+.pay-interp { margin-top: 12px; color: var(--ink); line-height: 1.6; font-size: 14px; }
+.pay-note { margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--mute); line-height: 1.5; }
+.pay-note code { background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+@media (max-width: 760px) { .pay-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ───────── 打印（看板 + 脑图 贴墙）───────── */
+@media print {
+  @page { margin: 14mm; }
+  .topbar, .nav, .resizer, .panel, .na-toolbar, .na-add, .na-card__x, .seg-group { display: none !important; }
+  html, body, .shell, .main { display: block !important; height: auto !important; overflow: visible !important; background: #fff !important; }
+  .shell { grid-template-columns: 1fr !important; }
+  .stage[hidden] { display: block !important; }   /* print whatever is on screen */
+  .stage:not([data-stage="retro"]) { display: none !important; }
+  .na-board { display: block !important; }
+  .na-col { break-inside: avoid; border: 1px solid #999 !important; margin-bottom: 10px; background: #fff !important; }
+  .na-card { break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; }
+  .na-card__title::before { content: "☐  "; }
+  .na-mind { break-inside: avoid; }
+  .na-mind__canvas { height: auto !important; }
 }
 </style>
 </head>
@@ -2324,15 +2597,120 @@ function aiHandoff(title, prompt) {
     + '<code class="pf-cmd" data-copy="' + esc(prompt) + '">' + esc(prompt) + '</code></div>';
 }
 
-function readDesign() {
+// W4 · 引导式生成门：前置清单 + 说明 + 确认 + 版本 diff 提示（替代裸「生成」按钮）。
+function openGenGate() {
+  const b = DATA.build || {};
+  const decisions = DATA.decisions || [];
+  const dirDec = decisions.find(d => d.type === 'directional' || /方向|direction/i.test(d.decision || ''));
+  const hasDirection = !!dirDec;
+  const dirTitle = dirDec ? (dirDec.decision || '').replace(/^选定方向[：:]\\s*/, '') : '（用 idea 推导的默认方向）';
+  const hypOk = (b.hypothesisCount || 0) >= 2;
+  const designOk = !!b.preset;
+  const nextVer = (b.landingTop || 0) + 1;
+  const presetName = b.preset || 'editorial';
+
+  const row = (ok, label, fixHint) =>
+    '<li class="gate-row gate-row--' + (ok ? 'ok' : 'no') + '">'
+    + '<span class="gate-row__mark">' + (ok ? '✓' : '!') + '</span>'
+    + '<span class="gate-row__txt">' + esc(label) + (ok ? '' : ' <em>' + esc(fixHint) + '</em>') + '</span></li>';
+
+  openPanel('overview');
+  document.getElementById('panel-title').textContent = '生成验证页 · 引导门';
+  const form = document.getElementById('panel-form') || (() => {
+    const pb = document.getElementById('panel-body');
+    const d = document.createElement('div'); d.id = 'panel-form'; pb.appendChild(d); return d;
+  })();
+  form.hidden = false;
+  const prompt = '用 ' + VENTURE + ' 的「' + dirTitle + '」方向 + 当前 design_direction.json 设计，生成一个新的 fake-door landing 验证页（landing/v' + nextVer + '），出海默认英文。生成后在 v' + nextVer + ' 顶部用注释标出相对 v' + (b.landingTop || '—') + ' 改了什么（方向 / hero 版式 / 文案）。';
+  form.innerHTML =
+    '<div class="gate">'
+    + '<ul class="gate-list">'
+    + row(hasDirection, hasDirection ? '已选方向：' + dirTitle : '未选方向', '可在「产品」阶段选一个，或用默认')
+    + row(hypOk, '假设 ' + (b.hypothesisCount || 0) + ' 条' + (hypOk ? '' : '（建议 ≥ 2）'), '先在「想法」阶段落 2 条假设')
+    + row(designOk, '设计方向已定：' + presetName + ' preset', '先选设计方向')
+    + '</ul>'
+    + '<div class="gate-note">这会生成一个 <b>fake-door 验证页</b> —— 不是成品，是测「有没有人愿意买」的仪器。生成后你可以调样式、部署、收数据。</div>'
+    + '<div class="gate-confirm">将生成 <b>v' + nextVer + '</b>：方向《' + esc(dirTitle) + '》· 设计《' + esc(presetName) + '》· 语言《English（出海默认）》</div>'
+    + '<div class="pf-hint"><p>实际生成由 AI 宿主完成（LLM 写文案/结构）。把下面这句发给你的 AI：</p>'
+    + '<code class="pf-cmd" data-copy="' + esc(prompt) + '">' + esc(prompt) + '</code></div>'
+    + '<div class="gate-diff">生成后回到右侧 iframe 预览；v' + nextVer + ' vs v' + (b.landingTop || '—') + ' 的差异会标在新页顶部。</div>'
+    + '</div>';
+  if (LUMI.interactive && hasDirection && dirDec && dirDec.related && dirDec.related[0]) {
+    // best-effort: re-affirm the direction selection is on record (no-op if already)
+  }
+  form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── W4 · live re-theme: read the design panel into a canonical theme object ──
+function readTheme() {
   const ds = document.querySelector('[data-ds]'); if (!ds) return null;
-  const dial = (n) => Number((ds.querySelector('[data-ds-dial="' + n + '"]') || {}).value || 0);
+  const v = (sel) => { const el = ds.querySelector(sel); return el ? el.value : undefined; };
+  const radius = Number(v('[data-ds-radius]') || 4);
+  const space = Number(v('[data-ds-space]') || 100) / 100;
   return {
-    preset: (ds.querySelector('[data-ds-preset]') || {}).value,
-    radius: Number((ds.querySelector('[data-ds-radius]') || {}).value || 14),
-    dials: { variance: dial('variance'), motion: dial('motion'), density: dial('density') },
-    palette: { accent: (ds.querySelector('[data-ds-accent]') || {}).value },
+    preset: v('[data-ds-preset]'),
+    accent: v('[data-ds-tok="accent"]'),
+    accent2: v('[data-ds-tok="accent2"]'),
+    surface: ds.dataset.surfaceLive || ds.dataset.surface,
+    ink: ds.dataset.ink,
+    ink2: ds.dataset.ink2,
+    radius: radius,
+    spaceScale: space,
+    fontHeading: v('[data-ds-tok="fontHeading"]'),
+    fontBody: v('[data-ds-tok="fontBody"]'),
+    hero: (ds.querySelector('[data-ds-layout="hero"]') || {}).value,
+    button: (ds.querySelector('[data-ds-layout="button"]') || {}).value,
   };
+}
+// Apply a canonical token to the live landing iframe (same-origin under the daemon).
+function dsFrameDoc() {
+  const f = document.getElementById('ds-frame');
+  try { return f && f.contentDocument ? f.contentDocument : null; } catch (_) { return null; }
+}
+function dsSetVar(name, val) {
+  const doc = dsFrameDoc();
+  if (doc && doc.documentElement) doc.documentElement.style.setProperty(name, val);
+}
+function dsSetBodyAttr(attr, val) {
+  const doc = dsFrameDoc();
+  if (doc && doc.body) doc.body.setAttribute(attr, val);
+}
+function dsSwatch(tok, val) {
+  const sw = document.querySelector('.ds-sw[data-sw="' + tok + '"]');
+  if (sw) sw.style.background = val;
+}
+// Push the whole current theme onto the iframe (used on iframe load + preset switch).
+function dsPushAll() {
+  const t = readTheme(); if (!t) return;
+  if (t.accent) dsSetVar('--accent', t.accent);
+  if (t.accent2) dsSetVar('--accent-2', t.accent2);
+  if (t.surface) dsSetVar('--surface', t.surface);
+  if (t.ink) dsSetVar('--ink', t.ink);
+  if (t.ink2) dsSetVar('--ink-2', t.ink2);
+  dsSetVar('--radius', t.radius + 'px');
+  dsSetVar('--space-scale', String(t.spaceScale));
+  if (t.fontHeading) dsSetVar('--font-heading', t.fontHeading);
+  if (t.fontBody) dsSetVar('--font-body', t.fontBody);
+  if (t.hero) dsSetBodyAttr('data-hero', t.hero);
+  if (t.button) dsSetBodyAttr('data-button', t.button);
+}
+const DS_PRESETS = {
+  editorial:   { accent: 'oklch(45% 0.15 25)',  accent2: 'oklch(70% 0.12 250)', radius: 2,  space: 110, hero: 'editorial', button: 'solid' },
+  minimalist:  { accent: 'oklch(42% 0.16 28)',  accent2: 'oklch(66% 0.10 250)', radius: 6,  space: 100, hero: 'split',     button: 'outline' },
+  brutalist:   { accent: 'oklch(60% 0.22 30)',  accent2: 'oklch(55% 0.20 280)', radius: 0,  space: 95,  hero: 'split',     button: 'solid' },
+  soft:        { accent: 'oklch(62% 0.13 200)', accent2: 'oklch(75% 0.10 320)', radius: 18, space: 120, hero: 'centered',  button: 'pill' },
+};
+function dsApplyPreset(name) {
+  const p = DS_PRESETS[name]; if (!p) return;
+  const ds = document.querySelector('[data-ds]'); if (!ds) return;
+  const set = (sel, val) => { const el = ds.querySelector(sel); if (el != null && val != null) el.value = val; };
+  set('[data-ds-tok="accent"]', p.accent); dsSwatch('accent', p.accent);
+  set('[data-ds-tok="accent2"]', p.accent2); dsSwatch('accent2', p.accent2);
+  set('[data-ds-radius]', p.radius); const ro = document.querySelector('[data-ds-out="radius"]'); if (ro) ro.textContent = p.radius + 'px';
+  set('[data-ds-space]', p.space); const so = document.querySelector('[data-ds-out="space"]'); if (so) so.textContent = (p.space / 100) + '×';
+  set('[data-ds-layout="hero"]', p.hero);
+  set('[data-ds-layout="button"]', p.button);
+  dsPushAll();
 }
 
 function handleAction(act, id, el) {
@@ -2347,13 +2725,31 @@ function handleAction(act, id, el) {
     return;
   }
   if (act === 'design-apply') {
-    const d = readDesign(); if (!d) return;
-    if (!LUMI.interactive) return staticHint('应用设计', '把 ' + VENTURE + ' 的设计方向更新为 ' + JSON.stringify(d));
-    lumiPost('/api/design/adjust', { design: d }).then(reloadSoon).catch(e => toast('失败：' + e.message, 'warn'));
+    const theme = readTheme(); if (!theme) return;
+    if (!LUMI.interactive) return staticHint('应用设计', '把 ' + VENTURE + ' 的设计 token 写回 design_direction.json + theme.css：' + JSON.stringify(theme));
+    const btn = el; if (btn) { btn.disabled = true; btn.textContent = '写入中…'; }
+    lumiPost('/api/design/apply', { theme })
+      .then((r) => { toast(r.themeCssWritten ? '✓ 已写回 theme.css，刷新中…' : '✓ 已写回 design_direction.json', 'ok'); setTimeout(() => location.reload(), 700); })
+      .catch(e => { toast('失败：' + e.message, 'warn'); if (btn) { btn.disabled = false; btn.textContent = '应用设计（确定性写回）'; } });
     return;
   }
-  if (act === 'design-gen') {
-    aiHandoff('用当前设计生成 Landing', '用 ' + VENTURE + ' 当前的 design_direction.json 设计方向，生成一个新的 landing 验证页（landing/v<n+1>），出海默认英文');
+  if (act === 'design-gen-gate') { openGenGate(); return; }
+  // ── W2 · next-actions kanban card ops ──
+  if (act === 'na-print') { window.print(); return; }
+  if (act === 'na-del') {
+    if (!LUMI.interactive) return staticHint('删除行动卡 ' + id, '删除 ' + VENTURE + ' 的下一步行动 ' + id);
+    if (!confirm('删除这条行动？')) return;
+    lumiPost('/api/next-action/delete', { id }).then(reloadSoon).catch(e => toast('失败：' + e.message, 'warn'));
+    return;
+  }
+  if (act === 'na-add') {
+    const col = (el && el.dataset.col) || 'to_validate';
+    if (!LUMI.interactive) return staticHint('加行动卡', '给 ' + VENTURE + ' 的「' + col + '」加一条下一步行动');
+    showForm('加一条行动 · ' + col,
+      fieldRow('标题', '<input name="title" required placeholder="现在具体做什么？">')
+      + fieldRow('说明', '<textarea name="detail" rows="2" placeholder="为什么是它 / 预期验证什么 / 第一步"></textarea>')
+      + fieldRow('优先级', selectFor('priority', 'medium', [['high','高'],['medium','中'],['low','低']])),
+      async (fd) => { await lumiPost('/api/next-action/add', { task: { ...fd, column: col } }); reloadSoon(); });
     return;
   }
   if (act === 'hyp-edit') {
@@ -2415,6 +2811,13 @@ function switchStage(stage) {
 
 // Initial panel
 openPanel('overview');
+// W2: wire kanban drag-and-drop (mindmap renders lazily on first toggle)
+initNextActions();
+// Deep-link to a stage via #stage=<name> (shareable links + deck screenshots).
+(function () {
+  const m = (location.hash || '').match(/stage=([a-z]+)/);
+  if (m && STAGE_LABELS[m[1]]) { switchStage(m[1]); if (m[1] === 'retro') { try { renderMindmap(); } catch (_) {} } }
+})();
 
 // Delegated click
 document.addEventListener('click', (e) => {
@@ -2422,6 +2825,16 @@ document.addEventListener('click', (e) => {
   const actBtn = e.target.closest('[data-act]');
   if (actBtn) {
     handleAction(actBtn.dataset.act, actBtn.dataset.id, actBtn);
+    return;
+  }
+  // Mindmap zoom controls
+  const mindBtn = e.target.closest('[data-mind]');
+  if (mindBtn) {
+    const op = mindBtn.dataset.mind;
+    if (op === 'in') _mindZoom = Math.min(2.4, _mindZoom + 0.15);
+    else if (op === 'out') _mindZoom = Math.max(0.4, _mindZoom - 0.15);
+    else _mindZoom = 1;
+    applyMindZoom();
     return;
   }
   // Stage nav (left rail) OR middle progress cells — same behavior
@@ -2478,24 +2891,170 @@ document.addEventListener('click', (e) => {
   if (segBtn) {
     const group = segBtn.parentElement;
     group.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
+    // next-actions view toggle (看板 / 脑图)
+    const view = segBtn.dataset.naView;
+    if (view) {
+      const na = segBtn.closest('[data-na]');
+      if (na) na.querySelectorAll('[data-na-pane]').forEach(p => { p.hidden = p.dataset.naPane !== view; });
+      if (view === 'mindmap') renderMindmap();
+    }
     return;
   }
 });
 
-// Live design-system preview: sliders update CSS vars + output labels in real time.
+// ── W2 · next-actions: native HTML5 drag-and-drop + offline mindmap ──
+let naDragId = null;
+function initNextActions() {
+  const na = document.querySelector('[data-na]');
+  if (!na) return;
+  na.querySelectorAll('.na-card').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      naDragId = card.dataset.id;
+      card.classList.add('is-dragging');
+      try { e.dataTransfer.setData('text/plain', card.dataset.id); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+    });
+    card.addEventListener('dragend', () => { card.classList.remove('is-dragging'); naDragId = null; });
+  });
+  na.querySelectorAll('.na-col__drop').forEach(drop => {
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('is-over'); try { e.dataTransfer.dropEffect = 'move'; } catch (_) {} });
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('is-over');
+      const id = naDragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      const col = drop.dataset.col;
+      if (!id || !col) return;
+      const card = na.querySelector('.na-card[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+      if (card && card.dataset.col === col) return; // no-op same column
+      // optimistic DOM move
+      if (card) { const empty = drop.querySelector('.na-col__empty'); if (empty) empty.remove(); drop.appendChild(card); card.dataset.col = col; }
+      if (!LUMI.interactive) { staticHint('移动行动卡', '把 ' + VENTURE + ' 的行动 ' + id + ' 移到「' + col + '」'); return; }
+      lumiPost('/api/next-action/move', { id, column: col })
+        .then(() => toast('已移动', 'ok'))
+        .catch(e => { toast('移动失败：' + e.message, 'warn'); setTimeout(() => location.reload(), 400); });
+    });
+  });
+}
+
+// Offline mindmap: parse mindmap_md (heading + list outline) → tree → horizontal SVG layout.
+// Local, zero-dependency, works under file:// and offline (no CDN, no markmap/d3).
+let _mindZoom = 1, _mindRendered = false;
+function parseOutline(md) {
+  const root = { text: (md.match(/^#\\s+(.*)$/m) || [null, '本 venture'])[1], children: [], depth: 0 };
+  const stack = [{ node: root, level: 0 }];
+  md.split(/\\r?\\n/).forEach(raw => {
+    const line = raw.replace(/\\s+$/, '');
+    let level = null, text = null;
+    const h = line.match(/^(#{2,6})\\s+(.*)$/);
+    const li = line.match(/^(\\s*)[-*]\\s+(.*)$/);
+    if (h) { level = h[1].length - 1; text = h[2]; }            // ## → level 1, ### → 2 ...
+    else if (li) { level = 2 + Math.floor(li[1].length / 2); text = li[2]; }
+    else return;
+    if (!text) return;
+    while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+    const parent = stack[stack.length - 1].node;
+    const node = { text, children: [], depth: level };
+    parent.children.push(node);
+    stack.push({ node, level });
+  });
+  return root;
+}
+function renderMindmap() {
+  const svg = document.getElementById('na-mind-svg');
+  if (!svg || !DATA.nextActions || !DATA.nextActions.mindmap_md) return;
+  if (_mindRendered) return;
+  _mindRendered = true;
+  const root = parseOutline(DATA.nextActions.mindmap_md);
+  const COLX = 230, ROWH = 30, PADX = 24, PADY = 24;
+  let leafY = 0;
+  const nodes = [], links = [];
+  (function layout(n, depth, parent) {
+    n.x = PADX + depth * COLX;
+    if (!n.children.length) { n.y = PADY + (leafY++) * ROWH; }
+    else { n.children.forEach(c => layout(c, depth + 1, n)); n.y = (n.children[0].y + n.children[n.children.length - 1].y) / 2; }
+    nodes.push({ n, depth });
+    if (parent) links.push({ a: parent, b: n });
+  })(root, 0, null);
+  const maxX = Math.max(...nodes.map(o => o.n.x)) + COLX;
+  const maxY = Math.max(PADY + leafY * ROWH, ...nodes.map(o => o.n.y)) + PADY;
+  const NS = 'http://www.w3.org/2000/svg';
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('id', 'na-mind-g');
+  svg.appendChild(g);
+  svg.setAttribute('viewBox', '0 0 ' + maxX + ' ' + maxY);
+  for (const { a, b } of links) {
+    const p = document.createElementNS(NS, 'path');
+    const x1 = a.x + nodeW(a), y1 = a.y, x2 = b.x, y2 = b.y, mx = (x1 + x2) / 2;
+    p.setAttribute('d', 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2);
+    p.setAttribute('class', 'na-mind-link');
+    g.appendChild(p);
+  }
+  for (const { n, depth } of nodes) {
+    const grp = document.createElementNS(NS, 'g');
+    grp.setAttribute('class', 'na-mind-node na-mind-node--d' + Math.min(depth, 2));
+    grp.setAttribute('transform', 'translate(' + n.x + ',' + (n.y - 11) + ')');
+    const w = nodeW(n);
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('width', w); rect.setAttribute('height', 22); rect.setAttribute('rx', 6);
+    grp.appendChild(rect);
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', 9); t.setAttribute('y', 15);
+    t.textContent = clip(n.text, 24);
+    grp.appendChild(t);
+    g.appendChild(grp);
+  }
+  applyMindZoom();
+  function nodeW(n) { return Math.min(210, 22 + clip(n.text, 24).length * 8.2); }
+  function clip(s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+}
+function applyMindZoom() {
+  const g = document.getElementById('na-mind-g');
+  if (g) g.setAttribute('transform', 'scale(' + _mindZoom + ')');
+}
+
+// W4 · live re-theme: dials write canonical CSS vars onto the real landing iframe in real time.
 document.addEventListener('input', (e) => {
   const t = e.target;
   if (!t || !t.dataset) return;
-  const preview = document.getElementById('ds-preview');
+  const ds = t.closest('[data-ds]');
   if (t.hasAttribute('data-ds-radius')) {
-    if (preview) preview.style.setProperty('--ds-radius', t.value + 'px');
+    dsSetVar('--radius', t.value + 'px');
     const out = document.querySelector('[data-ds-out="radius"]'); if (out) out.textContent = t.value + 'px';
-  } else if (t.hasAttribute('data-ds-accent')) {
-    if (preview) preview.style.setProperty('--ds-accent', t.value);
-  } else if (t.hasAttribute('data-ds-dial')) {
-    const out = document.querySelector('[data-ds-out="' + t.dataset.dsDial + '"]'); if (out) out.textContent = t.value;
+  } else if (t.hasAttribute('data-ds-space')) {
+    dsSetVar('--space-scale', String(Number(t.value) / 100));
+    const out = document.querySelector('[data-ds-out="space"]'); if (out) out.textContent = (Number(t.value) / 100) + '×';
+  } else if (t.hasAttribute('data-ds-surfacehue')) {
+    const hue = Number(t.value);
+    const surf = 'oklch(97% 0.012 ' + hue + ')';
+    if (ds) ds.dataset.surfaceLive = surf;
+    dsSetVar('--surface', surf);
+    const out = document.querySelector('[data-ds-out="surfacehue"]'); if (out) out.textContent = hue < 150 ? '暖 ' + hue : '冷 ' + hue;
+  } else if (t.dataset.dsTok) {
+    const tok = t.dataset.dsTok;
+    const map = { accent: '--accent', accent2: '--accent-2', fontHeading: '--font-heading', fontBody: '--font-body' };
+    if (map[tok]) dsSetVar(map[tok], t.value);
+    if (tok === 'accent' || tok === 'accent2') dsSwatch(tok, t.value);
+  } else if (t.dataset.dsLayout) {
+    dsSetBodyAttr('data-' + t.dataset.dsLayout, t.value);
+  } else if (t.hasAttribute('data-ds-preset')) {
+    dsApplyPreset(t.value);
   }
 });
+// also respond to <select> change (input fires on most browsers, change is the reliable one)
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (!t || !t.dataset) return;
+  if (t.hasAttribute('data-ds-preset')) dsApplyPreset(t.value);
+  else if (t.dataset.dsLayout) dsSetBodyAttr('data-' + t.dataset.dsLayout, t.value);
+  else if (t.dataset.dsTok === 'fontHeading') dsSetVar('--font-heading', t.value);
+  else if (t.dataset.dsTok === 'fontBody') dsSetVar('--font-body', t.value);
+});
+// when the landing iframe finishes loading, push the current theme so preview matches the panel.
+(function bindDsFrame() {
+  const f = document.getElementById('ds-frame');
+  if (f) f.addEventListener('load', () => { try { dsPushAll(); } catch (_) {} });
+})();
 
 // Keyboard activation for role=button stage cells / toggles
 document.addEventListener('keydown', (e) => {

@@ -1,0 +1,84 @@
+# R6 信号基线 — 量化判定一个指标是 死/弱/正常/强
+#
+# 共用：lumilab-metrics（指标解读）+ lumilab-next-actions（下一步行动决策引擎）。
+# 置信层（tier）：
+#   A = 高置信，海外公开基准，可直接对标
+#   B = 中置信，公开但样本/口径有偏差
+#   C = 低置信，国内社媒经验值 —— 引用时必须附「经验基线，以自测为准」
+#
+# 每个指标给 dead/weak/normal/strong（可选 excellent）阈值 + tier + src 出处。
+# 判定规则（next-actions / metrics 共用）：
+#   value < dead              → level=dead
+#   dead  <= value < normal   → level=weak
+#   normal<= value < strong   → level=normal
+#   value >= strong           → level=strong（>=excellent → excellent）
+
+landing_cvr:
+  dead: 0.02
+  weak: 0.04
+  normal: 0.066
+  strong: 0.10
+  excellent: 0.20
+  tier: A
+  src: "Unbounce Conversion Benchmark 41k pages Q4'24"
+  label: "落地页转化率（访问→目标动作）"
+
+email_capture:
+  dead: 0.01
+  weak: 0.015
+  normal: 0.0195
+  strong: 0.04
+  tier: A
+  src: "BDOW! email capture benchmark"
+  label: "邮箱留资率（访问→留邮箱）"
+
+cta_click_rate:
+  dead: 0.02
+  weak: 0.04
+  normal: 0.066
+  strong: 0.12
+  tier: B
+  src: "对标 landing_cvr（CTA 点击 ~ 微转化）"
+  label: "CTA 点击率（访问→点购买/试用）"
+
+cold_email_reply:
+  dead: 0.01
+  weak: 0.03
+  normal: 0.051
+  strong: 0.10
+  tier: B
+  src: "Belkins / Instantly 2024-25 cold outreach"
+  label: "冷启邮件回复率"
+
+# 付款：任意真实付款即强信号；付款率对标 CVR 但低一个量级属正常
+payment_any:
+  tier: A
+  note: "≥1 笔已付 = 真实需求信号（强于任何留资 / 点赞 / 收藏）"
+  label: "是否有真实付款"
+
+payment_rate:
+  dead: 0.0
+  weak: 0.005
+  normal: 0.01
+  strong: 0.02
+  tier: A
+  note: "付款数 / UV；比邮箱留资率低一个量级属正常"
+  label: "付费转化率（访问→付款）"
+
+# C 层（国内社媒，经验值，必须标注「以自测为准」）
+xhs_interaction:
+  dead: 0.01
+  weak: 0.03
+  normal: 0.05
+  strong: 0.08
+  tier: C
+  src: "经验值，需自测"
+  label: "小红书互动率（收藏+点赞/阅读）"
+
+wechat_moments_dm:
+  weak: 1
+  normal: 3
+  strong: 6
+  tier: C
+  src: "经验值，需自测（绝对条数，不是比率）"
+  label: "朋友圈主动私信「在哪买」条数"

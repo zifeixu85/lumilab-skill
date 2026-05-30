@@ -1,0 +1,15 @@
+{
+  "count_paid": 4,
+  "gross_amount": 49600,
+  "currency": "cny",
+  "mode": "test",
+  "last_synced": "2026-05-29T12:00:00Z",
+  "source": "mock",
+  "sessions": [
+    { "id": "cs_test_a1", "amount": 9900, "status": "paid", "created": 1748400000 },
+    { "id": "cs_test_a2", "amount": 9900, "status": "paid", "created": 1748313600 },
+    { "id": "cs_test_a3", "amount": 9900, "status": "paid", "created": 1748313600 },
+    { "id": "cs_test_a4", "amount": 19900, "status": "paid", "created": 1748227200 },
+    { "id": "cs_test_b1", "amount": 9900, "status": "open", "created": 1748400000 }
+  ]
+}

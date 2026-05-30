@@ -19,7 +19,7 @@
  */
 
 import { spawn, spawnSync } from 'child_process';
-import { existsSync, readdirSync, statSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, statSync, mkdirSync, writeFileSync, readFileSync, unlinkSync, openSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { homedir } from 'os';
@@ -29,6 +29,11 @@ const LUMILAB_HOME = process.env.LUMILAB_HOME ?? join(homedir(), '.lumilab');
 
 // venture 数据永远在 ~/.lumilab/data/ventures/ —— 稳定、共享、跟谁调用无关。
 const VENTURES = join(LUMILAB_HOME, 'data', 'ventures');
+
+// 常驻 Studio 守护进程运行态（W1）
+const RUN_DIR = join(LUMILAB_HOME, 'run');
+const RUN_FILE = join(RUN_DIR, 'studio.json');
+const STUDIO_LOG = join(RUN_DIR, 'studio.log');
 
 // skill 脚本目录：自动探测。
 //   1) 显式 LUMILAB_SKILLS_DIR
@@ -167,6 +172,112 @@ async function cmdRender(venture?: string) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+// ── 常驻 Studio 守护进程（W1）─────────────────────────────────────
+interface DaemonInfo { pid: number; port: number; host?: string; version?: string; started_at?: string; }
+
+function readRunFile(): DaemonInfo | null {
+  if (!existsSync(RUN_FILE)) return null;
+  try { return JSON.parse(readFileSync(RUN_FILE, 'utf-8')); } catch { return null; }
+}
+function pidAlive(pid: number): boolean {
+  try { process.kill(pid, 0); return true; } catch { return false; }
+}
+async function ping(port: number): Promise<DaemonInfo | null> {
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/api/ping`, { signal: AbortSignal.timeout(800) });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j && j.ok ? j : null;
+  } catch { return null; }
+}
+// Returns a live daemon's info, cleaning up a stale run-file if the process is gone.
+async function findDaemon(): Promise<DaemonInfo | null> {
+  const info = readRunFile();
+  if (!info) return null;
+  if (!pidAlive(info.pid)) { try { unlinkSync(RUN_FILE); } catch {} return null; }
+  const p = await ping(info.port);
+  if (!p || p.pid !== info.pid) { return pidAlive(info.pid) ? info : (() => { try { unlinkSync(RUN_FILE); } catch {} return null; })(); }
+  return info;
+}
+function daemonUrl(info: DaemonInfo, path = '/'): string {
+  return `http://127.0.0.1:${info.port}${path}`;
+}
+function openBrowser(url: string): void {
+  const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+  try { spawnSync(opener, [url], { stdio: 'ignore' }); } catch {}
+}
+
+async function startDaemon(): Promise<DaemonInfo | null> {
+  const existing = await findDaemon();
+  if (existing) return existing;
+  ensureLumilabHome();
+  mkdirSync(RUN_DIR, { recursive: true });
+  const logFd = openSync(STUDIO_LOG, 'a');
+  const serveTs = join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts');
+  const child = spawn('bun', ['run', serveTs, '--daemon'], {
+    detached: true,
+    stdio: ['ignore', logFd, logFd],
+    env: { ...process.env, LUMILAB_HOME, LUMILAB_CHANNEL: 'served' },
+  });
+  child.unref();
+  // poll ping up to ~3s
+  for (let i = 0; i < 30; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    const info = readRunFile();
+    if (info && (await ping(info.port))) return info;
+  }
+  return null;
+}
+
+async function cmdServe(action?: string) {
+  switch (action ?? 'status') {
+    case 'start': {
+      const info = await startDaemon();
+      if (!info) { console.error('✗ 守护进程启动失败，看日志：' + STUDIO_LOG); process.exit(1); }
+      console.log('✓ 常驻 Studio 运行中 · ' + daemonUrl(info));
+      console.log('  改任意 venture 数据 → 已打开的页面自动刷新。停止：lumilab serve stop');
+      break;
+    }
+    case 'stop': {
+      const info = readRunFile();
+      if (!info) { console.log('（没有运行中的守护进程）'); break; }
+      try { process.kill(info.pid, 'SIGTERM'); } catch {}
+      // give it a beat to clean its own run-file; force-clear if needed
+      await new Promise((r) => setTimeout(r, 400));
+      if (pidAlive(info.pid)) { try { process.kill(info.pid, 'SIGKILL'); } catch {} }
+      try { if (existsSync(RUN_FILE)) unlinkSync(RUN_FILE); } catch {}
+      console.log('✓ 已停止守护进程 (pid ' + info.pid + ')');
+      break;
+    }
+    case 'status': {
+      const info = await findDaemon();
+      if (!info) { console.log('● 守护进程：未运行（lumilab serve start 启动）'); break; }
+      const since = info.started_at ? new Date(info.started_at) : null;
+      const mins = since ? Math.round((Date.now() - since.getTime()) / 60000) : '?';
+      console.log('● 守护进程：运行中');
+      console.log('  pid ' + info.pid + ' · port ' + info.port + ' · 已运行 ' + mins + ' 分钟');
+      console.log('  ' + daemonUrl(info));
+      break;
+    }
+    case 'restart': {
+      await cmdServe('stop');
+      await new Promise((r) => setTimeout(r, 300));
+      await cmdServe('start');
+      break;
+    }
+    case 'open': {
+      const info = (await findDaemon()) ?? (await startDaemon());
+      if (!info) { console.error('✗ 无法启动守护进程，看日志：' + STUDIO_LOG); process.exit(1); }
+      openBrowser(daemonUrl(info));
+      console.log('✓ 已在浏览器打开 · ' + daemonUrl(info));
+      break;
+    }
+    default:
+      console.error('用法：lumilab serve start|stop|status|restart|open');
+      process.exit(1);
+  }
+}
+
 async function cmdStudio(venture?: string, ...args: string[]) {
   const v = venture || getCurrentVenture();
   if (!v) { console.error('No venture found.'); process.exit(1); }
@@ -176,6 +287,14 @@ async function cmdStudio(venture?: string, ...args: string[]) {
     if (!existsSync(indexPath)) { console.log('Studio not rendered yet, rendering...'); await cmdRender(v); }
     console.log(`Opening (read-only): file://${indexPath}`);
     spawnSync('open', [indexPath]);
+    return;
+  }
+  // 守护进程在跑 → 直接开它的 URL（不另起 server，避免端口竞争）。
+  const daemon = await findDaemon();
+  if (daemon) {
+    const url = daemonUrl(daemon, '/ventures/' + v + '/studio/index.html');
+    openBrowser(url);
+    console.log('✓ 常驻 Studio · ' + url);
     return;
   }
   // 默认：起本地交互 server（编辑/迭代/删除假设·决策真働），Ctrl+C 退出。
@@ -216,6 +335,14 @@ async function cmdHome(...args: string[]) {
     if (result.status !== 0) process.exit(result.status ?? 1);
     return;
   }
+  // 守护进程在跑 → 直接开它的 home（不另起 server）。
+  const daemon = await findDaemon();
+  if (daemon) {
+    const url = daemonUrl(daemon, '/_home/home.html');
+    openBrowser(url);
+    console.log('✓ 常驻 Studio · ' + url);
+    return;
+  }
   // 默认：起本地交互 server（home + 所有 venture studio 同一服务，点进 venture 可编辑），Ctrl+C 退出。
   const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts'), '--home'], {
     stdio: 'inherit',
@@ -251,6 +378,29 @@ async function cmdRetro(venture?: string) {
     env: { ...process.env, LUMILAB_HOME },
   });
   if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+async function cmdPayment(action?: string, ...args: string[]) {
+  ensureLumilabHome();
+  const dir = join(SKILLS, 'lumilab-payment-link', 'scripts');
+  if (action === 'sync') {
+    const result = spawnSync('bun', ['run', join(dir, 'sync.ts'), ...args], {
+      stdio: 'inherit', env: { ...process.env, LUMILAB_HOME },
+    });
+    if (result.status !== 0) process.exit(result.status ?? 1);
+    return;
+  }
+  if (action === 'create') {
+    const result = spawnSync('bun', ['run', join(dir, 'create.ts'), ...args], {
+      stdio: 'inherit', env: { ...process.env, LUMILAB_HOME },
+    });
+    if (result.status !== 0) process.exit(result.status ?? 1);
+    return;
+  }
+  console.error('用法：lumilab payment <create|sync> [...]');
+  console.error('  create --venture <slug> --name "<product>" --price <分> [--currency cny]');
+  console.error('  sync <slug> [--mock]    # 只读回读 Stripe 付款 → payment/summary.json');
+  process.exit(1);
 }
 
 async function cmdSecrets(action?: string, ...args: string[]) {
@@ -364,7 +514,8 @@ Usage:
   lumilab new "<idea>"               只建 venture 目录（手动流程）
   lumilab demo                       装载自指 demo venture（lumilab-meta）—— 新手参考样本
   lumilab list                       列出所有 venture
-  lumilab studio [venture]           浏览器打开 Studio
+  lumilab studio [venture]           浏览器打开 Studio（守护进程在跑则直接开它）
+  lumilab serve <start|stop|status|restart|open>  常驻 Studio 守护进程（固定端口，文件变更自动刷新）
   lumilab render [venture]           重新渲染 Studio HTML
 
   lumilab design-direction [venture] 浏览器选设计方向（4 样本 + 3 旋钮 + Live Preview）
@@ -373,6 +524,8 @@ Usage:
   lumilab config                     浏览器打开 6 步首次引导页 / Setup Wizard
 
   lumilab retro [venture]            周复盘四桶交互页（强 / 中 / 弱 / 已迭代）
+  lumilab payment create [...]       创建 Stripe 验证用 payment link（test mode）
+  lumilab payment sync <venture>     只读回读真实付款 → 验证信号（--mock 写样例）
   lumilab research-xhs "<kw>" [...]  小红书抓笔记（需 TIKHUB_API_KEY，无 key 自动 mock）
   lumilab research-web  "<q>"  [...] Exa Web 搜（需 EXA_API_KEY，无 key 自动 mock）
   lumilab secrets <action> [...]     keychain CLI: which|get|set|del|list|migrate-plaintext
@@ -398,11 +551,13 @@ switch (cmd) {
   case 'list': await cmdList(); break;
   case 'render': await cmdRender(args[0]); break;
   case 'studio': await cmdStudio(args[0], ...args.slice(1)); break;
+  case 'serve': await cmdServe(args[0]); break;
   case 'design-direction': await cmdDesignDirection(args[0]); break;
   case 'deploy': await cmdDeploy(args[0], ...args.slice(1)); break;
   case 'manage': await cmdManage(); break;
   case 'config': await cmdConfig(); break;
   case 'retro': await cmdRetro(args[0]); break;
+  case 'payment': await cmdPayment(args[0], ...args.slice(1)); break;
   case 'research-xhs': await cmdResearchXhs(args); break;
   case 'research-web': await cmdResearchWeb(args); break;
   case 'secrets': await cmdSecrets(args[0], ...args.slice(1)); break;

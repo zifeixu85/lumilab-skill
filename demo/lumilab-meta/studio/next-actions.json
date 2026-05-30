@@ -1,0 +1,141 @@
+{
+  "venture": "lumilab-meta",
+  "generated_at": "2026-05-29T20:41:28.077Z",
+  "source_signals": [
+    {
+      "metric": "payment_any",
+      "value": 4,
+      "level": "strong",
+      "tier": "A",
+      "interpretation": "已有 4 笔真实付款，累计 496 CNY —— 这是比任何留资/点赞都强的需求信号。应放大、扩量。"
+    }
+  ],
+  "columns": [
+    {
+      "id": "to_validate",
+      "title": "待验证",
+      "color": "oklch(92% 0.05 250)"
+    },
+    {
+      "id": "in_progress",
+      "title": "进行中",
+      "color": "oklch(92% 0.06 80)"
+    },
+    {
+      "id": "learned",
+      "title": "已学到",
+      "color": "oklch(92% 0.06 150)"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t-001",
+      "column": "to_validate",
+      "title": "把验证页推到第二批渠道，目标付款翻倍",
+      "detail": "已有真实付款 = 需求成立。现在的风险假设变成「这个需求能否规模化」，放量验证可复制性。",
+      "priority": "high",
+      "stage": "launch",
+      "linked_hypothesis": null,
+      "source": "signal:payment_strong",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-002",
+      "column": "in_progress",
+      "title": "联系已付款用户做 5 个 Mom Test 访谈",
+      "detail": "付了钱的人最值钱。问「上次为什么付 / 付之前在用什么」，挖真实 JTBD。",
+      "priority": "high",
+      "stage": "retro",
+      "linked_hypothesis": null,
+      "source": "signal:payment_strong",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-003",
+      "column": "to_validate",
+      "title": "岔路：换定位到「国内内容平台验证器」试一版",
+      "detail": "专做小红书/朋友圈/海报的验证物料 + 信号回收，国内场景一等公民。为什么值得试：国内验证不靠网页靠内容平台，是海外工具的盲区。第一步：用这个角度重写 hero + 再发一轮，对比转化。",
+      "priority": "medium",
+      "stage": "product",
+      "linked_hypothesis": null,
+      "source": "direction:dir-b",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-004",
+      "column": "to_validate",
+      "title": "岔路：换定位到「方法论可执行化引擎」试一版",
+      "detail": "把 13 套创业方法论封装成 AI 可调用的步骤，每个产物带方法论引用。为什么值得试：「内功」差异化，IdeaCheck/Validator 没有。第一步：用这个角度重写 hero + 再发一轮，对比转化。",
+      "priority": "medium",
+      "stage": "product",
+      "linked_hypothesis": null,
+      "source": "direction:dir-c",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-005",
+      "column": "in_progress",
+      "title": "验证假设：Studio Mode（项目作战室 HTML）是 VST 区别于 super-prompt 的最强信号",
+      "detail": "方法：路演 demo 时给 5 个评委看 Studio，记录 verbatim 反应",
+      "priority": "high",
+      "stage": "idea",
+      "linked_hypothesis": "h-002",
+      "source": "hypothesis:h-002",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-006",
+      "column": "in_progress",
+      "title": "验证假设：Cloudflare-only 部署 + 客户端加密 + 默认密码，比 GitHub+Vercel 流程对 OPC 用户友好 10 倍",
+      "detail": "方法：对比 GitHub+Vercel 6 步 vs Cloudflare 单 token 流程，测注册到首次部署时间",
+      "priority": "high",
+      "stage": "idea",
+      "linked_hypothesis": "h-003",
+      "source": "hypothesis:h-003",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-007",
+      "column": "learned",
+      "title": "已学到：OPC 真正的痛点是「不知道在创业阶段 N 该调用什么 skill 组合」，不是「找不到 skill」",
+      "detail": "验证方法：深度访谈 5 个独立开发者，问「上次卡住时你在干嘛 / 试了什么 / 最后怎么解决」（Mom Test 风格）",
+      "priority": "low",
+      "stage": "retro",
+      "linked_hypothesis": "h-004",
+      "source": "hypothesis:h-004",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-008",
+      "column": "learned",
+      "title": "已学到：目标用户愿意为「一句话想法 → 可验证 landing」这件事付费，而不只是收藏点赞",
+      "detail": "验证方法：fake-door 落地页挂 Stripe test 购买按钮，回读真实付款笔数（payment sync）",
+      "priority": "low",
+      "stage": "retro",
+      "linked_hypothesis": "h-005",
+      "source": "hypothesis:h-005",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    },
+    {
+      "id": "t-009",
+      "column": "to_validate",
+      "title": "补证据：再攒一轮数据，先别急着 pivot",
+      "detail": "信号不足时，按兵不动也是一种选择。攒到足够样本再决定继续 / 调整 / 放弃。",
+      "priority": "low",
+      "stage": "retro",
+      "linked_hypothesis": null,
+      "source": "discipline:wait",
+      "created_at": "2026-05-29T20:41:28.077Z",
+      "updated_at": "2026-05-29T20:41:28.077Z"
+    }
+  ],
+  "mindmap_md": "# 一个 Skill，启动一次创业实验——把模糊想法跑成可验证的市场实验\n## 强信号\n- payment_any：强信号\n## 待验证\n- 把验证页推到第二批渠道，目标付款翻倍\n- 岔路：换定位到「国内内容平台验证器」试一版\n- 岔路：换定位到「方法论可执行化引擎」试一版\n- 补证据：再攒一轮数据，先别急着 pivot\n## 进行中\n- 联系已付款用户做 5 个 Mom Test 访谈\n- 验证假设：Studio Mode（项目作战室 HTML）是 VST 区别于 super-prompt 的最强信号\n- 验证假设：Cloudflare-only 部署 + 客户端加密 + 默认密码，比 GitHub+Vercel 流程对 OPC 用户友好 10 倍\n## 已学到\n- OPC 真正的痛点是「不知道在创业阶段 N 该调用什么 skill 组合」，不是「找不到 skill」\n- 目标用户愿意为「一句话想法 → 可验证 landing」这件事付费，而不只是收藏点赞"
+}

@@ -1,4 +1,4 @@
-# Lumi Lab · 21 Skills Index
+# Lumi Lab · 26 Skills Index
 
 > Each skill is a folder `skills/<name>/` with a `SKILL.md` (instructions the host LLM reads) plus optional `scripts/`, `references/`, `templates/`, `examples/`.
 >
@@ -77,6 +77,18 @@ Thin wrappers around upstream community skills, with Lumi Lab-specific Anti-Slop
 | Skill | Content |
 |---|---|
 | **`lumilab-playbook-cn`** | 13 Chinese-first methodology frameworks (Mom Test, Lean Canvas, Sean Ellis 40% PMF, Bob Moesta JTBD, April Dunford, Marc Lou's indie playbook, Lenny's product frameworks, Thariq's HTML effectiveness, etc.) + index into the 5 platform rule-sheets. |
+
+## Added since v1.0 · 5 skills
+
+| Skill | When | Purpose |
+|---|---|---|
+| **`lumilab-home`** | "open lumilab" / "where do I start" | Front-door dashboard: configured tools + every venture's pipeline progress + suggested next step. |
+| **`lumilab-idea-to-landing`** | one-sentence idea in | Default orchestrator: auto-runs analysis → HTML report → direction gate → fake-door landing. Asks at most twice. |
+| **`lumilab-next-actions`** | after retro / "what's next" | Decision engine: reads all venture data → R6 baselines → 2-4 multi-direction next-step candidates. Kanban + mindmap + print. |
+| **`lumilab-payment-link`** | "test real willingness to pay" | Swaps fake-door CTA for a real Stripe checkout; `payment sync` reads back paid count/amount (de-identified) → strongest demand signal. |
+| **`lumilab-research-keywords`** | "search volume / 红蓝海" | Reverse-searches Google demand: volume / CPC / difficulty / 12-mo trend / long-tail, scored Blue/Red Ocean. |
+
+---
 
 ---
 

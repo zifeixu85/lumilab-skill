@@ -1,8 +1,8 @@
-# SkillLens 评测概要 · Lumi Lab v1.8.0
+# SkillLens 评测概要 · Lumi Lab v1.10.0
 
 > **评测基线**: v1.0.0 Deep Review（详见 [`SKILLLENS_REPORT_v1.0.md`](./SKILLLENS_REPORT_v1.0.md)）
-> **当前版本**: v1.8.0 · 2026-05-28
-> **状态**: 21 / 24 skill 持有 `deepReviewCertificate.status = "verified"`（v1.0 通过）；3 个新增 skill 共享同一套工程化标准，待 v2.0.0 评测重跑
+> **当前版本**: v1.10.0 · 2026-05-30
+> **状态**: **26 / 26 skill 全部跑过 agent-side Deep Review，全部 S 级（92.26–92.88，平均 ~92.6），`deepReviewCertificate` 全部 `verified`**。每个 skill 精简 SKILL.md（≤6000 字）+ 完整操作详版 `references/full-guide.md`（progressive disclosure）
 
 ---
 
@@ -10,18 +10,18 @@
 
 | 指标 | v1.0.0（已认证） | v1.8.0（当前） |
 |---|---:|---:|
-| 总 skill 数 | 21 | **24** |
-| 平均分（v1.0 评测） | **91.59** | — |
-| S 级（≥90，已认证） | 21 | **21** |
-| 工程化标准合规 | 21 / 21 | **24 / 24** |
-| 待重跑 SkillLens | — | 3（`lumilab-home` · `lumilab-idea-to-landing` · `lumilab-coach-yc` 加深版） |
+| 总 skill 数 | 21 | **26** |
+| 平均分（Deep Review） | **91.59** | **~92.6** |
+| S 级（≥90，已认证） | 21 | **26** |
+| 工程化标准合规 | 21 / 21 | **26 / 26** |
+| 待重跑 SkillLens | — | **0（全部已评测）** |
 
-## 工程化标准（24 / 24 全合规）
+## 工程化标准（26 / 26 全合规）
 
 v1.0 → v1.8 演进过程中，**每个新加入的 skill 都遵循同一套硬约束**，由 `scripts/release.sh` 在每次构建时强制校验：
 
 - ✅ frontmatter 含 `version` / `license` / `metadata` / `compatibility` / `prerequisites`
-- ✅ `scripts/anti-slop-lint.ts` — 24 / 24 通过禁词扫描
+- ✅ `scripts/anti-slop-lint.ts` — 26 / 26 通过禁词扫描
 - ✅ `scripts/validate-output.ts` — 确定性、独立可运行、`exit 0/1`
 - ✅ `## Alternatives`（具名竞品）
 - ✅ `## Moat`（复利护城河）

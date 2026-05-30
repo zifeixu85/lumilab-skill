@@ -1,0 +1,22 @@
+/* theme.css — Lumi Lab deterministic design tokens (re-theme target, no LLM).
+   Loaded AFTER styles.css; overrides :root tokens the landing consumes.
+   The Studio design panel writes this file via POST /api/design/apply. */
+:root{
+  --accent: oklch(45% 0.15 25);
+  --accent-2: oklch(70% 0.12 250);
+  --surface: oklch(97% 0.012 85);
+  --ink: oklch(23% 0.02 60);
+  --ink-2: oklch(52% 0.02 70);
+  --radius: 2px;
+  --space-scale: 1;
+  --font-heading: "Fraunces","Noto Serif SC",Georgia,serif;
+  --font-body: "Fraunces","Noto Serif SC",Georgia,serif;
+
+  /* bridge canonical color tokens → the variable names the landing's styles.css uses */
+  --color-accent: var(--accent);
+  --color-paper: var(--surface);
+  --color-surface: color-mix(in oklch, var(--surface) 70%, white);
+  --color-ink: var(--ink);
+  --color-muted: var(--ink-2);
+  --color-line: color-mix(in oklch, var(--ink) 14%, transparent);
+}

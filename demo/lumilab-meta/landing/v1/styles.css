@@ -23,6 +23,17 @@
   --font-serif: "Fraunces", "Noto Serif SC", Georgia, serif;
   --font-mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
+  /* canonical design tokens — overridden by theme.css (the Studio design panel writes it).
+     Defaults here keep the page intact even when theme.css is absent. */
+  --accent: var(--color-accent);
+  --surface: var(--color-paper);
+  --ink: var(--color-ink);
+  --ink-2: var(--color-muted);
+  --radius: 2px;
+  --space-scale: 1;
+  --font-heading: var(--font-serif);
+  --font-body: var(--font-serif);
+
   --duration: 600ms;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -35,13 +46,14 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.6;
   color: var(--color-ink);
   background: var(--color-paper);
   -webkit-font-smoothing: antialiased;
 }
+h1, h2, h3, .hero h1, .fakedoor h3 { font-family: var(--font-heading); }
 
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--space-3); }
 
@@ -67,28 +79,39 @@ body {
   border-left: 2px solid var(--color-accent); padding-left: var(--space-3);
   font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-muted);
 }
-.hero__aside b { color: var(--color-ink); display: block; font-family: var(--font-serif); font-size: 1.5rem; }
+.hero__aside b { color: var(--color-ink); display: block; font-family: var(--font-heading); font-size: 1.5rem; }
+
+/* hero layout variants (data-hero on <body>): split (default) / centered / editorial */
+[data-hero="centered"] .hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+[data-hero="centered"] .hero p.lead { margin-left: auto; margin-right: auto; }
+[data-hero="centered"] .hero .cta-row { justify-content: center; }
+[data-hero="centered"] .hero__aside { display: none; }
+[data-hero="editorial"] .hero { grid-template-columns: 1.7fr 1fr; }
+[data-hero="editorial"] .hero h1 { font-size: clamp(3rem, 1.2rem + 6.5vw, 6.5rem); letter-spacing: -0.02em; }
 
 /* ── CTA ── */
 .cta-row { margin-top: var(--space-4); display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
 .cta-primary {
   display: inline-block; background: var(--color-accent); color: var(--color-surface);
   font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem;
-  padding: 0.9rem 2rem; border: none; border-radius: 2px; cursor: pointer;
+  padding: 0.9rem 2rem; border: none; border-radius: var(--radius); cursor: pointer;
   text-decoration: none; transition: transform 150ms var(--ease), box-shadow 150ms var(--ease);
   box-shadow: 0 2px 0 var(--color-ink);
 }
+/* button-style hooks (data-button on <body>) — solid (default) / outline / pill */
+[data-button="outline"] .cta-primary { background: transparent; color: var(--color-accent); border: 1.5px solid var(--color-accent); box-shadow: none; }
+[data-button="pill"] .cta-primary { border-radius: 999px; }
 .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 0 var(--color-ink); }
 .cta-primary:active { transform: translateY(0); box-shadow: 0 1px 0 var(--color-ink); }
 .cta-note { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-muted); }
 
 /* ── sections ── */
-section { padding: var(--space-section) 0; border-top: 1px solid var(--color-line); }
+section { padding: calc(var(--space-section) * var(--space-scale)) 0; border-top: 1px solid var(--color-line); }
 .section-no { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-accent); letter-spacing: 0.1em; }
 h2 { font-size: var(--text-h2); font-weight: 600; margin: var(--space-1) 0 var(--space-4); letter-spacing: -0.01em; }
 
 .steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
-.step { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 4px; padding: var(--space-3); transition: border-color 150ms var(--ease); }
+.step { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: calc(var(--radius) + 2px); padding: var(--space-3); transition: border-color 150ms var(--ease); }
 .step:hover { border-color: var(--color-accent); }
 .step h3 { font-family: var(--font-mono); font-size: 0.95rem; color: var(--color-accent); margin-bottom: var(--space-1); }
 
@@ -105,7 +128,7 @@ h2 { font-size: var(--text-h2); font-weight: 600; margin: var(--space-1) 0 var(-
 }
 .fakedoor-backdrop[data-open="true"] { display: flex; animation: rise 300ms var(--ease) both; }
 .fakedoor {
-  background: var(--color-surface); border-radius: 6px; max-width: 460px; width: 100%;
+  background: var(--color-surface); border-radius: calc(var(--radius) + 4px); max-width: 460px; width: 100%;
   padding: var(--space-4); border: 1px solid var(--color-line);
 }
 .fakedoor h3 { font-size: 1.5rem; font-weight: 600; margin-bottom: var(--space-2); }
@@ -113,7 +136,7 @@ h2 { font-size: var(--text-h2); font-weight: 600; margin: var(--space-1) 0 var(-
 .fakedoor form { display: flex; gap: var(--space-1); flex-wrap: wrap; }
 .fakedoor input[type="email"] {
   flex: 1; min-width: 200px; padding: 0.8rem 1rem; border: 1px solid var(--color-line);
-  border-radius: 2px; font-family: var(--font-mono); font-size: 1rem; background: var(--color-paper); color: var(--color-ink);
+  border-radius: var(--radius); font-family: var(--font-mono); font-size: 1rem; background: var(--color-paper); color: var(--color-ink);
 }
 .fakedoor input[type="email"]:focus { outline: 2px solid var(--color-accent); border-color: var(--color-accent); }
 .fakedoor__close { position: absolute; top: var(--space-2); right: var(--space-3); background: none; border: none; font-size: 1.5rem; color: var(--color-muted); cursor: pointer; }
