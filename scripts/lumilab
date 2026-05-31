@@ -289,15 +289,16 @@ async function cmdStudio(venture?: string, ...args: string[]) {
     spawnSync('open', [indexPath]);
     return;
   }
-  // 守护进程在跑 → 直接开它的 URL（不另起 server，避免端口竞争）。
-  const daemon = await findDaemon();
+  // 默认：起/复用常驻守护进程（detached，非阻塞，改数据→已打开页面自动 live-reload），开它的 localhost URL。
+  const daemon = await startDaemon();
   if (daemon) {
     const url = daemonUrl(daemon, '/ventures/' + v + '/studio/index.html');
     openBrowser(url);
     console.log('✓ 常驻 Studio · ' + url);
+    console.log('  改任意 venture 数据 → 已打开页面自动刷新。停止：lumilab serve stop');
     return;
   }
-  // 默认：起本地交互 server（编辑/迭代/删除假设·决策真働），Ctrl+C 退出。
+  // 守护进程起不来 → 回退前台交互 server，Ctrl+C 退出。
   const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts'), v], {
     stdio: 'inherit',
   });
@@ -335,15 +336,16 @@ async function cmdHome(...args: string[]) {
     if (result.status !== 0) process.exit(result.status ?? 1);
     return;
   }
-  // 守护进程在跑 → 直接开它的 home（不另起 server）。
-  const daemon = await findDaemon();
+  // 默认：起/复用常驻守护进程（detached，非阻塞，改数据→已打开页面自动 live-reload），开它的 home。
+  const daemon = await startDaemon();
   if (daemon) {
     const url = daemonUrl(daemon, '/_home/home.html');
     openBrowser(url);
     console.log('✓ 常驻 Studio · ' + url);
+    console.log('  改任意 venture 数据 → 已打开页面自动刷新。停止：lumilab serve stop');
     return;
   }
-  // 默认：起本地交互 server（home + 所有 venture studio 同一服务，点进 venture 可编辑），Ctrl+C 退出。
+  // 守护进程起不来 → 回退前台 server（home + 所有 venture studio 同一服务，点进 venture 可编辑），Ctrl+C 退出。
   const result = spawnSync('bun', ['run', join(SKILLS, 'lumilab-studio', 'scripts', 'serve.ts'), '--home'], {
     stdio: 'inherit',
     env: { ...process.env, LUMILAB_HOME },

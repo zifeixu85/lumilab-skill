@@ -562,15 +562,21 @@ Lumi Lab 的差异：**一句话进，分析 + 方向判断 + 设计 + SEO/GEO l
 - **每个 phase 结束**：用一两句话告诉用户「这一步做了什么、产出在哪、下一步是什么」。
 - **判断「用户该看」的标准**：如果这个产物影响用户的下一个决策，或者用户花了输入成本期待一个结果 —— 就必须主动交付，不能等用户问。
 
-## 写时更新（产物变了就刷新 home / studio）
+## 写时更新 + 实时看板（产物变了，已打开的 Studio 自动刷新）
 
-Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新的 —— 没有常驻进程做实时同步，所以**谁改了数据，谁负责顺手刷新**。
+Lumi Lab 有一个常驻的 Studio 守护进程（`serve.ts --daemon`，`localhost:7777`）做**实时同步**：它递归 watch `~/.lumilab/data`，任何 venture 文件变化都通过 SSE 推给已打开的页面**自动刷新**，且每次请求都按最新数据重渲 Studio / home。所以**只要 Studio 是从 localhost（守护进程）打开的**，后续每一步的产物都会自动出现 —— 不用手动刷新，也不该再开 `file://` 静态页。
 
-这个 skill 只要**创建或更新了某个 venture 的文件**（写了 `market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `hypotheses.yaml` / `design_direction.json` / retro YAML 等），做完后**必须**：
+这个 skill 创建或更新了某个 venture 的文件（`market_analysis.json` / `reports/` / `landing/` / `decisions.yaml` / `hypotheses.yaml` / `design_direction.json` / retro YAML 等）后，**必须**顺手把看板刷成实时态：
 
-1. 重渲这个 venture 的 Studio：`bun run ../lumilab-studio/scripts/render.ts ~/.lumilab/data/ventures/<slug>`
-2. 重渲 home dashboard：`bun run ../lumilab-home/scripts/home.ts render`
+```bash
+bun run ../lumilab-studio/scripts/serve.ts --open <slug>
+```
 
-这样用户回到 home 或 Studio 就能立刻看到这一步的产物，不用手动说「刷新」。如果只是读、没写 venture 数据，不用刷新。
+它会：重渲这个 venture 的 Studio → 确保守护进程在跑（没跑就 detached 起一个，**非阻塞**，不会卡住你的回合）→ 在浏览器打开/聚焦它的 **localhost** 页面。这一条就够了：
 
-CLI 入口（`lumilab idea` / `config` / `deploy`）已经内置了写时更新；**对话式调用时由你（宿主 agent）负责补这两步**。
+- 守护进程**已在跑**时几乎零成本 —— 只是重渲 + SSE 把更新推给已打开的标签页（同一个 localhost URL，`open` 只会聚焦已有标签，不会刷一堆新页）。
+- **home 不用每步单独开**：守护进程每次请求都按最新数据重渲 `/_home/home.html`，用户切回 home 标签自动是最新的。只在你确实要把用户引到 home 总览时才 `bun run ../lumilab-home/scripts/home.ts render`（local 通道下它也经守护进程开 localhost）。
+
+**绝对不要** `open file://…/ventures/<slug>/studio/index.html` —— file:// 是只读静态页，内容更新这边**不会自动刷新**（这正是用户反馈的问题）。需要纯只读快照才用 `lumilab studio <slug> --static`。
+
+只读、没写 venture 数据，不用刷新。CLI 入口（`lumilab idea` / `config` / `deploy`）已内置写时更新；对话式调用时由你（宿主 agent）补上面这步。

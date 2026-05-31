@@ -53,6 +53,52 @@ function studioPort(): number {
   return Number(process.env.LUMILAB_STUDIO_PORT || readConfig().studio_port || PORT_BASE);
 }
 
+// ── 守护进程探活 + 按需启动 + 开 localhost（修「打开的是 file:// 静态页、没 live-reload」）──
+async function pingDaemon(port: number): Promise<boolean> {
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/api/ping`, { signal: AbortSignal.timeout(600) });
+    const j: any = await r.json();
+    return !!j?.ok;
+  } catch { return false; }
+}
+
+// 返回活着的守护进程端口；没活着就 detached 启一个并等它起来。失败返回 null（调用方回退 file://）。
+async function ensureDaemon(): Promise<number | null> {
+  // 1) run-file 里记的端口先 ping
+  try {
+    const rf = JSON.parse(readFileSync(RUN_FILE, 'utf-8'));
+    if (rf?.port && await pingDaemon(rf.port)) return rf.port;
+  } catch { /* 无 run-file */ }
+  // 2) 配置端口也 ping 一下（run-file 可能丢了但进程还在）
+  const want = studioPort();
+  if (await pingDaemon(want)) return want;
+  // 3) detached 启守护进程（unref 让它活过本进程）
+  try {
+    const { spawn } = await import('child_process');
+    spawn('bun', ['run', import.meta.path, '--daemon'], { detached: true, stdio: 'ignore' }).unref();
+  } catch { return null; }
+  // 4) 等它起来（最多 ~6s）
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    if (await pingDaemon(want)) return want;
+  }
+  return null;
+}
+
+async function cmdOpen(openPath: string, fileFallback: string): Promise<void> {
+  const port = await ensureDaemon();
+  const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+  if (port) {
+    const url = `http://127.0.0.1:${port}${openPath}`;
+    try { Bun.spawn([opener, url], { stdout: 'ignore', stderr: 'ignore' }); } catch { /* manual */ }
+    console.log(`\x1b[32m[studio] 已在浏览器打开（实时，内容更新自动刷新）:\x1b[0m ${url}`);
+  } else {
+    // 守护进程起不来 → 回退静态文件（无 live-reload，但至少能看）
+    try { Bun.spawn([opener, fileFallback], { stdout: 'ignore', stderr: 'ignore' }); } catch { /* manual */ }
+    console.log(`\x1b[33m[studio] 守护进程未起来，回退静态页（无自动刷新）:\x1b[0m ${fileFallback}`);
+  }
+}
+
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
@@ -580,8 +626,24 @@ function runForeground(): void {
   try { Bun.spawn([opener, openUrl], { stdout: 'ignore', stderr: 'ignore' }); } catch { /* manual */ }
 }
 
-function main(): void {
-  if (process.argv.includes('--daemon')) runDaemon();
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  // 探活守护进程并开 localhost（非阻塞）—— 给「跑完每步自动打卡」用，确保是实时页而非 file://
+  if (args.includes('--open-home')) {
+    reRenderHome();
+    await cmdOpen('/_home/home.html', join(DATA_ROOT, '_home', 'home.html'));
+    return;
+  }
+  const openIdx = args.indexOf('--open');
+  if (openIdx >= 0) {
+    const slug = args[openIdx + 1];
+    if (!slug || slug.startsWith('--')) { console.error('usage: bun serve.ts --open <venture-slug>'); process.exit(1); }
+    if (!existsSync(ventureDir(slug))) { console.error('venture not found: ' + ventureDir(slug)); process.exit(1); }
+    reRender(slug);
+    await cmdOpen('/ventures/' + slug + '/studio/index.html', join(ventureDir(slug), 'studio', 'index.html'));
+    return;
+  }
+  if (args.includes('--daemon')) runDaemon();
   else runForeground();
 }
 

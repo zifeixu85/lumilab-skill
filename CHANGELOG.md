@@ -6,6 +6,18 @@
 
 ---
 
+## [1.13.3] · 2026-05-31 · Studio 自动打开走 localhost 实时态（修 file:// 静态页不自动刷新）
+
+### Fixed
+- **跑完每步自动打开的 Studio / home 现在是 localhost 实时页，不再是 file:// 静态页。** 之前 `home.ts render`（local 通道）和对话式「写时更新」会直接 `open file://…/studio/index.html`，内容更新后这边不会自动刷新（用户反馈的问题）。现在统一走常驻守护进程（`serve.ts --daemon`，`localhost:7777`，递归 watch `~/.lumilab/data` + SSE live-reload，每次请求按最新数据重渲）：
+  - `serve.ts` 新增 `--open <slug>` / `--open-home`：探活守护进程（没在跑就 **detached 起一个，非阻塞**）→ 重渲 → 开 **localhost**；守护进程起不来才回退 file://。
+  - `home.ts render`（`LUMILAB_CHANNEL=local`）改为委托 `serve.ts --open-home`，开 localhost 的 `/_home/home.html`（点进 venture 卡片也是 localhost 实时态）。
+  - `lumilab studio` / `lumilab home` 无守护进程时改为「detached 起守护进程 + 开 localhost」（原为前台阻塞 server）：常驻、可关终端、改数据已打开页面自动刷新；起不来才回退前台 server。
+  - idea-to-landing「写时更新」段改写：每个 phase 写完用 `serve.ts --open <slug>` 开实时 Studio，**明确禁止** `open file://…/studio/index.html`（纯只读快照才用 `lumilab studio <slug> --static`）。
+- 守护进程模型同时消除一类端口竞争：陈旧前台 server 残留占 7777 会让守护进程起不来 —— 统一成单个常驻进程后不再发生。
+
+---
+
 ## [1.13.0] · 2026-05-31 · 对外验证闭环 + 脊柱接线（P0–P2 一次性落地）
 
 > 把「生成验证页 → 公开发出去 → 收到你自己掌控的访问/点击/转化数据 → 喂回 Studio/metrics」这条闭环跑通，

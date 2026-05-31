@@ -1158,6 +1158,15 @@ function cmdRender(): void {
 
   const ch = channel();
   if (ch === 'local') {
+    // 优先走 studio 守护进程开 localhost（内容更新自动刷新），守护进程脚本不在/起不来才回退 file://
+    const serveTs = join(import.meta.dir, '..', '..', 'lumilab-studio', 'scripts', 'serve.ts');
+    if (existsSync(serveTs)) {
+      try {
+        spawn('bun', ['run', serveTs, '--open-home'], { detached: true, stdio: 'ignore' }).unref();
+        console.log(`\x1b[32m[home] 已生成并在浏览器打开（实时）:\x1b[0m ${outPath}`);
+        return;
+      } catch { /* 回退 file:// */ }
+    }
     const opener =
       process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
     try {
