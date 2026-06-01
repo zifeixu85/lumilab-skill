@@ -39,7 +39,7 @@ metadata:
     - "data/ventures/<name>/audience.md (必读 - 目标用户)"
     - "data/ventures/<name>/painpoints.md (必读 - 用户痛点)"
     - "data/ventures/<name>/pricing_hypothesis.md (定价信息)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

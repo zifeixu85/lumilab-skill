@@ -25,7 +25,7 @@ metadata:
     - "data/ventures/<name>/studio/ (要部署的内容)"
     - "~/.lumilab/config.json (默认密码 / 默认公开私密)"
     - "~/.lumilab/secrets.enc (Cloudflare token)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

@@ -25,7 +25,7 @@ metadata:
   reads:
     - "data/ventures/<name>/* (所有数据)"
     - "design_direction.json (视觉 token)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

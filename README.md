@@ -332,12 +332,18 @@ lumilab help                          显示帮助
 
 ## License
 
-授权见 [`LICENSE`](LICENSE)。
+Lumi Lab 源码可见，按 **[AGPL-3.0](LICENSE)**（GNU Affero 通用公共许可证 v3）授权。
+
+- ✅ **免费**用、读、改、分发、自部署，没有功能 / 人数限制。
+- 🔁 **强 copyleft（核心约束）**：你改了它再分发，或把改过的版本作为**网络服务**对外提供，就必须把**完整源码**一并以 AGPL-3.0 开放出来 —— 不能拿去做闭源产品。
+- 🏢 **商业 / 闭源授权**：想在闭源或专有产品里集成、不愿承担 AGPL 的开源义务？联系 **ameng@ameng.blog** 取得商业授权（dual-license）。
+
+> 说明：AGPL 是开源许可证，**它本身不禁止商业使用**；它用「改了必须同样开源」这条来阻止别人把 Lumi Lab 闭源化牟利。要完全闭源商用，走上面的商业授权。
 
 ## 致谢
 
 **方法论**：YC office hours · Mom Test（Rob Fitzpatrick）· Lean Startup（Eric Ries）· Sean Ellis 40% PMF · April Dunford · Bob Moesta JTBD · Marc Lou · Lenny Rachitsky · Thariq Shihipar（HTML 有效性）
 
-**上游 skill**：Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · JimLiu/baoyu-skills · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
+**上游 skill**（启发了模式/方法，未打包其代码）：garrytan/gstack（autoplan 一键决策流水线 · office-hours 决策简报）· JimLiu/baoyu-skills（跨 runtime 输入 + 出图抽象）· Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
 
 **基础设施**：Cloudflare Pages · wrangler · Web Crypto API · bun · Fraunces · JetBrains Mono · Geist

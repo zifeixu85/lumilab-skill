@@ -30,7 +30,7 @@ metadata:
     - "data/ventures/<name>/hypotheses.yaml (要验证什么)"
     - "~/.lumilab/config.json (启用哪些通道)"
     - "~/.lumilab/secrets.enc (各家 API token)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

@@ -300,12 +300,18 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full manifest.
 
 ## License
 
-See [`LICENSE`](LICENSE).
+Lumi Lab is source-available under **[AGPL-3.0](LICENSE)** (GNU Affero General Public License v3).
+
+- ✅ **Free** to use, read, modify, redistribute, and self-host — no feature or seat limits.
+- 🔁 **Strong copyleft (the core term)**: if you modify it and redistribute, or run a modified version as a network service, you must release your **complete source** under AGPL-3.0 too — you can't build a closed-source product on it.
+- 🏢 **Commercial / proprietary license**: want to embed it in a closed-source product without AGPL's obligations? Contact **ameng@ameng.blog** for a commercial license (dual-licensing).
+
+> Note: AGPL is an open-source license and does **not** ban commercial use by itself; its "modify ⇒ must open-source" rule is what stops others from taking Lumi Lab closed-source. For fully proprietary commercial use, take the commercial license above.
 
 ## Credits
 
 **Methodology**: YC office hours · Mom Test (Rob Fitzpatrick) · Lean Startup (Eric Ries) · Sean Ellis 40% PMF · April Dunford · Bob Moesta JTBD · Marc Lou · Lenny Rachitsky · Thariq Shihipar (HTML effectiveness)
 
-**Upstream skills**: Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · JimLiu/baoyu-skills · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
+**Upstream skills** (inspired patterns/methods; their code is not bundled): garrytan/gstack (autoplan one-command decision pipeline · office-hours decision briefs) · JimLiu/baoyu-skills (cross-runtime input + image-gen abstraction) · Aston1690/landing-page · Leonxlnx/taste-skill · pbakaus/impeccable · white0dew/XiaohongshuSkills · alirezarezvani/claude-skills · obra/superpowers · dzhng/deep-research
 
 **Infrastructure**: Cloudflare Pages · wrangler · Web Crypto API · bun · Fraunces · JetBrains Mono · Geist

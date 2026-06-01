@@ -23,7 +23,7 @@ metadata:
     script: scripts/serve.ts
     template: templates/design-direction.html.tpl
     port: 7777
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

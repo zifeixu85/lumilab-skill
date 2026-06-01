@@ -33,7 +33,7 @@ metadata:
     - "data/ventures/<name>/hypotheses.yaml (现有假设)"
     - "data/ventures/<name>/decisions.yaml (历史决策密度 → 检测决策疲劳)"
     - "MEMORY.md (用户偏好 / 历史失败模式)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

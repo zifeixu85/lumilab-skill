@@ -6,6 +6,17 @@
 
 ---
 
+## [1.14.0] · 2026-06-01 · 改授权为 AGPL-3.0 + 安装器安全加固
+
+### Changed
+- **License：Apache-2.0 → AGPL-3.0**（源码可见 + 强 copyleft）。免费用 / 改 / 自部署；但**改了再分发、或作为网络服务对外提供，必须把完整源码同样以 AGPL-3.0 开放** —— 不能拿去做闭源产品。闭源 / 专有商用走 dual-license（联系 ameng@ameng.blog）。26 个 skill frontmatter `license:` + manifest + LICENSE 全量更新；README / README.en 的 License 段重写，致谢补 garrytan/gstack。
+  - 注：发布包只含自家 26 个 `lumilab-*`，**不打包任何第三方 skill 代码**；引用的只是方法论（不受版权保护）和上游 skill 的「模式/思路」，已在致谢列明。
+
+### Fixed
+- **lumicc 安装器的危险 `rsync --delete`**：`releases/lumicc/install.sh` 之前 `rsync -a --delete "$SOURCE/" "$HOME/.claude/skills/"`，会删光安装目录里所有非本 bundle 的 skill。改成 **per-skill**（只动自己的 skill 目录，绝不在共享父目录上 `--delete`）。lumilab 的 `install.sh` 本就是 per-skill 安全写法，一并复核确认；`get.sh` / `release.sh` 的 `--delete` 只作用于临时目录 / 发布镜像，不碰用户安装目录。
+
+---
+
 ## [1.13.3] · 2026-05-31 · Studio 自动打开走 localhost 实时态（修 file:// 静态页不自动刷新）
 
 ### Fixed

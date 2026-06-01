@@ -30,7 +30,7 @@ metadata:
     - "data/ventures/<name>/audience.md"
     - "data/ventures/<name>/positioning.md"
     - "data/ventures/<name>/pmf_score.md"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

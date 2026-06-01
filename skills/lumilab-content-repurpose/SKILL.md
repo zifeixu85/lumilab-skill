@@ -32,7 +32,7 @@ metadata:
     - "data/ventures/<name>/audience.md (目标用户语言习惯)"
     - "data/ventures/<name>/painpoints.md (痛点 → 钩子素材)"
     - "data/ventures/<name>/landing_copy.md (主文案，可复用)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

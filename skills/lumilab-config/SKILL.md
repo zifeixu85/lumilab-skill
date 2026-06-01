@@ -30,7 +30,7 @@ metadata:
     - "~/.lumilab/shares.json (deployed venture manifest)"
   reads:
     - "host workspace openclaw.json (config schema, if present)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

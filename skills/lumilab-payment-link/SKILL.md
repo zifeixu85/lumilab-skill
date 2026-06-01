@@ -17,7 +17,7 @@ metadata:
     - "data/ventures/<name>/payment/stripe.json (product+price+link metadata)"
   reads:
     - "keychain: stripe.sk_test"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

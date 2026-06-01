@@ -26,7 +26,7 @@ metadata:
     - "data/ventures/<name>/research/retro-*.yaml (本轮复盘四桶信号)"
     - "data/ventures/<name>/payment/summary.json (真实付款信号 · W3)"
     - "skills/lumilab-metrics/assets/baselines.yaml (R6 信号基线 A/B/C 置信层)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

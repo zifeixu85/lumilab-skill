@@ -18,7 +18,7 @@ metadata:
     - "github.com/getagentseal/lean-startup"
     - "clawhub:idea-to-startup (24 步)"
     - "wshobson/startup-metrics-framework"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

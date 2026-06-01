@@ -23,7 +23,7 @@ metadata:
   reads:
     - "data/ventures/<name>/research/*.md (Research Agent 写入的证据)"
     - "data/ventures/<name>/decisions.yaml (相关决策)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

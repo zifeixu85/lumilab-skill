@@ -4,7 +4,7 @@ description: |
   One-sentence idea → autonomous market analysis → direction proposals → a fake-door validation landing page that measures real purchase intent. The default Lumi Lab entry point for validating C-end startup ideas. An autoplan-style orchestrator: it runs the whole pipeline autonomously, asks the user AT MOST twice (one optional intake, one direction-pick gate), and delivers visual HTML artifacts the user actually sees — not silent .md files. Phase 0 intake 提供可选的「先用 coach-yc 教练梳理一轮」岔路（opt-in，梳理完接回本流水线调研）。Use when the user gives a startup idea, says "我有个 idea / 帮我看看这个想法 / 验证一下 / 做个 landing", or wants to go from idea to a testable landing page fast —— 这是从 idea 一路到 landing 的默认入口（含可选教练澄清）。
   关键词：idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 方向建议 / landing 生成 / SEO / GEO / orchestrator / 自动流水线 / idea to landing / 想法落地 / 轻量验证
 version: 1.8.0
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

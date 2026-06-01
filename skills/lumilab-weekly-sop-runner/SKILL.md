@@ -32,7 +32,7 @@ metadata:
     - "data/ventures/<name>/hypotheses.yaml (要验证什么)"
     - "data/ventures/<name>/metrics.md (Primary / Guardrail / Secondary 指标)"
     - "memory/resources/platform-rules/*.md (各平台发布时机)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

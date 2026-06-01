@@ -27,7 +27,7 @@ metadata:
   reads:
     - "data/ventures/<name>/yc_brief.md (如有)"
     - "data/ventures/<name>/interviews/*.md (访谈转录)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

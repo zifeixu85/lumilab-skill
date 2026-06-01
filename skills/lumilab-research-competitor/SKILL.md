@@ -27,7 +27,7 @@ metadata:
   reads:
     - "data/ventures/<name>/icp.yaml"
     - "data/ventures/<name>/yc_brief.md"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

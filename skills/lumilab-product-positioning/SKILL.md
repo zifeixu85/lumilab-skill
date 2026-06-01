@@ -27,7 +27,7 @@ metadata:
     - "data/ventures/<name>/audience.md"
     - "data/ventures/<name>/hypotheses.yaml"
     - "data/ventures/<name>/project_brief.md"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

@@ -27,7 +27,7 @@ metadata:
   reads:
     - "data/ventures/<name>/project_brief.md"
     - "MEMORY.md"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

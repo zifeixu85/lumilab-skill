@@ -28,7 +28,7 @@ metadata:
     - "data/ventures/<name>/hypotheses.yaml (要验证什么需求)"
     - "~/.lumilab/config.json (provider 选择 + 国家/语言)"
     - "~/.lumilab/secrets.json (DataForSEO / Keywords Everywhere token)"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []

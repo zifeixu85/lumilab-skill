@@ -31,7 +31,7 @@ metadata:
     - "data/ventures/<name>/positioning.yaml"
     - "data/ventures/<name>/interviews/*.md"
     - "data/ventures/<name>/interview_synthesis.md"
-license: Apache-2.0
+license: AGPL-3.0-or-later
 platforms: [macos, linux]
 prerequisites:
   env_vars: []
