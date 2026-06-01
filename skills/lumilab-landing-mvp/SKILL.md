@@ -242,16 +242,28 @@ Phase 4 把这些写进 HTML，Phase 5 的 fake-door gate 校验。
 
 ```css
 :root {
-  /* 来自 design_direction.json.palette */
-  --color-surface: oklch(98% 0 0);
-  --color-text: oklch(18% 0 0);
-  --color-accent: oklch(45% 0.18 12);
-  --color-muted: oklch(60% 0.005 60);
+  /* 设计 token —— 必须用这些 canonical 名。Studio 构建页「实时 re-theme」拖旋钮改的、
+     「应用设计」确定性写回 theme.css 的，就是它们。styles.css 全程用 var(--accent) 等，
+     禁止硬编码颜色 —— 这样拖旋钮右侧落地页能实时变、apply 后也能正确改。来自 design_direction.json.palette。*/
+  --accent: oklch(45% 0.18 12);
+  --accent-2: oklch(70% 0.12 250);
+  --surface: oklch(98% 0 0);
+  --ink: oklch(18% 0 0);
+  --ink-2: oklch(60% 0.005 60);
+  --radius: 4px;
+  --space-scale: 1;
 
-  /* 来自 design_direction.json.typography */
-  --font-display: 'Cabinet Grotesk', system-ui, sans-serif;
+  /* 来自 design_direction.json.typography（canonical 名）*/
+  --font-heading: 'Cabinet Grotesk', system-ui, sans-serif;
   --font-body: 'Geist', system-ui, sans-serif;
   --font-mono: 'Geist Mono', monospace;
+
+  /* 兼容别名（指向 canonical；styles.css 用 var(--accent) 等即可，下面别名仅向后兼容）*/
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-text: var(--ink);
+  --color-muted: var(--ink-2);
+  --font-display: var(--font-heading);
 
   /* 来自 design_direction.json.dials */
   /* DESIGN_VARIANCE → 决定 layout 对称性 */

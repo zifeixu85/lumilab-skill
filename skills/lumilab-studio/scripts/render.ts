@@ -354,6 +354,19 @@ function sourceBadge(src: string): SrcBadge {
 }
 
 function fmtTokens(n: number): string { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n); }
+// oklch(L% C H) / oklch(L C H) → #rrggbb（给 <input type=color> 用，它只吃 hex）。已是 hex 直接透传。
+function oklchToHex(c: string): string {
+  const s = String(c).trim();
+  const hx = s.match(/^#([0-9a-f]{6})$/i); if (hx) return '#' + hx[1].toLowerCase();
+  const m = s.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i); if (!m) return '#888888';
+  let L = parseFloat(m[1]); if (/%/.test(s) || L > 1) L /= 100;
+  const C = parseFloat(m[2]), H = parseFloat(m[3]) * Math.PI / 180, a = Math.cos(H) * C, b = Math.sin(H) * C;
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b, m_ = L - 0.1055613458 * a - 0.0638541728 * b, s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+  const l = l_ ** 3, mm = m_ ** 3, sv = s_ ** 3;
+  const r = 4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * sv, g = -1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * sv, bl = -0.0041960863 * l - 0.7034186147 * mm + 1.7076147010 * sv;
+  const f = (x: number) => { x = x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16).padStart(2, '0'); };
+  return '#' + f(r) + f(g) + f(bl);
+}
 function llmSrcLabel(src: string): string {
   return src === 'host-reported' ? '宿主自报' : src === 'estimated' ? '量级粗估' : src === 'mixed' ? '自报+粗估' : '—';
 }
@@ -734,11 +747,6 @@ export function render(ventureDir: string): string {
       <header class="section__head" style="margin-top:20px;">
         <h2 class="section__title">初始假设</h2>
         <span class="section__count">${active.length} 活跃 · ${superseded.length} 已迭代</span>
-        <div class="seg-group" role="tablist">
-          <button class="seg-btn is-active" data-view="list">列表</button>
-          <button class="seg-btn" data-view="table" title="即将上线">表格</button>
-          <button class="seg-btn" data-view="board" title="即将上线">看板</button>
-        </div>
       </header>
       ${hypotheses.length === 0
         ? `<p class="empty">尚无假设。</p>`
@@ -869,6 +877,8 @@ export function render(ventureDir: string): string {
           const dd = designDirection;
           const accent = dd.palette?.accent ?? dd.palette?.cta ?? 'oklch(45% 0.15 25)';
           const accent2 = dd.palette?.accent_2 ?? 'oklch(70% 0.12 250)';
+          const accentHex = oklchToHex(accent);
+          const accent2Hex = oklchToHex(accent2);
           const surface = dd.palette?.surface ?? dd.palette?.neutral ?? 'oklch(97% 0.012 85)';
           const ink = dd.palette?.text_primary ?? dd.palette?.primary ?? 'oklch(23% 0.02 60)';
           const ink2 = dd.palette?.text_secondary ?? 'oklch(52% 0.02 70)';
@@ -918,8 +928,8 @@ export function render(ventureDir: string): string {
               </div>
               <div class="ds-grp">
                 <div class="ds-grp__t">色彩</div>
-                <label class="ds-ctl"><span>主强调色 <i class="ds-sw" data-sw="accent" style="background:${esc(accent)}"></i></span><input type="text" value="${escAttr(accent)}" data-ds-tok="accent" spellcheck="false"></label>
-                <label class="ds-ctl"><span>次强调色 <i class="ds-sw" data-sw="accent2" style="background:${esc(accent2)}"></i></span><input type="text" value="${escAttr(accent2)}" data-ds-tok="accent2" spellcheck="false"></label>
+                <label class="ds-ctl ds-ctl--color"><span>主强调色</span><input type="color" value="${accentHex}" data-ds-tok="accent" title="点开取色"></label>
+                <label class="ds-ctl ds-ctl--color"><span>次强调色</span><input type="color" value="${accent2Hex}" data-ds-tok="accent2" title="点开取色"></label>
                 <label class="ds-ctl"><span>表面色调 暖 ↔ 冷 <b data-ds-out="surfacehue">—</b></span><input type="range" min="20" max="280" value="85" data-ds-surfacehue></label>
               </div>
               <div class="ds-grp">
@@ -1009,28 +1019,28 @@ export function render(ventureDir: string): string {
           <figcaption class="cgal__cap"><span class="cgal__nm">${esc(f)}</span><a class="cgal__dl" href="../content/xhs/${esc(f)}" download>↓</a></figcaption>
         </figure>`).join('')}
       </div>
-      ${xhsCopy ? `<div class="cgal-copy"><div class="cgal-copy__h">小红书文案 · 点击复制全文</div><pre class="cgal-copy__t" data-copy="${esc(xhsCopy)}">${esc(xhsCopy.slice(0, 700))}${xhsCopy.length > 700 ? '\n…（点击复制全文）' : ''}</pre></div>` : ''}` : '';
+      ${xhsCopy ? `<div class="cgal-copy"><div class="cgal-copy__h">小红书文案 · 滚动看全文 · 点击复制</div><pre class="cgal-copy__t" data-copy="${esc(xhsCopy)}">${esc(xhsCopy)}</pre></div>` : ''}` : '';
 
   const stageLaunch = `
     <section class="stage" data-stage="launch" hidden>
+      ${(hasAnyLanding || share) ? `
+        <header class="section__head">
+          <h2 class="section__title">网站 / 验证页</h2>
+          <span class="section__count">${share ? 'shares.json · 已上线' : 'landing/ · 待部署'}</span>
+        </header>
+        ${share
+          ? artifactCard('🚀', '打开线上验证页', share.url, share.url)
+          : (primaryLandingHref ? artifactCard('🌐', primaryLandingLabel, primaryLandingHref, '已生成 · 部署后开始收真实数据') : '')}
+        ${!share && hasAnyLanding ? `
+          <div class="empty-card" style="margin-top:12px;">
+            <div class="empty-card__title">还没部署</div>
+            <div class="empty-card__hint">部署上线才能收集真实访问 / 转化数据。</div>
+            <div class="empty-card__skill"><code>lumilab deploy ${esc(ventureName)}</code></div>
+          </div>` : ''}
+      ` : pendingState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
+      ${signalsPanel}
       ${paymentBlock}
       ${contentGallery}
-      ${share ? `
-        <header class="section__head">
-          <h2 class="section__title">已上线</h2>
-          <span class="section__count">shares.json</span>
-        </header>
-        ${artifactCard('🚀', '打开线上验证页', share.url, share.url)}
-        <div class="md-card" style="margin-top:14px;">
-          <p style="line-height:1.65;">验证数据：跑几天后把 <strong>UV</strong> / <strong>CTA 点击率</strong> / <strong>邮箱率</strong> 填进 <code>lumilab retro</code>。</p>
-        </div>
-      ` : hasAnyLanding ? `
-        <div class="empty-card">
-          <div class="empty-card__title">Landing 已生成，还没部署</div>
-          <div class="empty-card__hint">可部署上线开始收集验证数据。</div>
-          <div class="empty-card__skill"><code>lumilab deploy ${esc(ventureName)}</code></div>
-        </div>
-      ` : pendingState(STAGE_LABELS.launch, STAGE_SKILL_HINT.launch)}
     </section>`;
 
   // ── W2 · 下一步行动：看板 + 脑图（内联，确定性渲染 next-actions.json）──
@@ -1097,22 +1107,10 @@ export function render(ventureDir: string): string {
         </header>
         <div class="na" data-na>
           <div class="na-toolbar">
-            <div class="seg-group na-seg">
-              <button class="seg-btn is-active" data-na-view="kanban" type="button">看板</button>
-              <button class="seg-btn" data-na-view="mindmap" type="button">脑图</button>
-            </div>
             <button class="btn-ghost na-print" data-act="na-print" type="button">🖨 打印 / 导出 PDF</button>
           </div>
           ${naSignalsHtml(nextActions.source_signals)}
           ${naBoardHtml(nextActions)}
-          <div class="na-mind" data-na-pane="mindmap" hidden>
-            <div class="na-mind__tools">
-              <button data-mind="out" type="button" title="缩小">−</button>
-              <button data-mind="fit" type="button" title="适配">适配</button>
-              <button data-mind="in" type="button" title="放大">＋</button>
-            </div>
-            <div class="na-mind__canvas"><svg id="na-mind-svg" role="img" aria-label="下一步行动脑图"></svg></div>
-          </div>
           <p class="na-foot">信号灯只表达方向/温度，不表达成败结论。「多方向」是同一 idea 的不同推进岔路。最终继续 / 调整 / 放弃由你拍板。</p>
         </div>
   ` : (existsSync(join(ventureDir, 'studio', 'next-actions.html')) ? `
@@ -1977,7 +1975,7 @@ kbd {
 .cgal__dl { font-size: 13px; color: var(--accent); text-decoration: none; flex: none; }
 .cgal-copy { margin-top: 12px; background: var(--surface); border-radius: var(--r-lg); padding: 12px 16px; box-shadow: var(--shadow-soft); }
 .cgal-copy__h { font-size: 12px; font-weight: 600; color: var(--mute); margin-bottom: 8px; }
-.cgal-copy__t { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--ink-2); white-space: pre-wrap; cursor: copy; max-height: 220px; overflow: hidden; }
+.cgal-copy__t { font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--ink-2); white-space: pre-wrap; cursor: copy; max-height: 420px; overflow: auto; }
 .kpi--stage { background: color-mix(in oklch, var(--moss-soft) 45%, var(--surface)); }
 .kpi--stage::after { background: var(--moss); }
 .kpi--verified { background: var(--accent-soft); }
@@ -2333,6 +2331,8 @@ kbd {
 .ds-stage__bar { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-2); border-bottom: 1px solid var(--hairline); background: var(--surface-2); }
 .ds-stage__dot { width: 8px; height: 8px; border-radius: 50%; background: oklch(60% 0.14 150); }
 .ds-frame { width: 100%; flex: 1; min-height: 480px; border: 0; display: block; background: white; }
+.ds-ctl--color { align-items: center; }
+.ds-ctl--color input[type=color] { width: 48px; height: 26px; padding: 0; border: 1px solid var(--line, #d8d2c4); border-radius: 6px; background: none; cursor: pointer; }
 .ds-stage__empty { padding: 60px 24px; text-align: center; color: var(--mute); line-height: 1.7; font-size: 13px; }
 .ds-ctl { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
 .ds-ctl b { color: var(--accent); font-variant-numeric: tabular-nums; }
@@ -2982,9 +2982,21 @@ function dsFrameDoc() {
   const f = document.getElementById('ds-frame');
   try { return f && f.contentDocument ? f.contentDocument : null; } catch (_) { return null; }
 }
+// canonical token → landing styles.css 实际用的 --color-* 名（与 serve.ts themeCss 的桥接一致）。
+// 这样实时预览改的就是 landing 真正读的变量，拖旋钮右侧立刻变（不只是 apply 后才变）。
+var DS_ALIAS = {
+  '--accent': ['--color-accent'],
+  '--accent-2': ['--color-accent-2'],
+  '--surface': ['--color-paper', '--color-surface'],
+  '--ink': ['--color-ink', '--color-text'],
+  '--ink-2': ['--color-muted'],
+  '--font-heading': ['--font-display'],
+};
 function dsSetVar(name, val) {
   const doc = dsFrameDoc();
-  if (doc && doc.documentElement) doc.documentElement.style.setProperty(name, val);
+  if (!doc || !doc.documentElement) return;
+  doc.documentElement.style.setProperty(name, val);
+  (DS_ALIAS[name] || []).forEach(function (a) { doc.documentElement.style.setProperty(a, val); });
 }
 function dsSetBodyAttr(attr, val) {
   const doc = dsFrameDoc();
@@ -3010,10 +3022,10 @@ function dsPushAll() {
   if (t.button) dsSetBodyAttr('data-button', t.button);
 }
 const DS_PRESETS = {
-  editorial:   { accent: 'oklch(45% 0.15 25)',  accent2: 'oklch(70% 0.12 250)', radius: 2,  space: 110, hero: 'editorial', button: 'solid' },
-  minimalist:  { accent: 'oklch(42% 0.16 28)',  accent2: 'oklch(66% 0.10 250)', radius: 6,  space: 100, hero: 'split',     button: 'outline' },
-  brutalist:   { accent: 'oklch(60% 0.22 30)',  accent2: 'oklch(55% 0.20 280)', radius: 0,  space: 95,  hero: 'split',     button: 'solid' },
-  soft:        { accent: 'oklch(62% 0.13 200)', accent2: 'oklch(75% 0.10 320)', radius: 18, space: 120, hero: 'centered',  button: 'pill' },
+  editorial:   { accent: '#972527', accent2: '#61a3e6', radius: 2,  space: 110, hero: 'editorial', button: 'solid' },
+  minimalist:  { accent: '#901211', accent2: '#6197cd', radius: 6,  space: 100, hero: 'split',     button: 'outline' },
+  brutalist:   { accent: '#e62e1e', accent2: '#6159e1', radius: 0,  space: 95,  hero: 'split',     button: 'solid' },
+  soft:        { accent: '#009ca5', accent2: '#ca99d6', radius: 18, space: 120, hero: 'centered',  button: 'pill' },
 };
 function dsApplyPreset(name) {
   const p = DS_PRESETS[name]; if (!p) return;
@@ -3032,11 +3044,8 @@ function handleAction(act, id, el) {
   if (act === 'dir-gen') {
     const title = (el && el.dataset.title) || id;
     const prompt = '用 ' + VENTURE + ' 的「' + title + '」方向生成一个新的 landing 验证页（landing/v<n+1>），出海默认英文';
-    if (LUMI.interactive) {
-      lumiPost('/api/direction/select', { directionId: id, title })
-        .then(() => { toast('已记录方向选择', 'ok'); aiHandoff('生成 Landing · ' + title, prompt); })
-        .catch(e => toast('失败：' + e.message, 'warn'));
-    } else { aiHandoff('生成 Landing · ' + title, prompt); }
+    // 只给提示词让用户发给 AI 生成 —— 不在页面改「已选方向」（方向由 agent 实际生成时写回 decisions.yaml）。
+    aiHandoff('生成 Landing · ' + title, prompt);
     return;
   }
   if (act === 'design-apply') {
@@ -3206,13 +3215,6 @@ document.addEventListener('click', (e) => {
   if (segBtn) {
     const group = segBtn.parentElement;
     group.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
-    // next-actions view toggle (看板 / 脑图)
-    const view = segBtn.dataset.naView;
-    if (view) {
-      const na = segBtn.closest('[data-na]');
-      if (na) na.querySelectorAll('[data-na-pane]').forEach(p => { p.hidden = p.dataset.naPane !== view; });
-      if (view === 'mindmap') renderMindmap();
-    }
     return;
   }
 });

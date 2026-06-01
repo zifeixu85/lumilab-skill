@@ -38,7 +38,13 @@ async function main(): Promise<void> {
   const model = arg(a, '--model', 'gpt-image-2')!;
   const size = arg(a, '--size', '3:4')!;
   const quality = arg(a, '--quality', 'medium')!;
-  if (!venture || !prompt) { console.error('用法：imagegen.ts --venture <slug> --prompt "<画面描述>" [--model] [--size] [--quality] [--out]'); process.exit(2); }
+  if (!venture || !prompt) { console.error('用法：imagegen.ts --venture <slug> --prompt "<画面描述>" [--model] [--size] [--quality] [--opt-in] [--out]'); process.exit(2); }
+  // 这是「可选的 AI 出图第二步」，不是默认路径。小红书配图默认走 render-xhs-card.ts（HTML 渲染，0 崩中文字、免费、可控）。
+  if (!a.includes('--opt-in')) {
+    process.stderr.write('⚠ imagegen = 可选的 AI 出图第二步，不是默认路径。\n');
+    process.stderr.write('  小红书配图默认应走 render-xhs-card.ts（HTML 模板渲染：0 崩中文字、免费、与 landing 视觉一致）。\n');
+    process.stderr.write('  只在用户明确要 AI 底图 / 氛围背景时才用本脚本；请确认已先跑 HTML 渲染。加 --opt-in 消除本提示。\n');
+  }
   const out = arg(a, '--out', `${model}-bg`)!;
 
   const key = loadKey();
