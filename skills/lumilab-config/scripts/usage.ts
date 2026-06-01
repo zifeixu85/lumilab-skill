@@ -10,7 +10,8 @@
  *
  *   2) 宿主 LLM token —— **脚本测不到**（确定性脚本是子进程，看不到宿主 token 表）。
  *      混合策略：宿主 agent 每 phase 后 recordLlm()(source: host-reported) 自报优先；
- *      没自报就 estimateLlmFromArtifacts() 按产物体量估算(source: estimated)兜底。
+ *      没自报就 estimateLlmFromArtifacts() 按「已跑哪几个 phase」量级粗估(source: estimated)兜底
+ *      —— 是量级·偏保守下限，真实用量以宿主自己的用量页为准（脚本测不到，不装精确）。
  *
  * 文件：~/.lumilab/data/ventures/<slug>/usage.json
  *
@@ -117,42 +118,43 @@ export function recordLlm(slug: string, e: Omit<LlmEntry, 'ts'>): void {
   } catch (err) { process.stderr.write(`  (recordLlm skipped: ${(err as Error).message})\n`); }
 }
 
-// 体量→token 估算：中英混排约 2.8 字符/token（输出）；输入按读取的研究/上下文约 2.2× 输出粗估。
-const CHARS_PER_TOKEN = 2.8;
-const INPUT_MULTIPLIER = 2.2;
-// 估算计入的「宿主产物」（agent 写的分析/文案，token 主要花在这些上；模板化 HTML 不计）。
-const ARTIFACTS = [
-  'project_brief.md', 'yc_brief.md', 'market_analysis.json', 'audience.md', 'painpoints.md',
-  'competitors.md', 'product_definition.md', 'pricing_hypothesis.md', 'hypotheses.yaml',
+// ── 宿主 LLM 估算：按「跑了哪几个 phase」量级粗估（不是按最终产物字符数）─────────────
+// 为什么不按产物字符：token 的大头在「读操作型 SKILL.md（每个 1.5–3 万 token）+ 工具结果
+// + 多 phase 累积的上下文 + 模型思考」，最终产物只是冰山尖（旧做法把整条流水线估成几百
+// token，偏低 ~1000×）。脚本看不到宿主真实 token 表，所以这是**量级粗估·偏保守下限**，
+// 真实用量以你宿主自己的用量页为准。每个 phase 的 in/out 量级 = 读 SKILL.md + 上下文 +
+// 工具结果 + 产出；agent 流水线 input:output ≈ 6–8×。
+interface PhaseCost { id: string; label: string; in: number; out: number; detect: (dir: string) => boolean; }
+function fileExists(dir: string, ...rel: string[]): boolean {
+  return rel.some((r) => { try { return existsSync(join(dir, r)); } catch { return false; } });
+}
+function dirHas(dir: string, sub: string, test: (f: string) => boolean): boolean {
+  try { const p = sub === '.' ? dir : join(dir, sub); return existsSync(p) && readdirSync(p).some(test); } catch { return false; }
+}
+const PHASES: PhaseCost[] = [
+  { id: 'intake',      label: '想法澄清 / intake',  in: 45_000,  out: 7_000,  detect: (d) => fileExists(d, 'project_brief.md', 'yc_brief.md') },
+  { id: 'research',    label: '市场 / 竞品 / 人群调研', in: 180_000, out: 28_000, detect: (d) => fileExists(d, 'market_analysis.json') || dirHas(d, 'research', (f) => f.endsWith('.json') || f.endsWith('.md')) },
+  { id: 'report',      label: 'HTML 分析报告',       in: 40_000,  out: 9_000,  detect: (d) => dirHas(d, 'reports', (f) => f.endsWith('.html')) },
+  { id: 'positioning', label: '定位 / 方向决策',     in: 45_000,  out: 8_000,  detect: (d) => fileExists(d, 'product_definition.md', 'pricing_hypothesis.md', 'decisions.yaml') },
+  { id: 'landing',     label: '设计 + landing 生成', in: 120_000, out: 24_000, detect: (d) => dirHas(d, 'landing', () => true) || fileExists(d, 'design_direction.json') },
+  { id: 'content',     label: '多平台内容 / 配图',   in: 60_000,  out: 14_000, detect: (d) => dirHas(d, 'content', () => true) },
+  { id: 'retro',       label: '复盘 / 下一步',       in: 40_000,  out: 8_000,  detect: (d) => dirHas(d, '.', (f) => /^retro.*\.ya?ml$/.test(f)) || dirHas(d, 'studio', (f) => f === 'next-actions.json') },
 ];
 
-/** 无 host-reported 时按产物体量估算（source: estimated，幂等替换旧 estimated 条目）。 */
+/** 无 host-reported 时按「已跑哪几个 phase」量级估算（source: estimated，幂等替换旧 estimated 条目）。 */
 export function estimateLlmFromArtifacts(slug: string): Usage {
   const u = readUsage(slug);
   // 已有宿主自报就不覆盖（自报优先）
   if (u.llm.entries.some((e) => e.source === 'host-reported')) return u;
-
   try {
     const dir = ventureDir(slug);
-    let chars = 0;
-    for (const rel of ARTIFACTS) {
-      const p = join(dir, rel);
-      if (existsSync(p)) { try { chars += readFileSync(p, 'utf-8').length; } catch { /* skip */ } }
-    }
-    // research/*.md 综合报告也算（cross_platform_synthesis 等是 agent 产出）
-    const rdir = join(dir, 'research');
-    if (existsSync(rdir)) {
-      for (const f of readdirSync(rdir)) {
-        if (f.endsWith('.md')) { try { chars += readFileSync(join(rdir, f), 'utf-8').length; } catch { /* skip */ } }
-      }
-    }
-    if (chars === 0) return u;
-    const tokens_out = Math.round(chars / CHARS_PER_TOKEN);
-    const tokens_in = Math.round(tokens_out * INPUT_MULTIPLIER);
-    const entries = [
-      ...u.llm.entries.filter((e) => e.source !== 'estimated'),
-      { phase: 'aggregate-estimate', tokens_in, tokens_out, source: 'estimated' as const, ts: new Date().toISOString() },
-    ];
+    if (!existsSync(dir)) return u;
+    const hit = PHASES.filter((p) => { try { return p.detect(dir); } catch { return false; } });
+    if (hit.length === 0) return u;
+    const estimated = hit.map((p) => ({
+      phase: p.id, tokens_in: p.in, tokens_out: p.out, source: 'estimated' as const, ts: new Date().toISOString(),
+    }));
+    const entries = [...u.llm.entries.filter((e) => e.source !== 'estimated'), ...estimated];
     const next = { ...u, llm: recomputeLlm(entries) };
     write(slug, next);
     return next;
@@ -170,7 +172,9 @@ export interface UsageSummary {
 /** 给 render/home 用的汇总。无 host-reported 时惰性触发体量估算。 */
 export function summarize(slug: string, opts: { estimateIfMissing?: boolean } = {}): UsageSummary {
   let u = readUsage(slug);
-  if ((opts.estimateIfMissing ?? true) && u.llm.source === 'none') u = estimateLlmFromArtifacts(slug);
+  // 非「宿主自报」一律刷新估算（覆盖 none + 旧 estimated）—— 让既有 venture 也用上新口径，
+  // 并随 phase 推进自动更新。host-reported 永远优先、不被估算覆盖。
+  if ((opts.estimateIfMissing ?? true) && u.llm.source !== 'host-reported') u = estimateLlmFromArtifacts(slug);
   const services = Object.entries(u.services).map(([service, r]) => ({ service, label: r.label, calls: r.calls, credits: r.credits, est_cost_usd: r.est_cost_usd }));
   const external_cost_usd = Number(services.reduce((a, s) => a + s.est_cost_usd, 0).toFixed(4));
   const external_calls = services.reduce((a, s) => a + s.calls, 0);

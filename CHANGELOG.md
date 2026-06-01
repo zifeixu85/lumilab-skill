@@ -6,6 +6,16 @@
 
 ---
 
+## [1.14.1] · 2026-06-01 · 修正宿主 LLM token 估算（曾偏低 ~1000×）
+
+### Fixed
+- **宿主 LLM token 估算严重偏低**：旧做法按「最终产物字符数 / 2.8 × 2.2」估，只数了冰山尖（最终 .md/.json），漏掉 token 大头 —— 读操作型 SKILL.md（每个 1.5–3 万 token）、工具结果、多 phase 累积上下文、模型思考。一条完整 idea→landing 流水线被估成几百 token（实际约 50–70 万），**偏低约 1000×**。
+  - 改为**按「跑了哪几个 phase」量级估算**：检测已跑 phase（intake / research / report / positioning / landing / content / retro），每个套真实量级 in/out（读 SKILL.md + 上下文 + 工具结果 + 产出，input:output≈6–8×）。完整流水线现估 ~63 万 token（量级对、偏保守下限）。
+  - `summarize()` 改为「非 host-reported 一律刷新估算」，既有 venture 立即用上新口径并随 phase 推进更新；`host-reported`（宿主自报）永远优先、不被覆盖。
+  - Studio / home 面板措辞改诚实：`~628k（粗估）` + 注明「脚本测不到宿主真实用量，以你宿主自己的用量页为准」。外部 API 成本仍为精确计量，不变。
+
+---
+
 ## [1.14.0] · 2026-06-01 · 改授权为 AGPL-3.0 + 安装器安全加固
 
 ### Changed

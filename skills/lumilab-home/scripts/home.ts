@@ -466,7 +466,7 @@ function renderVentures(status: HomeStatus): string {
         </header>
         <p class="venture-idea">${esc(truncate(v.idea, 72))}</p>
         ${renderPhaseBar(v.phases)}
-        ${v.cost ? `<p class="venture-cost">${v.cost.external_usd > 0 ? '≈$' + v.cost.external_usd.toFixed(3) + ' 外部' : '$0 外部'}${v.cost.tokens > 0 ? ` · ~${fmtK(v.cost.tokens)} token${v.cost.llm_source !== 'host-reported' ? '（估）' : ''}` : ''}${v.cost.agent_calls > 0 ? ` · <b>${v.cost.agent_calls} 代搜</b>` : ''}</p>` : ''}
+        ${v.cost ? `<p class="venture-cost">${v.cost.external_usd > 0 ? '≈$' + v.cost.external_usd.toFixed(3) + ' 外部' : '$0 外部'}${v.cost.tokens > 0 ? ` · ~${fmtK(v.cost.tokens)} token${v.cost.llm_source !== 'host-reported' ? '（粗估）' : ''}` : ''}${v.cost.agent_calls > 0 ? ` · <b>${v.cost.agent_calls} 代搜</b>` : ''}</p>` : ''}
         <footer class="venture-card__foot">
           <span class="venture-status venture-status--${st.tone}">${esc(st.label)}</span>
           ${deployedBadge}

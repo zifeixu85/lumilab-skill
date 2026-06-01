@@ -355,7 +355,7 @@ function sourceBadge(src: string): SrcBadge {
 
 function fmtTokens(n: number): string { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n); }
 function llmSrcLabel(src: string): string {
-  return src === 'host-reported' ? '宿主自报' : src === 'estimated' ? '体量估算' : src === 'mixed' ? '自报+估算' : '—';
+  return src === 'host-reported' ? '宿主自报' : src === 'estimated' ? '量级粗估' : src === 'mixed' ? '自报+粗估' : '—';
 }
 
 // ── 「这一轮消耗」汇总（外部精确 + LLM 自报/估算）。best-effort，缺 config 也不报错。──
@@ -595,8 +595,8 @@ export function render(ventureDir: string): string {
           <span class="usage-cell__sub">${usage.external_calls} 次调用 · 精确计量</span>
         </div>
         <div class="usage-cell">
-          <span class="usage-cell__num">${fmtTokens(usage.llm.total)}</span>
-          <span class="usage-cell__lbl">宿主 LLM token</span>
+          <span class="usage-cell__num">${usage.llm.source === 'host-reported' ? '' : '~'}${fmtTokens(usage.llm.total)}</span>
+          <span class="usage-cell__lbl">宿主 LLM token${usage.llm.source === 'host-reported' ? '' : '（粗估）'}</span>
           <span class="usage-cell__sub"><span class="src-badge ${usage.llm.source === 'host-reported' ? 'src--real' : 'src--est'}">${llmSrcLabel(usage.llm.source)}</span></span>
         </div>
         ${usage.agent_calls > 0 ? `
@@ -607,7 +607,7 @@ export function render(ventureDir: string): string {
         </div>` : ''}
       </div>
       ${usage.services.length ? `<ul class="usage-svc">${usage.services.map((s: any) => `<li><span class="usage-svc__name">${esc(s.label)}</span><span class="usage-svc__meta">${s.calls} 次 · ${s.est_cost_usd > 0 ? '$' + s.est_cost_usd.toFixed(3) : '免费'}</span></li>`).join('')}</ul>` : ''}
-      ${usage.llm.source !== 'host-reported' && usage.llm.total > 0 ? `<p class="usage-note">※ LLM token 为按产物体量的估算（宿主未自报）。外部服务成本为精确计量。</p>` : ''}
+      ${usage.llm.source !== 'host-reported' && usage.llm.total > 0 ? `<p class="usage-note">※ 宿主 LLM token 是按「已跑哪几个 phase」估的<strong>量级（偏保守下限）</strong> —— 脚本看不到宿主真实 token 表，准确用量请看你宿主自己的用量页。上方外部服务成本（$）为精确计量。</p>` : ''}
   ` : '';
 
   const footprintPanel = footprint.length ? `
