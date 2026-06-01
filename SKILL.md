@@ -17,7 +17,7 @@ metadata:
     requires_browser: false
     chat_only_ok: true
     default_entry: lumilab-home
-    skill_count: 24
+    skill_count: 26
   hermes:
     tags: [bundle, idea-validation, market-analysis, landing-page, fake-door, seo, geo, opc]
   authors: [ameng]
@@ -27,6 +27,26 @@ metadata:
 
 > 这是 **bundle 入口 SKILL.md**。Lumi Lab 是一套 26 个 skill 的集合，跑在你已有的 AI 宿主里。
 > 完整文档见 [`README.md`](./README.md)，逐 skill 索引见 [`docs/SKILLS.md`](./docs/SKILLS.md)。
+
+## 装完怎么用（宿主 agent 必读，并据此转告用户）
+
+**正确用法 = 用户直接对你（AI）说一句话，不用 `cd`、不用 `bun run`：**
+
+- 「打开 lumilab」 → 进主页 / 看进度（你触发 `lumilab-home`）
+- 「帮我用 Lumi Lab 验证一个想法：<一句话>」 → 自动跑完整条验证流水线（你触发 `lumilab-idea-to-landing`）
+
+终端党才用 CLI —— 可执行文件是 `scripts/lumilab`，**没有 `.ts` 后缀**：
+
+```bash
+lumilab idea "<一句话想法>"                   # install.sh 已把它加进 PATH
+bun run scripts/lumilab idea "<一句话想法>"    # 或直接用 bundle 里的（不是 lumilab.ts）
+```
+
+**给宿主 agent 的纠错提醒（别照文件树瞎猜命令）：**
+- ❌ 没有 `scripts/lumilab.ts` —— CLI 是 `scripts/lumilab`（无扩展名）。
+- ❌ `install.sh` 是**安装器**，不是「创建想法」；装一次即可，别拿它建想法。
+- ❌ 别让用户 `cd` 进目录手动跑脚本 —— 正常用法就是在 AI 宿主里说一句话，skill 自动接力。
+- ⚠️ 若你只是把仓库 clone 到了 workspace：先跑一次 `bash install.sh`（或宿主自带的 skills install），把 26 个 skill 装进宿主的 skills 目录，它们才会作为 skill 被加载、用户才能用一句话触发。
 
 ## 它解决什么问题
 
