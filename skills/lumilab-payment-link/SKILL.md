@@ -34,7 +34,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 **触发**：
 - 用户已有 fake-door landing，想升级"立即购买"按钮从邮件 modal 变成真 Stripe checkout
 - 用户问"怎么验证真付费意愿，不只是留邮箱"
-- 决赛 demo 想体现"我们的假门可以真走 Stripe"
+- 演示时想体现"我们的假门可以真走 Stripe"
 
 **反触发**：
 - 用户还没确定定价（先 lumilab-product-mvp 算 LTV/CAC）

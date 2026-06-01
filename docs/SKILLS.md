@@ -10,7 +10,7 @@
 
 | Skill | Purpose |
 |---|---|
-| **`lumilab`** | OS-level orchestrator. Reads `~/.lumilab/state.json`, routes user intent to the right skill, maintains cross-session memory. |
+| **`lumilab`** | CLI launcher (`scripts/lumilab`): `lumilab idea/demo/home/studio/config/deploy/serve…` routes intent to the right skill; reads `~/.lumilab/config.json`. |
 
 (Phase 1 will promote the current CLI `scripts/lumilab` into a routing skill at `skills/lumilab/`.)
 
@@ -22,7 +22,7 @@ The five self-built skills that carry the venture-validation methodology.
 
 | Skill | Trigger | Output |
 |---|---|---|
-| **`lumilab-founder-coach`** | "help me clarify this idea" / `lumilab coach` | 3-layer dialogue (methodology / cognitive / psychological). One question at a time. HARD-GATE pacing. Writes hypotheses.yaml. |
+| **`lumilab-founder-coach`** | "help me clarify this idea" (dialogue-invoked / via idea-to-landing Phase 0) | 3-layer dialogue (methodology / cognitive / psychological). One question at a time. HARD-GATE pacing. Writes hypotheses.yaml. |
 | **`lumilab-hypothesis-ledger`** | After Coach, or anytime new evidence arrives | Atomic YAML facts with supersede history. Diff-view rendered into Studio. Never deletes. |
 | **`lumilab-landing-mvp`** | "build a landing page for this venture" | HTML + standalone CSS + image catalog + email-capture stub. 6-phase non-skippable pipeline. Anti-Slop + 6 self-check gates. |
 | **`lumilab-content-repurpose`** | "give me xhs + wechat + x posts for this idea" | 5-platform content (xhs / wechat / douyin / moments / x) with each platform's hard rules enforced. |
@@ -36,10 +36,10 @@ The utility skills that make the bundle actually usable.
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| **`lumilab-config`** | `lumilab config` (CLI) | Browser-based 5-step Setup Wizard. Configures **tool tokens only** (Cloudflare / Tavily / TikHub / Stripe / Resend / WeChat / X), preferences, default share password. **Never asks for an LLM key.** |
+| **`lumilab-config`** | `lumilab config` (CLI) | Browser-based 6-step Setup Wizard. Configures **tool tokens only** (Cloudflare / Tavily / TikHub / Stripe / Resend / WeChat / X), preferences, default share password. **Never asks for an LLM key.** |
 | **`lumilab-config` (Share Manager)** | `lumilab manage` (CLI) | Browser dashboard for all deployed Studios. Reveal/copy password · rotate · toggle visibility · delete · QR code. |
 | **`lumilab-deploy`** | `lumilab deploy <venture>` | Encrypts the venture's Studio bundle with AES-GCM + PBKDF2 (1M iter), wraps it in an HTML password gate with localStorage caching, deploys to Cloudflare Pages via wrangler. |
-| **`lumilab-research-platforms`** | "research this niche on web + xhs" | Dual-channel research: browser automation (Playwright/CDP) + third-party APIs (Tavily / Tavily / TikHub). Outputs cross-platform synthesis with painpoint density. |
+| **`lumilab-research-platforms`** | "research this niche on web + xhs" | Dual-channel research: browser automation (Playwright/CDP) + third-party APIs (Tavily / TikHub). Outputs cross-platform synthesis with painpoint density. |
 
 ---
 
@@ -67,7 +67,7 @@ Thin wrappers around upstream community skills, with Lumi Lab-specific Anti-Slop
 | `lumilab-product-mvp` | jlengrand/slc-scope + shawnpang/mvp-scoping |
 | `lumilab-copy` | johndoeblocks/copy-skill + shipshitdev/copy-validator |
 | `lumilab-launch-strategy` | aitytech/launch-strategy + ognjengt/go-to-market |
-| `lumilab-metrics` | wshobson/startup-metrics-framework (6.3K installs) |
+| `lumilab-metrics` | wshobson/startup-metrics-framework |
 | `lumilab-design-direction` (overlay layer) | Leonxlnx/taste-skill + pbakaus/impeccable |
 
 ---
@@ -78,7 +78,7 @@ Thin wrappers around upstream community skills, with Lumi Lab-specific Anti-Slop
 |---|---|
 | **`lumilab-playbook-cn`** | 13 Chinese-first methodology frameworks (Mom Test, Lean Canvas, Sean Ellis 40% PMF, Bob Moesta JTBD, April Dunford, Marc Lou's indie playbook, Lenny's product frameworks, Thariq's HTML effectiveness, etc.) + index into the 5 platform rule-sheets. |
 
-## Added since v1.0 · 5 skills
+## Workflow & ops skills
 
 | Skill | When | Purpose |
 |---|---|---|

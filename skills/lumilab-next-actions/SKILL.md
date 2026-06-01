@@ -59,7 +59,7 @@ compatibility: "Claude Code, OpenClaw 2026.4.25+, Hermes Agent v0.13.0+, Cursor,
 
 ## 工作流程（怎么跑）
 
-确定性骨架（baseline 查表 = 机械查找，非推理），断网/无 LLM 也能出内容（决赛兜底）：
+确定性骨架（baseline 查表 = 机械查找，非推理），断网/无 LLM 也能出内容（离线兜底）：
 
 ```bash
 bun run scripts/next-actions.ts generate <venture-dir>

@@ -8,14 +8,16 @@
 
 [![版本](https://img.shields.io/badge/version-1.14.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
-[![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/SKILLS.md)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
 
 ## 🚀 一键安装
 
-把这句话发给你的 AI 宿主（Claude Code / OpenClaw / Cursor / Codex…），它会自己装好：
+把这段话发给你的 AI 宿主（Claude Code / OpenClaw / Cursor / Codex…），它会自己装好（整段可直接复制）：
 
-> 帮我装 Lumi Lab：跑 `curl -fsSL https://get.lumiclaw.ai | bash`，装完告诉我怎么用。
+```text
+帮我装 Lumi Lab：跑 curl -fsSL https://get.lumiclaw.ai | bash ，装完告诉我怎么用。
+```
 
 或自己在终端跑：
 
@@ -99,7 +101,7 @@ Lumi Lab 是 **C 端创业 idea 的快速验证工具**。`lumilab-idea-to-landi
 
 ### 三个浏览器 UI（不需要 LLM）
 
-- **Setup Wizard**（`lumilab config`）— 5 步。问你真正需要的工具 token：Cloudflare、Tavily、TikHub。**从不问 LLM key。**
+- **Setup Wizard**（`lumilab config`）— 6 步。问你真正需要的工具 token：Cloudflare、Tavily、TikHub。**从不问 LLM key。**
 - **Share Manager**（`lumilab manage`）— 列出每个已部署的 Studio，可显示密码 / rotate / 删除。
 - **Design Direction**（`lumilab design-direction <venture>`）— 4 套美学样本 + 3 个旋钮（variance / motion / density）+ iframe 实时预览。产出 `design_direction.json` 供下游 skill 消费。
 
@@ -155,9 +157,11 @@ brew install qrencode                        # 可选；或 apt install qrencode
 
 ### 安装 skills bundle
 
-**最简单：把这句话发给你的 AI agent（Claude Code / OpenClaw / Cursor…），它会自己装好：**
+**最简单：把这段话发给你的 AI agent（Claude Code / OpenClaw / Cursor…），它会自己装好（整段可直接复制）：**
 
-> 帮我装 Lumi Lab：跑 `curl -fsSL https://get.lumiclaw.ai | bash`，装完告诉我怎么用。
+```text
+帮我装 Lumi Lab：跑 curl -fsSL https://get.lumiclaw.ai | bash ，装完告诉我怎么用。
+```
 
 或自己在终端跑这条命令（效果一样）：
 
@@ -298,33 +302,29 @@ lumilab help                          显示帮助
 
 ---
 
-## 质量评测
+## 质量纪律
 
-26 个 skill 全部跑过 [SkillLens](https://github.com/Yannickdes/SkillLens) 官方 agent-side Deep Review，**16 个 S 级 + 10 个 A 级，平均 ~90.8 / 100，`deepReviewCertificate` 全部 `verified`**。10 个 A 是 idea-to-landing / studio / landing-mvp / config 等**操作型 skill**——它们的 SKILL.md 内联完整流水线与命令细节（宿主执行时要照做），SkillLens 的 context-budget 维度因体积扣几分；**我们选择完整度优先于评分**。方法论类 skill 精简 SKILL.md + 完整详版在 `references/full-guide.md`（progressive disclosure）。每个 skill 都带可独立运行的 `scripts/validate-output.ts` + `scripts/anti-slop-lint.ts`。
-
-详见 [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md)。
+操作型 skill 的 SKILL.md 内联完整流水线与命令细节（宿主执行时照做）；方法论类 skill 精简 SKILL.md + 完整详版在 `references/full-guide.md`（progressive disclosure）。每个 skill 都带可独立运行的 `scripts/validate-output.ts`（输出结构校验）+ `scripts/anti-slop-lint.ts`（反 AI 味文案检查）。
 
 ---
 
 ## 文档
 
-- [`docs/TUTORIAL.zh.md`](docs/TUTORIAL.zh.md) — 完整中文上手指南（三种宿主路径 + 飞书入门）
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 技术架构
 - [`docs/SKILLS.md`](docs/SKILLS.md) — 26 个 skill 索引，一行说明
-- [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md) — SkillLens 评测报告
 - [`CHANGELOG.md`](CHANGELOG.md) — 版本变更
 
 ---
 
-## 主要能力（决赛优化 W1–W4）
+## 主要能力
 
 > 逐版本变更见 [`CHANGELOG.md`](CHANGELOG.md)（当前 v1.14.0）。
 
-- **W1 · 常驻 Studio 守护进程** — `lumilab serve start`，固定端口统一服务所有 venture + home，文件变更 → 已打开页面**自动刷新**，访问时惰性重渲（不用 agent 手动 render）。
-- **W2 · `lumilab-next-actions` 新 skill** — 决策引擎：读全量 venture 数据 → 对照 R6 信号基线 → 多方向候选下一步。Studio 内联**看板**（原生拖拽持久化）+ **脑图**（离线渲染、断网可用）+ 可打印。
-- **W3 · 付款数据回流** — `lumilab payment sync` 只读回读真实 Stripe 付款笔数/金额（脱敏）→ 对照基线判信号 → 回写假设 → 喂 next-actions。付款是比留邮箱强 1000× 的需求信号。
-- **W4 · 落地页 `theme.css` + 实时 re-theme** — 构建阶段真实落地页 iframe + 设计面板并排，拖旋钮**立刻可见**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
-- **全量 26 skill 跑过 SkillLens Deep Review → 16 S + 10 A（平均 ~90.8，证书 verified）**；操作型 skill 的 SKILL.md 内联完整流水线细节（完整度优先于 context-budget 评分），方法论类精简 + 完整 `references/full-guide.md`。
+- **常驻 Studio 守护进程** — `lumilab serve start`，固定端口统一服务所有 venture + home，文件变更 → 已打开页面**自动刷新**，访问时惰性重渲（不用 agent 手动 render）。
+- **`lumilab-next-actions` 决策引擎** — 读全量 venture 数据 → 对照信号基线 → 多方向候选下一步。Studio 内联**看板**（原生拖拽持久化）+ **脑图**（离线渲染、断网可用）+ 可打印。
+- **付款数据回流** — `lumilab payment sync` 只读回读真实 Stripe 付款笔数/金额（脱敏）→ 对照基线判信号 → 回写假设 → 喂 next-actions。付款是比留邮箱强 1000× 的需求信号。
+- **落地页 `theme.css` + 实时 re-theme** — 构建阶段真实落地页 iframe + 设计面板并排，拖旋钮**立刻可见**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
+- **第一方埋点 + 内容配图 + 宿主代搜兜底** — 公开验证页第一方埋点（数据进你自己的 CF），小红书/朋友圈/活动长图配图，无 API key 时用宿主自身知识兜底调研。
 
 ## 当前状态
 
@@ -337,7 +337,7 @@ lumilab help                          显示帮助
 - 真 keychain 后端（macOS Keychain / Linux secret-tool）+ XHS / Exa 真集成 + 无 token 时 mock 降级
 - 5 个中国平台规则表（2025–2026 更新）+ PARA 三层记忆布局
 - 自指 demo venture（`lumilab demo` 一键装载）
-- **SkillLens：26 个 skill 全部 Deep-Reviewed → 16 S + 10 A，平均 ~90.8，全部 verified（操作型 skill 完整度优先）**
+- 每个 skill 都带可独立运行的输出校验器（validate-output.ts）+ 反 AI 味文案检查器（anti-slop-lint.ts）
 - 两条安装通道都已发布最新：`curl get.lumiclaw.ai`（CF Pages）+ `git clone github.com/zifeixu85/lumilab`
 
 详见 [`CHANGELOG.md`](CHANGELOG.md)。

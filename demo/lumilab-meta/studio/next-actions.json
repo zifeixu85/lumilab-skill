@@ -80,7 +80,7 @@
       "id": "t-005",
       "column": "in_progress",
       "title": "验证假设：Studio Mode（项目作战室 HTML）是 VST 区别于 super-prompt 的最强信号",
-      "detail": "方法：路演 demo 时给 5 个评委看 Studio，记录 verbatim 反应",
+      "detail": "方法：给 5 个目标用户看 Studio，记录 verbatim 反应",
       "priority": "high",
       "stage": "idea",
       "linked_hypothesis": "h-002",

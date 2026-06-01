@@ -1,6 +1,6 @@
 # Lumi Lab · Architecture
 
-> Technical architecture for the **0.1.0-p0** skills bundle. For the skill-by-skill index, see [`SKILLS.md`](SKILLS.md).
+> Technical architecture for the **1.14.0** skills bundle. For the skill-by-skill index, see [`SKILLS.md`](SKILLS.md).
 
 ---
 
@@ -18,7 +18,7 @@
                                       ▼
                   ~/.claude/skills/lumilab-*/
                   ┌────────────────────────────────────────┐
-                  │  21 skills, each = SKILL.md + scripts/ │
+                  │  26 skills, each = SKILL.md + scripts/ │
                   └─────────────┬──────────────────────────┘
                                 │ writes / reads
                                 ▼
@@ -221,20 +221,20 @@ Tier 3   resources/               Reusable references (P1)
 Tier 4   archives/                Completed/abandoned ventures (P1)
 ```
 
-Phase 0 ships Tier 1 fully. Tier 2–4 land in Phase 1 with a knowledge-graph layer (MCP-compatible) for cross-venture pattern extraction.
+This release ships Tier 1 fully. Tier 2–4 land later with a knowledge-graph layer (MCP-compatible) for cross-venture pattern extraction.
 
 ---
 
-## 10. Phase roadmap
+## 10. Roadmap
 
 | Phase | Window | What lands |
 |---|---|---|
-| **0** (this release) | 2026-05 | 21 skills · CLI · Studio · 3 browser UIs · encrypted deploys · 5 platform rules · self-referencing demo |
-| **1** | 2026 Q3 | Real keychain · 5 more interactive pages · XHS Playwright + Tavily actual integration · Stripe / Resend / PostHog · cross-venture portfolio · MCP memory graph · multi-account workspaces |
-| **2** | 2026 Q4+ | Pro tier · service-provider tier · white-label · Cloudflare Workers edge · DNS auto-config · GDPR exports |
+| **Now** (v1.14.0) | shipped | 26 skills · CLI · Studio · 3 browser UIs · encrypted deploys · 5 platform rules · self-referencing demo |
+| **Next** | planned | Real keychain · 5 more interactive pages · XHS Playwright + Tavily actual integration · Stripe / Resend / PostHog · cross-venture portfolio · MCP memory graph · multi-account workspaces |
+| **Later** | planned | Pro tier · service-provider tier · white-label · Cloudflare Workers edge · DNS auto-config · GDPR exports |
 
 ---
 
 ## License
 
-授权见 [`../LICENSE`](../LICENSE)。
+AGPL-3.0（源码可见 + 强 copyleft），见 [`../LICENSE`](../LICENSE)。闭源 / 商业授权（dual-license）联系 ameng@ameng.blog。

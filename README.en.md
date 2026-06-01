@@ -8,14 +8,16 @@ English ｜ [简体中文](README.md)
 
 [![Version](https://img.shields.io/badge/version-1.14.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
-[![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
-[![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+[![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/SKILLS.md)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
 
 ## 🚀 Install in one line
 
-Tell your AI host (Claude Code / OpenClaw / Cursor / Codex…) and it installs itself:
+Tell your AI host (Claude Code / OpenClaw / Cursor / Codex…) and it installs itself (the whole block copies cleanly):
 
-> Install Lumi Lab for me: run `curl -fsSL https://get.lumiclaw.ai | bash`, then tell me how to use it.
+```text
+Install Lumi Lab for me: run  curl -fsSL https://get.lumiclaw.ai | bash  then tell me how to use it.
+```
 
 Or run it yourself:
 
@@ -133,7 +135,9 @@ brew install qrencode                        # optional; or apt install qrencode
 
 **Easiest: paste this to your AI agent (Claude Code / OpenClaw / Cursor…) — it installs itself:**
 
-> Install Lumi Lab: run `curl -fsSL https://get.lumiclaw.ai | bash`, then tell me how to start.
+```text
+Install Lumi Lab: run  curl -fsSL https://get.lumiclaw.ai | bash  then tell me how to start.
+```
 
 Or run it yourself in a terminal (same effect):
 
@@ -258,31 +262,29 @@ A super prompt is text. Lumi Lab is a workspace.
 
 ---
 
-## Quality
+## Quality discipline
 
-All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) official agent-side Deep Review — **16 at S, 10 at A, avg ~90.8 / 100, all `deepReviewCertificate` `verified`**. The 10 A's are operational skills (idea-to-landing / studio / landing-mvp / config…) whose SKILL.md carries the full pipeline + commands inline — they lose a few context-budget points by size; **we chose completeness over score**. Methodology skills keep a lean SKILL.md + full `references/full-guide.md`. Every skill ships a runnable `scripts/validate-output.ts` + `scripts/anti-slop-lint.ts`. See [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md).
+Operational skills inline the full pipeline + commands in their SKILL.md (the host follows them at run time); methodology skills keep a lean SKILL.md + full `references/full-guide.md` (progressive disclosure). Every skill ships a runnable `scripts/validate-output.ts` (output validator) + `scripts/anti-slop-lint.ts` (anti-AI-slop copy check).
 
 ---
 
 ## Documentation
 
-- [`docs/TUTORIAL.zh.md`](docs/TUTORIAL.zh.md) — full getting-started guide (three host paths + Feishu onboarding)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — technical architecture
 - [`docs/SKILLS.md`](docs/SKILLS.md) — 26-skill index with one-line purpose
-- [`docs/SKILLLENS_REPORT.md`](docs/SKILLLENS_REPORT.md) — SkillLens evaluation report
 - [`CHANGELOG.md`](CHANGELOG.md) — changelog
 
 ---
 
-## Highlights (W1–W4)
+## Highlights
 
 > Per-version changes: [`CHANGELOG.md`](CHANGELOG.md) (currently v1.14.0).
 
-- **W1 · Resident Studio daemon** — `lumilab serve start`: one process serves every venture + home on a fixed port; change any data → open pages **auto-refresh**, lazy re-render on access (no manual render).
-- **W2 · `lumilab-next-actions` skill** — decision engine: reads all venture data → R6 signal baselines → multi-direction next-step candidates. Inline **kanban** (native drag, persists) + **mindmap** (offline, works without network) + printable.
-- **W3 · Payment loop** — `lumilab payment sync` read-only pulls real Stripe paid count/amount (de-identified) → scores against baselines → writes back to hypotheses → feeds next-actions.
-- **W4 · Landing `theme.css` + live re-theme** — build stage puts the real landing in an iframe beside a design panel; drag a dial → the page **changes instantly**; "Apply" deterministically rewrites `theme.css` (no LLM).
-- **All 26 skills SkillLens Deep-Reviewed → 16 S + 10 A** (avg ~90.8, verified); operational skills keep the full pipeline inline (completeness over context-budget score), methodology skills stay lean + full `references/full-guide.md`.
+- **Resident Studio daemon** — `lumilab serve start`: one process serves every venture + home on a fixed port; change any data → open pages **auto-refresh**, lazy re-render on access (no manual render).
+- **`lumilab-next-actions` decision engine** — reads all venture data → signal baselines → multi-direction next-step candidates. Inline **kanban** (native drag, persists) + **mindmap** (offline) + printable.
+- **Payment loop** — `lumilab payment sync` read-only pulls real Stripe paid count/amount (de-identified) → scores against baselines → writes back to hypotheses → feeds next-actions.
+- **Landing `theme.css` + live re-theme** — build stage puts the real landing in an iframe beside a design panel; drag a dial → the page **changes instantly**; "Apply" deterministically rewrites `theme.css` (no LLM).
+- **First-party analytics + content imagery + host-search fallback** — first-party tracking on the public validation page (data lands in your own Cloudflare), 小红书/Moments/long-form campaign imagery, and host-LLM-knowledge fallback for research when no API keys are set.
 
 ## Status
 
@@ -299,8 +301,8 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - `lumilab` CLI (incl. retro / research-xhs / research-web / secrets)
 - Real keychain backend (macOS Keychain / Linux secret-tool)
 - XHS / Tavily real integration code + mock fallback when no token
-- Self-referencing demo venture (re-verified under v1.0)
-- **SkillLens: all 26 skills at S grade, avg ~92.6, all verified**
+- Self-referencing demo venture (`lumilab demo`)
+- Each skill ships a runnable output validator + anti-slop copy check
 
 ⏳ Pending your environment (does not block code usability):
 - End-to-end dogfood install test (run `./install.sh` on your machine)

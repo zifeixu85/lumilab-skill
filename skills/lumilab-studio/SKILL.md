@@ -428,7 +428,7 @@ Lumi Lab 用「写时更新」保持 home dashboard 和 venture Studio 是最新
 CLI 入口（`lumilab idea` / `config` / `deploy`）已经内置了写时更新；**对话式调用时由你（宿主 agent）负责补这两步**。
 
 
-## 决赛优化新增（W1 / W2 / W4 · 2026-05-30）
+## 近期新增（实时 Studio · 看板 · 实时 re-theme）
 
 ### W1 · 常驻 Studio 守护进程（`serve.ts --daemon`）
 

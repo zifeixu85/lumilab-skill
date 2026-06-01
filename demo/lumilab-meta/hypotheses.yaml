@@ -22,7 +22,7 @@
   fact: "Studio Mode（项目作战室 HTML）是 VST 区别于 super-prompt 的最强信号"
   category: assumption
   confidence: high
-  test_method: "路演 demo 时给 5 个评委看 Studio，记录 verbatim 反应"
+  test_method: "给 5 个目标用户看 Studio，记录 verbatim 反应"
   test_status: pending
   evidence: []
   status: active

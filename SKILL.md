@@ -3,7 +3,7 @@ name: lumilab
 description: |
   Lumi Lab —— C 端创业 idea 的快速验证 skills bundle。给一句话 idea，自动跑市场分析 / 竞品扫描 / 人群拆解 / 关键词红蓝海，产出一份图文并茂的网页版分析报告 + 几个具体方向建议，用户选定方向后再自动生成一个能测真实购买意愿的 fake-door 验证页（带 SEO/GEO + 转化追踪），可一键加密部署上线。全程最多问用户 2 次。26 个 skill 协同，跑在 Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI 里——宿主提供 LLM，bundle 不需要 LLM API key。
   关键词：创业 idea 验证 / 一句话想法 / 市场分析 / 竞品分析 / 人群拆解 / 关键词调研 / 红蓝海 / landing page / fake-door 验证页 / SEO / GEO / 购买意愿 / 轻量验证 / skills bundle / OPC / 独立开发者
-version: 1.10.2
+version: 1.14.0
 license: AGPL-3.0-or-later
 homepage: https://github.com/zifeixu85/lumilab
 platforms: [macos, linux]
@@ -60,7 +60,7 @@ lumilab idea "你的一句话想法"
 
 宿主 LLM 会按 `lumilab-idea-to-landing` 这个 orchestrator skill 的 EXECUTION CONTRACT 自动跑完整条流水线，全程最多打扰你 2 次（一次可选补充 + 一次方向选择），中间产物都是 HTML 主动推给你看。
 
-## 23 个 skill 怎么协同
+## 26 个 skill 怎么协同
 
 | 层 | 数量 | skills |
 |---|---|---|
@@ -73,7 +73,7 @@ lumilab idea "你的一句话想法"
 
 `idea-to-landing` 是编排者；它在 Phase 1 自动调用 research-platforms（定性痛点）+ research-competitor + research-icp + research-keywords（定量搜索需求），Phase 2 调 studio 渲染分析报告，Phase 4 调 design-direction + landing-mvp + copy 生成验证页。其余 skill 在对话中按需调用。
 
-每个 skill 是 `skills/<name>/SKILL.md` + 可选的 `scripts/`（含 `validate-output.ts` 输出校验 + `anti-slop-lint.ts` 文案检查）。23 个 skill 全部通过 SkillLens 官方 Deep Review（详见 `docs/SKILLLENS_REPORT.md`）。
+每个 skill 是 `skills/<name>/SKILL.md` + 可选的 `scripts/`（含 `validate-output.ts` 输出校验 + `anti-slop-lint.ts` 文案检查）。共 26 个 skill。
 
 ## 安装
 
