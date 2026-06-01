@@ -6,12 +6,24 @@
 
 **Lumi Lab** 是一套 26 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
 
-🎬 **演示视频**：[https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
-
-[![版本](https://img.shields.io/badge/version-1.10.2-orange)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.14.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![宿主](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+
+## 🚀 一键安装
+
+把这句话发给你的 AI 宿主（Claude Code / OpenClaw / Cursor / Codex…），它会自己装好：
+
+> 帮我装 Lumi Lab：跑 `curl -fsSL https://get.lumiclaw.ai | bash`，装完告诉我怎么用。
+
+或自己在终端跑：
+
+```bash
+curl -fsSL https://get.lumiclaw.ai | bash
+```
+
+装到所有检测到的 AI 宿主（Claude Code / OpenClaw / Codex / Gemini）的 skills 目录；重跑即升级，本地数据保留。也可 `git clone` —— 见下方 [安装](#安装)。
 
 ---
 
@@ -177,7 +189,7 @@ cd lumilab
 
 `install.sh` 把整个 `skills/` 装到所有检测到的宿主，CLI 装到 `~/.lumilab/bin/`，升级前自动备份旧版可回滚。**只装到某一个宿主**：`./install.sh --target ~/.codex/skills`（例如只给 Codex）。
 
-> 私有仓库需要你已登录 GitHub（`gh auth login` 或配好 SSH key）。
+> 仓库已公开，`git clone` 无需登录。
 
 #### 其它安装路径
 
@@ -304,7 +316,9 @@ lumilab help                          显示帮助
 
 ---
 
-## 1.10.0 新增（决赛优化 W1–W4）
+## 主要能力（决赛优化 W1–W4）
+
+> 逐版本变更见 [`CHANGELOG.md`](CHANGELOG.md)（当前 v1.14.0）。
 
 - **W1 · 常驻 Studio 守护进程** — `lumilab serve start`，固定端口统一服务所有 venture + home，文件变更 → 已打开页面**自动刷新**，访问时惰性重渲（不用 agent 手动 render）。
 - **W2 · `lumilab-next-actions` 新 skill** — 决策引擎：读全量 venture 数据 → 对照 R6 信号基线 → 多方向候选下一步。Studio 内联**看板**（原生拖拽持久化）+ **脑图**（离线渲染、断网可用）+ 可打印。
@@ -312,7 +326,7 @@ lumilab help                          显示帮助
 - **W4 · 落地页 `theme.css` + 实时 re-theme** — 构建阶段真实落地页 iframe + 设计面板并排，拖旋钮**立刻可见**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
 - **全量 26 skill 跑过 SkillLens Deep Review → 16 S + 10 A（平均 ~90.8，证书 verified）**；操作型 skill 的 SKILL.md 内联完整流水线细节（完整度优先于 context-budget 评分），方法论类精简 + 完整 `references/full-guide.md`。
 
-## 当前状态（v1.10.0）
+## 当前状态
 
 ✅ 已就绪：
 - **26 个 skill**，完整 SKILL.md + frontmatter，每个带 `validate-output.ts` 校验器 + `anti-slop-lint.ts` 文案检查器

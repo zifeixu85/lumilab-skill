@@ -6,12 +6,24 @@ English ｜ [简体中文](README.md)
 
 **Lumi Lab** is a 26-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
 
-🎬 **Demo video**: [https://www.bilibili.com/video/BV15o5862EHV/](https://www.bilibili.com/video/BV15o5862EHV/)
-
-[![Version](https://img.shields.io/badge/version-1.10.2-orange)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.14.0-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
 [![Hosts](https://img.shields.io/badge/hosts-Claude_Code_·_OpenClaw_·_Hermes_·_Cursor_·_Codex-555)](docs/TUTORIAL.zh.md)
 [![SkillLens](https://img.shields.io/badge/SkillLens-16S_+_10A_·_avg_90.8_·_verified-brightgreen)](docs/SKILLLENS_REPORT.md)
+
+## 🚀 Install in one line
+
+Tell your AI host (Claude Code / OpenClaw / Cursor / Codex…) and it installs itself:
+
+> Install Lumi Lab for me: run `curl -fsSL https://get.lumiclaw.ai | bash`, then tell me how to use it.
+
+Or run it yourself:
+
+```bash
+curl -fsSL https://get.lumiclaw.ai | bash
+```
+
+Installs into every detected AI host (Claude Code / OpenClaw / Codex / Gemini); re-run to upgrade, local data preserved. `git clone` also works — see [Install](#install) below.
 
 ---
 
@@ -151,7 +163,7 @@ cd lumilab
 ./install.sh            # auto-detects Claude Code / Codex / OpenClaw / Gemini, installs to each
 ```
 
-`install.sh` copies the whole `skills/` to every detected host + the CLI to `~/.lumilab/bin/`, backing up the old version first (rollback-able). **Single host only**: `./install.sh --target ~/.codex/skills` (e.g. Codex only). Private repo — you need GitHub access (`gh auth login` or an SSH key).
+`install.sh` copies the whole `skills/` to every detected host + the CLI to `~/.lumilab/bin/`, backing up the old version first (rollback-able). **Single host only**: `./install.sh --target ~/.codex/skills` (e.g. Codex only). The repo is public — `git clone` needs no login.
 
 #### Other paths
 
@@ -262,7 +274,9 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 
 ---
 
-## New in 1.10.0
+## Highlights (W1–W4)
+
+> Per-version changes: [`CHANGELOG.md`](CHANGELOG.md) (currently v1.14.0).
 
 - **W1 · Resident Studio daemon** — `lumilab serve start`: one process serves every venture + home on a fixed port; change any data → open pages **auto-refresh**, lazy re-render on access (no manual render).
 - **W2 · `lumilab-next-actions` skill** — decision engine: reads all venture data → R6 signal baselines → multi-direction next-step candidates. Inline **kanban** (native drag, persists) + **mindmap** (offline, works without network) + printable.
@@ -270,7 +284,7 @@ All 26 skills passed [SkillLens](https://github.com/Yannickdes/SkillLens) offici
 - **W4 · Landing `theme.css` + live re-theme** — build stage puts the real landing in an iframe beside a design panel; drag a dial → the page **changes instantly**; "Apply" deterministically rewrites `theme.css` (no LLM).
 - **All 26 skills SkillLens Deep-Reviewed → 16 S + 10 A** (avg ~90.8, verified); operational skills keep the full pipeline inline (completeness over context-budget score), methodology skills stay lean + full `references/full-guide.md`.
 
-## Status (v1.10.0)
+## Status
 
 ✅ Ready:
 - 26 skills with full SKILL.md + frontmatter
