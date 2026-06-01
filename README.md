@@ -1,10 +1,10 @@
 # Lumi Lab
 
-> **给创业者的 Skills bundle。把一个模糊的想法，7 天跑成一次市场实验。**
+> **把一句话想法，送进创业实验室。看清楚 · 测一下 · 下一步。**
 
 [English](README.en.md) ｜ 简体中文
 
-**Lumi Lab** 是一套 26 个 skill 的 bundle，跑在 **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI** 里。把它丢进你 AI 宿主的 skills 目录——**给它一句话 idea，它自动跑市场分析、提方向建议、生成带 SEO/GEO 的 landing 页**。全程最多问你两次。模糊的想法进，能验证的 landing 页出。
+从一个念头，到判断它到底值不值得做 —— 查需求、想定位、做验证页、发出去、读数据，中间这段路 **Lumi Lab 替你跑**。它是一套装进你 AI 助手的技能包：给一句话想法，它自动接力做完，最后给你一个能测真实意愿的验证页，和一份「接着做什么」的判断。
 
 [![版本](https://img.shields.io/badge/version-1.14.2-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
@@ -29,113 +29,50 @@ curl -fsSL https://get.lumiclaw.ai | bash
 
 ---
 
-## 它是什么，不是什么
+## 不是给想法打个分，是带它走完一次验证
 
-| Lumi Lab 是 | Lumi Lab 不是 |
-|---|---|
-| 一套 **Skills bundle**，丢进 `~/.claude/skills/` 用 | 一个独立的 Agent 产品 |
-| 在 Claude Code / OpenClaw / Cursor 里被调用 | 一个 web app 或 SaaS |
-| 产出文件：HTML、YAML、CSV、Markdown | 提供一个聊天界面 |
-| **用你宿主自己的 LLM** | 要你自己的 LLM API key |
-| 读写 `~/.lumilab/` 做状态 | 偷偷上报数据 |
+你有个想法，但心里没底：
 
-**你不用给 Lumi Lab LLM API key。** 你的 AI 宿主已经有了——Lumi Lab 接进去就行。它要的那些可选 token 都是**工具集成**（Cloudflare 部署 Studio、Tavily 做网页搜索、TikHub 拿小红书 API 等）。
+> 「我觉得肯定有人需要……但多少人在找、谁在做、为什么不满意，我没认真查过。」
+> 「想做的功能列了十个，结果一个没开始 —— 不知道先做哪个。」
+> 「想测有没有人要，可连个像样的页面、一段能发的文案、一张图都做不出来。」
+> 「页面做好了，该先发朋友圈还是小红书？发完没人理怎么办，心里完全没谱。」
+> 「有人收藏、有人问、网页没人留邮箱……这到底算成了没成？下一步干嘛？」
 
----
+Lumi Lab 把这几段路一步步替你跑完 ——
 
-## 为什么有这东西
+- **① 看清楚** · 先把脑子里那团模糊理清楚：做什么、给谁、赌哪一点。
+- **② 测一下** · 网页、小红书、朋友圈、海报，挑省力的方式放出去，看真人怎么反应。
+- **③ 下一步** · 数据回来，帮你读懂：接着做、换方向、还是先停一停。
 
-**Skill 不再稀缺，编排才稀缺。**
+展开就是 6 步：**想法澄清 → 看清地形（市场 / 竞品 / 痛点）→ 定位（做什么 · 给谁 · 怎么收费）→ 做出能测的东西（验证页 / 文案 / 配图 / 收款）→ 发出去（冷启动计划）→ 读数据定下一步**。
 
-难的不是找一个 prompt 或一个 skill，而是知道：
-
-- 有了新想法，该串哪些 skill
-- 哪些平台规则是真的要命的（小红书标题 ≤ 38 字、X thread ≤ 7 条…）
-- 假设该 pivot 了，而不是继续打磨 landing page
-- 怎么发一个不像 AI demo 的私密项目 Studio
-
-Lumi Lab 把这些答案编码成 26 个自包含的 skill + 一个共享的 `~/.lumilab/` 状态目录 + 一个**常驻 Studio 服务**（文件变更自动刷新浏览器）+ 3 个浏览器工具 UI（Setup Wizard、Share Manager、Design Direction）。
+> 它给你**参考基线和解读，但不替你下成败结论** —— 每个项目基数不同，继续 / 调整 / 先停，最后你拍板。
 
 ---
 
-## 你得到什么
+## 一句话，跑完整条路
 
-### 一句话 idea → 能测购买意愿的验证页（默认流程）
+装好后，对你的 AI 说一句「帮我用 Lumi Lab 验证一个想法」，剩下交给它：自动跑市场分析、竞品扫描、方向建议，做出一个能测真实购买意愿的验证页；全程**只在两个真正要你拍板的地方停下来**，其余自动跑完。每一步都渲染成网页主动推给你看，不是丢一堆文件了事。
 
-Lumi Lab 是 **C 端创业 idea 的快速验证工具**。`lumilab-idea-to-landing` 是默认入口，autoplan 式自动流水线：
+- **上手零配置** —— 核心流程开箱即用，不用先配一堆账号。
+- **用你 AI 自己的脑子** —— 不用再给一个 LLM key，你的 Claude Code / Codex / OpenClaw 已经有了。
+- **数据在你本地** —— venture、配置、密钥都在 `~/.lumilab/`，不上报。
+- 联网调研 / 一键部署 / 生图等会用到第三方服务，需要各自的 Key，但**全部可跳过**，不填也能完整跑一遍。
 
-```
-你：一句话 idea
- ↓  （最多问你一次可选的补充，能跳过就跳过）
-自动：市场分析 + 竞品扫描 + 人群拆解
- ↓
-交付：图文并茂的 HTML 分析报告 + 3-5 个具体方向建议
- ↓  （唯一一次决策：选个方向，或说「你来定」）
-自动：设计 + 文案 + 生成 fake-door 验证页（带 SEO/GEO）
- ↓
-交付：可部署的验证页 —— 真实「立即购买/留邮箱」CTA + 转化追踪
-       上线几天，回收「有多少人表达了购买意愿」这个数字
-```
+---
 
-最终产出的 landing **不是营销页，是验证仪器**——它的工作是测量需求信号（CTA 点击率、邮箱留资率）。不是陪你聊天、一步步追问，是**帮你判断 + 帮你做出验证工具**。中间产物全部 HTML 主动推给你看，不静默落盘。
+## 26 个技能，覆盖从想法到验证的每一步
 
-社媒验证：`lumilab-content-repurpose --validate` 还能生成专门测意愿的小红书/推特素材。验证跑完，`lumilab retro` 帮你把数字归到强/中/弱信号、判断继续还是 pivot。
+每个技能背后都有一套成熟方法论（Mom Test、April Dunford 定位、Sean Ellis PMF、YC office hours…）。你不用一个个学 —— **给一句话，它们自己接力**：调研 → 产品 → 文案 → 落地页 → 发布，一路做到能测真实意愿的验证页。
 
-### 一个可选的深度教练
+- **想法 → 验证 编排器** · 默认入口，把其它技能串起来的总指挥。
+- **作战室 Studio** · 整个过程渲染成网页给你看，常驻服务、改了自动刷新。
+- **假设账本** · 每次判断都留痕，可回头复盘、可 pivot 不丢历史。
+- **下一步行动引擎** · 反馈回来，告诉你接着具体做什么。
+- **创始人教练** · 想找人把某个问题聊透，随时在。
 
-需要被深挖、想把某个具体问题想透时，才用 `lumilab-founder-coach`：方法论 / 认知陷阱 / 心理向三层。**它也不再一次一个问题磨**——先给分析判断，再批量问，一轮 session 最多 2-3 次提问。
-
-### 一个永不删除的假设账本
-
-每个假设都是一条带 `id`、置信度、验证方法、证据、supersede 历史的 atomic YAML。你可以 pivot——旧假设保留 `status: superseded` + `superseded_by: <新 id>`。Studio 把 diff 内联渲染出来。
-
-### 每个 venture 一个 Studio（常驻服务，实时刷新）
-
-每个想法有自己的项目页——一份可打印的实验日志，编辑式排版（Fraunces 衬线 + JetBrains Mono）、SVG 进度时间线、假设卡片、决策轨迹。暖纸色 OKLCH + 颗粒噪声纹理。
-
-`lumilab serve start` 起一个**常驻 Studio 守护进程**（固定端口，统一服务所有 venture + home）：改任意 venture 数据，**已打开的页面自动刷新**，不用手动重渲。Studio 里还内联了几块实时交互：
-
-- **下一步行动**（复盘阶段）：决策引擎把本轮信号收敛成多方向候选 → **看板**（原生拖拽，drop 即持久化）+ **脑图**（离线渲染，断网可用）+ `@media print` 可打印贴墙。
-- **付款验证**（启动阶段）：`lumilab payment sync` 只读回读真实 Stripe 付款 → 「N 笔 · ¥X · 转化 Y% · 强信号」（脱敏，不存邮箱/卡）。
-- **实时 re-theme**（构建阶段）：真实落地页放进 iframe + 设计面板并排，**拖旋钮 → 落地页立刻变**；「应用设计」确定性写回 `theme.css`（不调 LLM）。
-
-### 三个浏览器 UI（不需要 LLM）
-
-- **Setup Wizard**（`lumilab config`）— 6 步。问你真正需要的工具 token：Cloudflare、Tavily、TikHub。**从不问 LLM key。**
-- **Share Manager**（`lumilab manage`）— 列出每个已部署的 Studio，可显示密码 / rotate / 删除。
-- **Design Direction**（`lumilab design-direction <venture>`）— 4 套美学样本 + 3 个旋钮（variance / motion / density）+ iframe 实时预览。产出 `design_direction.json` 供下游 skill 消费。
-
-### 一条命令部署 + 密码门
-
-```
-$ lumilab deploy my-venture
-
-  🔑 使用密码：••••••
-  🔒 加密中（AES-GCM + PBKDF2 1M 迭代）
-  ☁️  wrangler pages deploy → my-venture-yourname.pages.dev
-
-  ✅ 已部署
-     URL：     https://my-venture-yourname.pages.dev
-     密码：    728345   （单独分享）
-```
-
-访客输一次密码。勾上「在此设备记住」后，刷新或新开标签页不再重复要密码——rotate 密码时 localStorage 缓存自动失效。
-
-### 平台规则内置
-
-5 个中国平台（小红书、公众号、抖音、朋友圈、X）各有硬规则，存在 `skills/lumilab-playbook-cn/references/platform-rules/`：
-
-```
-xiaohongshu.md：
-- 标题 ≤ 38 字（中文 ×2，英文 / 数字 ×1）
-- 图文必有图（无图不可发）
-- 图 / 视频不可混用
-- 首图必须可读
-- 标签 3–10 个
-- 正文不放外链
-```
-
-内容 skill 在生成任何东西之前先读这些规则。不靠 LLM「推断」——是写下来的规则。2025–2026 最新更新已纳入。
+全部 26 个技能的一行说明见 [`docs/SKILLS.md`](docs/SKILLS.md)。
 
 ---
 
@@ -346,13 +283,7 @@ lumilab help                          显示帮助
 
 ## License
 
-Lumi Lab 源码可见，按 **[AGPL-3.0](LICENSE)**（GNU Affero 通用公共许可证 v3）授权。
-
-- ✅ **免费**用、读、改、分发、自部署，没有功能 / 人数限制。
-- 🔁 **强 copyleft（核心约束）**：你改了它再分发，或把改过的版本作为**网络服务**对外提供，就必须把**完整源码**一并以 AGPL-3.0 开放出来 —— 不能拿去做闭源产品。
-- 🏢 **商业 / 闭源授权**：想在闭源或专有产品里集成、不愿承担 AGPL 的开源义务？联系 **ameng@ameng.blog** 取得商业授权（dual-license）。
-
-> 说明：AGPL 是开源许可证，**它本身不禁止商业使用**；它用「改了必须同样开源」这条来阻止别人把 Lumi Lab 闭源化牟利。要完全闭源商用，走上面的商业授权。
+[AGPL-3.0](LICENSE) —— 可自由用 / 改 / 自部署；改了再分发、或作为网络服务提供，需同样以 AGPL 开源。商业 / 闭源授权另议。
 
 ## 致谢
 

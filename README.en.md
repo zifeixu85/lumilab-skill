@@ -1,10 +1,10 @@
 # Lumi Lab
 
-> **A skills bundle for founders. From a vague idea to a market experiment in 7 days.**
+> **Send a one-sentence idea into the startup lab. See clearly · Test it · Know what's next.**
 
 English ｜ [简体中文](README.md)
 
-**Lumi Lab** is a 26-skill bundle for **Claude Code / OpenClaw / Cursor / Codex / Hermes / Gemini CLI**. Give it a one-sentence idea — it autonomously runs market analysis, proposes directions, and generates a landing page with SEO/GEO. Asks you at most twice. Fuzzy idea in, testable landing page out.
+From a hunch to knowing whether it's worth building — researching demand, finding positioning, building a validation page, shipping it, reading the data — **Lumi Lab runs that path for you**. It's a skills bundle that lives inside your AI assistant: give it a one-sentence idea, it relays the work across skills and hands you a page that measures real intent, plus a read on what to do next.
 
 [![Version](https://img.shields.io/badge/version-1.14.2-orange)](CHANGELOG.md)
 [![Skills](https://img.shields.io/badge/skills-26-blue)](skills/)
@@ -29,89 +29,50 @@ Installs into every detected AI host (Claude Code / OpenClaw / Codex / Gemini); 
 
 ---
 
-## What this is (and isn't)
+## It doesn't score your idea — it walks it through a real validation
 
-| Lumi Lab is | Lumi Lab isn't |
-|---|---|
-| A **skills bundle** dropped into `~/.claude/skills/` | A standalone Agent product |
-| Invoked from inside Claude Code / OpenClaw / Cursor | A web app or SaaS |
-| Provides files: HTML, YAML, CSV, MD | Provides a chat UI |
-| **Uses your host's LLM** | Requires your own LLM API key |
-| Reads/writes `~/.lumilab/` for state | Phones home |
+You have an idea, but you're not sure:
 
-**You don't give Lumi Lab an LLM API key.** Your AI host already has one — Lumi Lab plugs into it. The optional tokens it asks for are **tool integrations** (Cloudflare for deploying Studios, Tavily for web search, TikHub for Xiaohongshu API, etc.).
+> "I'm sure someone needs this… but how many are searching, who's already doing it, why they're unhappy — I never actually checked."
+> "I listed ten features and started none, because I didn't know which to do first."
+> "I want to test demand, but I can't make a decent page, a postable caption, or a single image."
+> "The page is done — do I post to Xiaohongshu or WeChat first? What if no one responds?"
+> "Some saves, some questions, zero email signups… did it work or not? What's next?"
 
----
+Lumi Lab runs those legs for you —
 
-## Why this exists
+- **① See clearly** · untangle the fuzz first: what, for whom, and which bet you're making.
+- **② Test it** · web, Xiaohongshu, Moments, a poster — ship the cheapest one and watch real reactions.
+- **③ What's next** · when data comes back, it helps you read it: keep going, pivot, or pause.
 
-**Skills are no longer scarce. Orchestration is.**
+Expanded, that's 6 steps: **clarify the idea → map the terrain (market / competitors / pain) → positioning (what · for whom · pricing) → build something testable (validation page / copy / imagery / checkout) → ship it (cold-start plan) → read the data, decide next**.
 
-The problem isn't finding a prompt or skill. It's knowing:
-- which skills to chain when you have a new idea
-- which platform constraints actually matter (XHS ≤ 38-char title, X thread ≤ 7 posts, etc.)
-- when to pivot a hypothesis instead of polishing the landing page
-- how to publish a private project Studio that doesn't look like an AI demo
-
-Lumi Lab encodes the answers as 26 self-contained skills + a shared `~/.lumilab/` state directory + a **resident Studio service** (auto-refreshes the browser on file change) + 3 utility browser UIs (Setup Wizard, Share Manager, Design Direction).
+> It gives you **baselines and a reading, but never declares success/failure for you** — every project's baseline differs; keep / adjust / pause is your call.
 
 ---
 
-## What you get
+## One sentence, the whole path
 
-### One-sentence idea → landing page (the default flow)
+Once installed, tell your AI "help me validate an idea with Lumi Lab" and leave the rest to it: it runs market analysis, competitor scan, direction proposals, and builds a page that measures real purchase intent — stopping **only at the two points that genuinely need your call**, autonomous otherwise. Every step is rendered as a web page and pushed to you, not dumped as files.
 
-`lumilab-idea-to-landing` is the default entry — an autoplan-style autonomous pipeline: idea in → market analysis + competitor scan + audience breakdown → an illustrated HTML report with 3-5 concrete direction proposals → you pick one (the only decision gate) → auto design + copy + a landing page with SEO/GEO → deployable HTML out. It does not interrogate you step by step — it does the judgment and the work. Intermediate artifacts are pushed to you as HTML, never silently dropped to disk.
+- **Zero-config to start** — the core flow works out of the box, no accounts to set up first.
+- **Uses your AI's own brain** — no extra LLM key; your Claude Code / Codex / OpenClaw already has one.
+- **Your data stays local** — ventures, config, secrets all in `~/.lumilab/`, never phoned home.
+- Web research / one-click deploy / image-gen use third-party services that need their own keys — all **skippable**; you can run the whole validation without any of them.
 
-### An optional deep coach
+---
 
-`lumilab-founder-coach` — for when you explicitly want to be pushed deep on a specific problem. Three layers (methodology / cognitive traps / psychological). It no longer drills one question at a time — it analyzes first, then batches questions, max 2-3 prompts per session.
+## 26 skills, covering every step from idea to validation
 
-### A Hypothesis Ledger that never deletes
+Each skill is backed by a proven methodology (Mom Test, April Dunford positioning, Sean Ellis PMF, YC office hours…). You don't learn them one by one — **give a sentence, they relay**: research → product → copy → landing → launch, all the way to a page that measures real intent.
 
-Every assumption is an atomic YAML fact with an `id`, confidence, test method, evidence, supersede history. You can pivot — the old hypothesis stays with `status: superseded` and `superseded_by: <new-id>`. The Studio renders the diff inline.
+- **Idea → validation orchestrator** · the default entry, the conductor that chains the other skills.
+- **Studio war-room** · the whole process rendered as a web page; resident service, auto-refreshes on change.
+- **Hypothesis ledger** · every call is logged — revisit, and pivot without losing history.
+- **Next-action engine** · when feedback returns, it tells you what to do next.
+- **Founder coach** · there whenever you want to talk a problem through.
 
-### A Studio per venture
-
-Each idea gets its own project page — a printable journal with editorial typography (Fraunces serif + JetBrains Mono), SVG progress timeline, hypothesis cards, decision trail. OKLCH on warm newsprint with grain overlay.
-
-### Three browser UIs (no LLM needed)
-
-- **Setup Wizard** (`lumilab config`) — 6 steps. Asks for tool tokens you actually need: Cloudflare, Tavily, TikHub. **Never asks for an LLM key.**
-- **Share Manager** (`lumilab manage`) — every deployed Studio, with reveal-password / rotate / delete.
-- **Design Direction** (`lumilab design-direction <venture>`) — 4 aesthetic samples + 3 dials (variance / motion / density) + iframe live preview. Output writes `design_direction.json` consumed by downstream skills.
-
-### One-command deploy with password gate
-
-```
-$ lumilab deploy my-venture
-
-  🔑 using password: ••••••
-  🔒 encrypting (AES-GCM + PBKDF2 1M iter)
-  ☁️  wrangler pages deploy → my-venture-yourname.pages.dev
-
-  ✅ deployed
-     URL:      https://my-venture-yourname.pages.dev
-     Password: 728345   (share this separately)
-```
-
-Visitors enter the password once. With "Remember on this device" checked, refreshing or new-tabbing won't re-prompt — localStorage cache invalidates automatically when you rotate the password.
-
-### Platform know-how baked in
-
-Five Chinese platforms (小红书, 公众号, 抖音, 朋友圈, X) each have hard rules in `skills/lumilab-content-repurpose/references/platform-rules/`:
-
-```
-xiaohongshu.md:
-- 标题 ≤ 38 字 (中文 ×2, 英文/数字 ×1)
-- 图文必有图（无图不可发）
-- 图视频不可混用
-- 首图必须可读
-- 标签 3-10 个
-- 不在正文放外链
-```
-
-The Content skill reads these before generating anything. No LLM "推断" — written-down rules.
+One-line descriptions of all 26 skills: [`docs/SKILLS.md`](docs/SKILLS.md).
 
 ---
 
@@ -316,13 +277,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full manifest.
 
 ## License
 
-Lumi Lab is source-available under **[AGPL-3.0](LICENSE)** (GNU Affero General Public License v3).
-
-- ✅ **Free** to use, read, modify, redistribute, and self-host — no feature or seat limits.
-- 🔁 **Strong copyleft (the core term)**: if you modify it and redistribute, or run a modified version as a network service, you must release your **complete source** under AGPL-3.0 too — you can't build a closed-source product on it.
-- 🏢 **Commercial / proprietary license**: want to embed it in a closed-source product without AGPL's obligations? Contact **ameng@ameng.blog** for a commercial license (dual-licensing).
-
-> Note: AGPL is an open-source license and does **not** ban commercial use by itself; its "modify ⇒ must open-source" rule is what stops others from taking Lumi Lab closed-source. For fully proprietary commercial use, take the commercial license above.
+[AGPL-3.0](LICENSE) — free to use / modify / self-host; if you redistribute a modified version or run it as a network service, you must release your source under AGPL too. Commercial / proprietary licensing available separately.
 
 ## Credits
 

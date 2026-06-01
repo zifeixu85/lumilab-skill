@@ -237,4 +237,4 @@ This release ships Tier 1 fully. Tier 2–4 land later with a knowledge-graph la
 
 ## License
 
-AGPL-3.0（源码可见 + 强 copyleft），见 [`../LICENSE`](../LICENSE)。闭源 / 商业授权（dual-license）联系 ameng@ameng.blog。
+AGPL-3.0，见 [`../LICENSE`](../LICENSE)。商业 / 闭源授权另议。
